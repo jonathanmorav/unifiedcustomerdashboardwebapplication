@@ -3,10 +3,12 @@
 An enterprise-grade web application that consolidates customer data from HubSpot and Dwolla, providing support teams with a unified interface to eliminate context switching and reduce task completion time from 8-10 minutes to 2-3 minutes.
 
 ![CI](https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication/actions/workflows/ci.yml/badge.svg)
+![Accessibility](https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication/actions/workflows/a11y.yml/badge.svg)
 ![Deploy](https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication/actions/workflows/deploy.yml/badge.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-15.4.1-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC)
+![WCAG 2.1 AA](https://img.shields.io/badge/WCAG_2.1_AA-compliant-green)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🚀 Features
@@ -23,10 +25,19 @@ An enterprise-grade web application that consolidates customer data from HubSpot
 - **Enterprise Authentication**: Google OAuth with email whitelist
 - **Type Safety**: Full TypeScript implementation
 - **Responsive Design**: Mobile-first approach with Cakewalk Design System
+- **Dark Mode & Accessibility**: WCAG 2.1 AA compliant theming with smooth transitions
 - **PCI Compliance**: Account numbers masked for security
 - **Rate Limiting**: Intelligent API rate limit handling
 - **Error Recovery**: Automatic retry logic with exponential backoff
 - **Performance Monitoring**: Real-time metrics display
+
+### Accessibility Features
+- **WCAG 2.1 AA Compliance**: All colors meet contrast ratio standards
+- **Keyboard Navigation**: Full keyboard support with Alt+T shortcut
+- **Screen Reader Support**: ARIA landmarks and live announcements
+- **Skip Links**: Direct navigation to main content
+- **Theme Persistence**: User preference saved across sessions
+- **System Theme Detection**: Automatic dark/light mode based on OS preference
 
 ## 📋 Prerequisites
 
