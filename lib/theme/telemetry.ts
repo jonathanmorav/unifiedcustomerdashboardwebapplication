@@ -33,16 +33,16 @@ class ThemeTelemetry {
    * Get current theme data from window
    */
   private getThemeData(): ThemeData {
-    if (typeof window !== 'undefined' && window.__themeData) {
+    if (typeof window !== "undefined" && window.__themeData) {
       return window.__themeData
     }
-    
+
     // Fallback data
     return {
-      theme: 'system',
-      resolved: 'light',
+      theme: "system",
+      resolved: "light",
       storageAvailable: true,
-      systemPreference: 'light'
+      systemPreference: "light",
     }
   }
 
@@ -51,7 +51,7 @@ class ThemeTelemetry {
    */
   track(event: string, metadata?: Record<string, any>) {
     const themeData = this.getThemeData()
-    
+
     const eventData: ThemeEvent = {
       event,
       theme: themeData.theme,
@@ -61,8 +61,8 @@ class ThemeTelemetry {
       metadata: {
         ...metadata,
         resolved: themeData.resolved,
-        storageError: themeData.storageError
-      }
+        storageError: themeData.storageError,
+      },
     }
 
     // Store event locally
@@ -75,8 +75,8 @@ class ThemeTelemetry {
     this.sendToAnalytics(eventData)
 
     // Log in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Theme Telemetry]', event, eventData)
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Theme Telemetry]", event, eventData)
     }
   }
 
@@ -85,20 +85,20 @@ class ThemeTelemetry {
    */
   private sendToAnalytics(event: ThemeEvent) {
     // TODO: Replace with actual analytics service (Segment, Mixpanel, etc.)
-    if (typeof window !== 'undefined' && (window as any).analytics) {
-      (window as any).analytics.track('theme_event', event)
+    if (typeof window !== "undefined" && (window as any).analytics) {
+      ;(window as any).analytics.track("theme_event", event)
     }
   }
 
   /**
    * Track theme switch event
    */
-  trackThemeSwitch(oldTheme: string, newTheme: string, trigger: 'user' | 'system') {
-    this.track('theme_switched', {
+  trackThemeSwitch(oldTheme: string, newTheme: string, trigger: "user" | "system") {
+    this.track("theme_switched", {
       oldTheme,
       newTheme,
       trigger,
-      duration: this.getThemeDuration(oldTheme)
+      duration: this.getThemeDuration(oldTheme),
     })
   }
 
@@ -106,10 +106,10 @@ class ThemeTelemetry {
    * Track storage error
    */
   trackStorageError(error: Error) {
-    this.track('theme_storage_error', {
+    this.track("theme_storage_error", {
       errorMessage: error.message,
       errorType: error.name,
-      fallback: 'system_preference'
+      fallback: "system_preference",
     })
   }
 
@@ -117,10 +117,10 @@ class ThemeTelemetry {
    * Track performance metrics
    */
   trackPerformance(metric: string, duration: number) {
-    this.track('theme_performance', {
+    this.track("theme_performance", {
       metric,
       duration,
-      exceedsTarget: duration > 50 // 50ms target
+      exceedsTarget: duration > 50, // 50ms target
     })
   }
 
@@ -129,9 +129,9 @@ class ThemeTelemetry {
    */
   private getThemeDuration(theme: string): number {
     const lastSwitch = this.events
-      .filter(e => e.event === 'theme_switched' && e.metadata?.newTheme === theme)
+      .filter((e) => e.event === "theme_switched" && e.metadata?.newTheme === theme)
       .pop()
-    
+
     return lastSwitch ? Date.now() - lastSwitch.timestamp : 0
   }
 
@@ -140,9 +140,9 @@ class ThemeTelemetry {
    */
   getSummary() {
     const themeData = this.getThemeData()
-    const themeSwitches = this.events.filter(e => e.event === 'theme_switched')
-    const errors = this.events.filter(e => e.event === 'theme_storage_error')
-    const performance = this.events.filter(e => e.event === 'theme_performance')
+    const themeSwitches = this.events.filter((e) => e.event === "theme_switched")
+    const errors = this.events.filter((e) => e.event === "theme_storage_error")
+    const performance = this.events.filter((e) => e.event === "theme_performance")
 
     return {
       currentTheme: themeData.theme,
@@ -150,10 +150,12 @@ class ThemeTelemetry {
       storageAvailable: themeData.storageAvailable,
       totalSwitches: themeSwitches.length,
       totalErrors: errors.length,
-      averageSwitchTime: performance.length > 0
-        ? performance.reduce((acc, e) => acc + (e.metadata?.duration || 0), 0) / performance.length
-        : 0,
-      lastEvents: this.events.slice(-10)
+      averageSwitchTime:
+        performance.length > 0
+          ? performance.reduce((acc, e) => acc + (e.metadata?.duration || 0), 0) /
+            performance.length
+          : 0,
+      lastEvents: this.events.slice(-10),
     }
   }
 
@@ -173,14 +175,12 @@ export const themeTelemetry = new ThemeTelemetry()
  */
 export function useThemeTelemetry() {
   return {
-    track: (event: string, metadata?: Record<string, any>) => 
-      themeTelemetry.track(event, metadata),
-    trackThemeSwitch: (oldTheme: string, newTheme: string, trigger: 'user' | 'system' = 'user') =>
+    track: (event: string, metadata?: Record<string, any>) => themeTelemetry.track(event, metadata),
+    trackThemeSwitch: (oldTheme: string, newTheme: string, trigger: "user" | "system" = "user") =>
       themeTelemetry.trackThemeSwitch(oldTheme, newTheme, trigger),
-    trackStorageError: (error: Error) =>
-      themeTelemetry.trackStorageError(error),
+    trackStorageError: (error: Error) => themeTelemetry.trackStorageError(error),
     trackPerformance: (metric: string, duration: number) =>
       themeTelemetry.trackPerformance(metric, duration),
-    getSummary: () => themeTelemetry.getSummary()
+    getSummary: () => themeTelemetry.getSummary(),
   }
 }

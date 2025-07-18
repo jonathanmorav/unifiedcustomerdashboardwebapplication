@@ -1,16 +1,16 @@
-'use client'
+"use client"
 
-import { useTheme as useNextTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
-import { themeTelemetry } from '@/lib/theme/telemetry'
+import { useTheme as useNextTheme } from "next-themes"
+import { useEffect, useState } from "react"
+import { themeTelemetry } from "@/lib/theme/telemetry"
 
-export type Theme = 'light' | 'dark' | 'system'
+export type Theme = "light" | "dark" | "system"
 
 interface UseThemeReturn {
   theme: Theme | undefined
   setTheme: (theme: Theme) => void
-  systemTheme: 'light' | 'dark' | undefined
-  resolvedTheme: 'light' | 'dark' | undefined
+  systemTheme: "light" | "dark" | undefined
+  resolvedTheme: "light" | "dark" | undefined
   isLoading: boolean
   themes: Theme[]
 }
@@ -19,13 +19,7 @@ interface UseThemeReturn {
  * Enhanced theme hook with telemetry and performance tracking
  */
 export function useTheme(): UseThemeReturn {
-  const {
-    theme,
-    setTheme: setNextTheme,
-    systemTheme,
-    resolvedTheme,
-    themes
-  } = useNextTheme()
+  const { theme, setTheme: setNextTheme, systemTheme, resolvedTheme, themes } = useNextTheme()
 
   const [isLoading, setIsLoading] = useState(true)
   const [performanceStart, setPerformanceStart] = useState<number | null>(null)
@@ -38,10 +32,10 @@ export function useTheme(): UseThemeReturn {
 
     try {
       setNextTheme(newTheme)
-      
+
       // Track theme switch
       if (oldTheme && oldTheme !== newTheme) {
-        themeTelemetry.trackThemeSwitch(oldTheme, newTheme, 'user')
+        themeTelemetry.trackThemeSwitch(oldTheme, newTheme, "user")
       }
     } catch (error) {
       // Track storage errors
@@ -55,7 +49,7 @@ export function useTheme(): UseThemeReturn {
   useEffect(() => {
     if (performanceStart && theme) {
       const duration = performance.now() - performanceStart
-      themeTelemetry.trackPerformance('theme_switch', duration)
+      themeTelemetry.trackPerformance("theme_switch", duration)
       setPerformanceStart(null)
     }
   }, [theme, performanceStart])
@@ -63,19 +57,19 @@ export function useTheme(): UseThemeReturn {
   // Track initial load
   useEffect(() => {
     setIsLoading(false)
-    themeTelemetry.track('theme_loaded', {
+    themeTelemetry.track("theme_loaded", {
       initialTheme: theme,
-      systemTheme
+      systemTheme,
     })
   }, [])
 
   return {
     theme: theme as Theme | undefined,
     setTheme,
-    systemTheme: systemTheme as 'light' | 'dark' | undefined,
-    resolvedTheme: resolvedTheme as 'light' | 'dark' | undefined,
+    systemTheme: systemTheme as "light" | "dark" | undefined,
+    resolvedTheme: resolvedTheme as "light" | "dark" | undefined,
     isLoading,
-    themes: themes as Theme[]
+    themes: themes as Theme[],
   }
 }
 
@@ -87,8 +81,8 @@ export function useLocalStorageAvailable(): boolean {
 
   useEffect(() => {
     try {
-      const testKey = '__localStorage_test__'
-      localStorage.setItem(testKey, 'test')
+      const testKey = "__localStorage_test__"
+      localStorage.setItem(testKey, "test")
       localStorage.removeItem(testKey)
       setAvailable(true)
     } catch {

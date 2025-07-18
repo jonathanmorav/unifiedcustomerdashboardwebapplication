@@ -9,7 +9,7 @@
     ```
     Create "credentials.txt" with:
     - HubSpot API Key
-    - Dwolla Client ID & Secret  
+    - Dwolla Client ID & Secret
     - Google OAuth Client ID & Secret
     - Authorized email addresses list
     - Hosting account details (Vercel/Railway)
@@ -150,7 +150,7 @@
 
     ### Dark Mode & Accessibility ✅ COMPLETED
     **Status:** Fully implemented with comprehensive testing and CI/CD integration
-    
+
     **Implementation Details:**
     - ✅ System preference detection with next-themes
     - ✅ Smooth theme transitions (<50ms performance target)
@@ -163,14 +163,14 @@
     - ✅ Automated accessibility testing in CI/CD
     - ✅ Complete test suite (14 tests passing)
     - ✅ Cross-browser support (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
-    
+
     **Files Created:**
     - `lib/theme/`: Complete theme system with colors, telemetry, SSR script
     - `components/theme/`: ThemeToggle with accessibility features
     - `__tests__/`: Comprehensive test suite
     - `.github/workflows/a11y.yml`: Automated accessibility testing
     - `docs/DARK_MODE_IMPLEMENTATION.md`: Complete documentation
-    
+
     **GitHub Issue:** #3 - Dark Mode & Accessibility Theming - RESOLVED
 
     ### Performance Optimization

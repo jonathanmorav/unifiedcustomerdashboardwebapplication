@@ -47,7 +47,7 @@
   /* Default theme */
   --background: var(--cakewalk-bg-alice-100);
   --foreground: var(--cakewalk-text-primary);
-  
+
   /* Additional semantic variables */
   --card: var(--cakewalk-bg-alice-200);
   --card-foreground: var(--cakewalk-text-primary);
@@ -120,9 +120,10 @@
 /* Smooth theme transitions */
 * {
   @media (prefers-reduced-motion: no-preference) {
-    transition: background-color 0.2s ease-in-out, 
-                border-color 0.2s ease-in-out,
-                color 0.2s ease-in-out;
+    transition:
+      background-color 0.2s ease-in-out,
+      border-color 0.2s ease-in-out,
+      color 0.2s ease-in-out;
   }
 }
 
@@ -169,7 +170,7 @@
     --cakewalk-error: #ff0000;
     --cakewalk-success: #00cc00;
   }
-  
+
   .dark {
     --cakewalk-primary: #66a3ff;
     --cakewalk-error: #ff6666;

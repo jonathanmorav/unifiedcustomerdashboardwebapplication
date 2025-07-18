@@ -29,8 +29,8 @@ export const mockSearchResult: UnifiedSearchResult = {
           id: "sob_001",
           properties: {
             hs_object_id: "sob_001",
-            amount_to_draft: 2500.00,
-            fee_amount: 125.00,
+            amount_to_draft: 2500.0,
+            fee_amount: 125.0,
             pdf_document_url: "https://example.com/sob/2025-01.pdf",
             createdate: "2025-01-01T00:00:00Z",
             hs_lastmodifieddate: "2025-01-15T12:00:00Z",
@@ -43,8 +43,8 @@ export const mockSearchResult: UnifiedSearchResult = {
           id: "sob_002",
           properties: {
             hs_object_id: "sob_002",
-            amount_to_draft: 2500.00,
-            fee_amount: 125.00,
+            amount_to_draft: 2500.0,
+            fee_amount: 125.0,
             pdf_document_url: "https://example.com/sob/2024-12.pdf",
             createdate: "2024-12-01T00:00:00Z",
             hs_lastmodifieddate: "2024-12-15T12:00:00Z",
@@ -61,7 +61,7 @@ export const mockSearchResult: UnifiedSearchResult = {
             policy_number: "POL-2025-001",
             policy_holder_name: "John Doe",
             coverage_type: "Health Insurance",
-            premium_amount: 450.00,
+            premium_amount: 450.0,
             effective_date: "2025-01-01",
             expiration_date: "2025-12-31",
             status: "active",
@@ -76,7 +76,7 @@ export const mockSearchResult: UnifiedSearchResult = {
             policy_number: "POL-2025-002",
             policy_holder_name: "Jane Doe",
             coverage_type: "Dental Insurance",
-            premium_amount: 150.00,
+            premium_amount: 150.0,
             effective_date: "2025-01-01",
             expiration_date: "2025-12-31",
             status: "active",
@@ -91,7 +91,7 @@ export const mockSearchResult: UnifiedSearchResult = {
             policy_number: "POL-2025-003",
             policy_holder_name: "John Doe Jr",
             coverage_type: "Vision Insurance",
-            premium_amount: 75.00,
+            premium_amount: 75.0,
             effective_date: "2025-01-01",
             expiration_date: "2025-12-31",
             status: "active",
@@ -107,7 +107,7 @@ export const mockSearchResult: UnifiedSearchResult = {
           properties: {
             invoice_number: "INV-2025-001",
             invoice_date: "2025-01-01",
-            total_amount: 2625.00,
+            total_amount: 2625.0,
             status: "paid",
           },
           createdAt: "2025-01-01T00:00:00Z",
@@ -119,7 +119,7 @@ export const mockSearchResult: UnifiedSearchResult = {
           properties: {
             invoice_number: "INV-2024-012",
             invoice_date: "2024-12-01",
-            total_amount: 2625.00,
+            total_amount: 2625.0,
             status: "paid",
           },
           createdAt: "2024-12-01T00:00:00Z",
@@ -150,9 +150,15 @@ export const mockSearchResult: UnifiedSearchResult = {
         phone: "+1-512-555-0123",
         _links: {
           self: { href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab" },
-          "funding-sources": { href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab/funding-sources" },
-          transfers: { href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab/transfers" },
-          notifications: { href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab/notifications" },
+          "funding-sources": {
+            href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab/funding-sources",
+          },
+          transfers: {
+            href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab/transfers",
+          },
+          notifications: {
+            href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab/notifications",
+          },
         },
       },
       fundingSources: [
@@ -168,7 +174,9 @@ export const mockSearchResult: UnifiedSearchResult = {
           routingNumber: "111000025",
           _links: {
             self: { href: "https://api.dwolla.com/funding-sources/fs_001" },
-            customer: { href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab" },
+            customer: {
+              href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab",
+            },
           },
         },
         {
@@ -183,7 +191,9 @@ export const mockSearchResult: UnifiedSearchResult = {
           routingNumber: "111000025",
           _links: {
             self: { href: "https://api.dwolla.com/funding-sources/fs_002" },
-            customer: { href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab" },
+            customer: {
+              href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab",
+            },
           },
         },
       ],

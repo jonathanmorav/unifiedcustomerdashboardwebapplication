@@ -92,10 +92,5 @@ export function NoFlashScript({ nonce }: { nonce?: string }) {
     })();
   `
 
-  return (
-    <script
-      nonce={nonce}
-      dangerouslySetInnerHTML={{ __html: themeScript }}
-    />
-  )
+  return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} />
 }

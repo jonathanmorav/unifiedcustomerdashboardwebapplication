@@ -14,6 +14,7 @@ An enterprise-grade web application that consolidates customer data from HubSpot
 ## 🚀 Features
 
 ### Core Functionality
+
 - **Unified Search**: Search across HubSpot and Dwolla simultaneously
 - **Smart Search Detection**: Automatically detects email, name, business name, or Dwolla ID
 - **Parallel API Execution**: Concurrent API calls for < 3 second response times
@@ -22,6 +23,7 @@ An enterprise-grade web application that consolidates customer data from HubSpot
 - **Search History**: Autocomplete suggestions from previous searches
 
 ### Technical Features
+
 - **Enterprise Authentication**: Google OAuth with email whitelist
 - **Type Safety**: Full TypeScript implementation
 - **Responsive Design**: Mobile-first approach with Cakewalk Design System
@@ -32,6 +34,7 @@ An enterprise-grade web application that consolidates customer data from HubSpot
 - **Performance Monitoring**: Real-time metrics display
 
 ### Accessibility Features
+
 - **WCAG 2.1 AA Compliance**: All colors meet contrast ratio standards
 - **Keyboard Navigation**: Full keyboard support with Alt+T shortcut
 - **Screen Reader Support**: ARIA landmarks and live announcements
@@ -50,29 +53,35 @@ An enterprise-grade web application that consolidates customer data from HubSpot
 ## 🛠️ Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication.git
    cd unifiedcustomerdashboardwebapplication
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env.local
    ```
+
    Edit `.env.local` with your credentials
 
 4. **Set up the database**
+
    ```bash
    npx prisma generate
    npx prisma db push
    ```
 
 5. **Run the development server**
+
    ```bash
    npm run dev
    ```
@@ -156,17 +165,20 @@ unified-customer-dashboard/
 ## 📱 Usage
 
 ### Basic Search
+
 1. Sign in with your authorized Google account
 2. Enter search term in the search bar
 3. Select search type or use auto-detection
 4. View results in split-panel layout
 
 ### Keyboard Shortcuts
+
 - `Cmd/Ctrl + K`: Focus search input
 - `Escape`: Clear search
 - `Enter`: Execute search
 
 ### Export Data
+
 1. Complete a search
 2. Click the export button in the action bar
 3. Choose format: CSV, JSON, or PDF

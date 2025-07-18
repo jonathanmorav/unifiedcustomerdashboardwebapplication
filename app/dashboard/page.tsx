@@ -58,10 +58,10 @@ export default function DashboardPage() {
   return (
     <div className="animate-fade-in mx-auto max-w-7xl">
       <Toaster position="top-right" />
-      
+
       {/* Demo Mode Banner */}
       {isDemoMode && (
-        <div className="mb-cakewalk-24 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-center text-sm text-amber-800">
+        <div className="mb-cakewalk-24 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-800">
           <strong>Demo Mode:</strong> Using mock data. Search for any term to see sample results.
         </div>
       )}

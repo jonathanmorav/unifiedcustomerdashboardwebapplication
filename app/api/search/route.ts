@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
       let result
       let displayResult
-      
+
       if (isDemoMode) {
         // Use mock data for demo
         const { mockSearchResult } = await import("@/lib/search/mock-data")

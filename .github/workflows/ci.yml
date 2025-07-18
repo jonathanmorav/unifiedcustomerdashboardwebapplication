@@ -7,59 +7,59 @@ on:
     branches: [main]
 
 env:
-  NODE_VERSION: '18.x'
+  NODE_VERSION: "18.x"
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Run ESLint
         run: npm run lint
-        
+
       - name: Check formatting
         run: npm run format:check
 
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Generate Prisma Client
         run: npx prisma generate
-        
+
       - name: Run TypeScript compiler
         run: npm run typecheck
 
   test:
     name: Test
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15
@@ -74,7 +74,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-    
+
     env:
       DATABASE_URL: postgresql://testuser:testpass@localhost:5432/test_db
       NEXTAUTH_URL: http://localhost:3000
@@ -88,54 +88,54 @@ jobs:
       DWOLLA_CLIENT_SECRET: test-client-secret
       DWOLLA_ENVIRONMENT: sandbox
       DWOLLA_BASE_URL: https://api-sandbox.dwolla.com
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Generate Prisma Client
         run: npx prisma generate
-        
+
       - name: Run database migrations
         run: npx prisma db push
-        
+
       - name: Run tests
         run: npm test -- --passWithNoTests
-        
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Generate Prisma Client
         run: npx prisma generate
-        
+
       - name: Build application
         run: npm run build
         env:
           SKIP_ENV_VALIDATION: true
-          
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -151,14 +151,14 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Run security audit
         run: npm audit --audit-level=high
-        
+
       - name: Run license check
         run: npx license-checker --production --summary
 
@@ -168,7 +168,7 @@ jobs:
     needs: [lint, typecheck, test, build, security]
     runs-on: ubuntu-latest
     if: success()
-    
+
     steps:
       - name: CI passed
         run: echo "All CI checks passed successfully!"

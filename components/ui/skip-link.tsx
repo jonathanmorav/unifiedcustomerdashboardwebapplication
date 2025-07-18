@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from "next/link"
 
 interface SkipLinkProps {
   href: string
@@ -7,11 +7,7 @@ interface SkipLinkProps {
 
 export function SkipLink({ href, children }: SkipLinkProps) {
   return (
-    <Link
-      href={href}
-      className="skip-link"
-      tabIndex={0}
-    >
+    <Link href={href} className="skip-link" tabIndex={0}>
       {children}
     </Link>
   )
