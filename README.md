@@ -2,6 +2,8 @@
 
 An enterprise-grade web application that consolidates customer data from HubSpot and Dwolla, providing support teams with a unified interface to eliminate context switching and reduce task completion time from 8-10 minutes to 2-3 minutes.
 
+![CI](https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication/actions/workflows/ci.yml/badge.svg)
+![Deploy](https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication/actions/workflows/deploy.yml/badge.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-15.4.1-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC)
@@ -38,8 +40,8 @@ An enterprise-grade web application that consolidates customer data from HubSpot
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/unified-customer-dashboard.git
-   cd unified-customer-dashboard
+   git clone https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication.git
+   cd unifiedcustomerdashboardwebapplication
    ```
 
 2. **Install dependencies**
@@ -237,7 +239,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For issues and feature requests, please use the [GitHub Issues](https://github.com/yourusername/unified-customer-dashboard/issues) page.
+For issues and feature requests, please use the [GitHub Issues](https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication/issues) page.
 
 ---
 
