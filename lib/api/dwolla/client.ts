@@ -1,5 +1,6 @@
 import { getEnv } from "@/lib/env"
 import { DwollaTokenManager } from "./auth"
+import { CorrelationTracking } from "@/lib/security/correlation"
 import type {
   DwollaCustomer,
   DwollaFundingSource,
@@ -149,13 +150,14 @@ export class DwollaClient {
 
     try {
       const authHeaders = await this.getAuthHeaders()
+      const correlationHeaders = await CorrelationTracking.addCorrelationHeaders({
+        ...authHeaders,
+        ...options.headers,
+      })
 
       const response = await fetch(url, {
         ...options,
-        headers: {
-          ...authHeaders,
-          ...options.headers,
-        },
+        headers: correlationHeaders,
         signal: signal || options.signal,
       })
 
@@ -179,6 +181,12 @@ export class DwollaClient {
             : Date.now() + this.retryConfig.initialDelay
 
           if (retryCount < this.retryConfig.maxRetries) {
+            await CorrelationTracking.log('warn', 'Dwolla rate limited', {
+              url,
+              status: response.status,
+              retryCount,
+              resetTime: new Date(resetTime).toISOString()
+            })
             await this.handleRateLimit(resetTime)
             return this.fetchWithRetry<T>(url, options, retryCount + 1, signal)
           }

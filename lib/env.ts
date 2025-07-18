@@ -48,6 +48,12 @@ const envSchema = z.object({
   // PDF Export
   PDF_COMPANY_NAME: z.string().default("Your Company"),
   PDF_COMPANY_LOGO_URL: z.string().url().optional(),
+
+  // API Security
+  AUTHORIZED_API_KEYS: z
+    .string()
+    .optional()
+    .transform((val) => val?.split(",").map((key) => key.trim()) || []),
 })
 
 export type Env = z.infer<typeof envSchema>

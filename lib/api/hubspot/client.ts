@@ -1,4 +1,5 @@
 import { getEnv } from "@/lib/env"
+import { CorrelationTracking } from "@/lib/security/correlation"
 import type {
   HubSpotCompany,
   HubSpotSummaryOfBenefits,
@@ -59,12 +60,15 @@ export class HubSpotClient {
     retryCount = 0
   ): Promise<T> {
     try {
+      // Add correlation headers
+      const correlationHeaders = await CorrelationTracking.addCorrelationHeaders(options.headers)
+      
       const response = await fetch(url, {
         ...options,
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
-          ...options.headers,
+          ...correlationHeaders,
         },
       })
 
@@ -77,7 +81,12 @@ export class HubSpotClient {
           const delay = retryAfter ? parseInt(retryAfter) * 1000 : this.retryConfig.initialDelay
 
           if (retryCount < this.retryConfig.maxRetries) {
-            console.warn(`Rate limited. Retrying after ${delay}ms...`)
+            await CorrelationTracking.log('warn', `HubSpot rate limited. Retrying after ${delay}ms`, {
+              url,
+              status: response.status,
+              retryCount,
+              delay
+            })
             await this.sleep(delay)
             return this.fetchWithRetry<T>(url, options, retryCount + 1)
           }

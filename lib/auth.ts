@@ -13,11 +13,14 @@ declare module "next-auth" {
       email?: string | null
       image?: string | null
       role: UserRole
+      mfaEnabled?: boolean
+      mfaVerified?: boolean
     }
   }
 
   interface User {
     role: UserRole
+    mfaEnabled?: boolean
   }
 }
 
@@ -25,6 +28,8 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string
     role: UserRole
+    mfaEnabled?: boolean
+    mfaVerified?: boolean
   }
 }
 
@@ -60,11 +65,20 @@ export const authOptions: NextAuthOptions = {
       }
       return true
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
       if (account && user) {
         // Initial sign in
         token.id = user.id
         token.role = user.role || "USER"
+
+        // Check MFA status
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { mfaEnabled: true }
+        })
+        
+        token.mfaEnabled = dbUser?.mfaEnabled || false
+        token.mfaVerified = false // Requires separate verification
 
         // Log the sign-in event
         await prisma.auditLog.create({
@@ -75,16 +89,26 @@ export const authOptions: NextAuthOptions = {
             metadata: {
               provider: account.provider,
               email: user.email,
+              mfaRequired: token.mfaEnabled,
             },
           },
         })
       }
+
+      // Handle MFA verification updates
+      if (trigger === "update" && token) {
+        // This would be called after successful MFA verification
+        // Update token with MFA verification status
+      }
+
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id
         session.user.role = token.role
+        session.user.mfaEnabled = token.mfaEnabled
+        session.user.mfaVerified = token.mfaVerified
       }
       return session
     },

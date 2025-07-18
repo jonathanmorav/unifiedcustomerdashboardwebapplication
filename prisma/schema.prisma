@@ -53,10 +53,25 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // MFA fields
+  mfaEnabled      Boolean   @default(false)
+  mfaSecret       String?   // Encrypted TOTP secret
+  mfaBackupCodes  String[]  // Encrypted backup codes
+  mfaEnforcedAt   DateTime? // When MFA was enforced
+
+  // Account security
+  failedLoginAttempts Int      @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  lastLoginIp         String?
+  passwordChangedAt   DateTime?
+
   accounts       Account[]
   sessions       Session[]
   searchHistory  SearchHistory[]
   auditLogs      AuditLog[]
+  mfaRecovery    MFARecovery[]
+  loginAttempts  LoginAttempt[]
 }
 
 model VerificationToken {
@@ -96,6 +111,37 @@ model AuditLog {
 
   @@index([userId, createdAt])
   @@index([resource, resourceId])
+}
+
+// MFA Recovery model for tracking recovery attempts
+model MFARecovery {
+  id         String   @id @default(cuid())
+  userId     String
+  code       String   // Recovery code used
+  usedAt     DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Login attempt tracking
+model LoginAttempt {
+  id         String   @id @default(cuid())
+  userId     String?
+  email      String
+  success    Boolean
+  ipAddress  String?
+  userAgent  String?
+  reason     String?  // Failure reason
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email, createdAt])
+  @@index([userId, createdAt])
 }
 
 // Enums
