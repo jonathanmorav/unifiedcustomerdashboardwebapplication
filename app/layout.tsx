@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { DM_Sans, Space_Grotesk } from "next/font/google"
 import { SessionProvider } from "@/components/providers/session-provider"
+import { ThemeProvider } from "@/components/providers/theme-provider"
+import { ThemeScript } from "@/lib/theme/theme-script"
 import "./globals.css"
 
 const dmSans = DM_Sans({
@@ -31,9 +33,12 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <ThemeScript />
       </head>
       <body className={`${dmSans.variable} ${spaceGrotesk.variable} antialiased`}>
-        <SessionProvider>{children}</SessionProvider>
+        <ThemeProvider>
+          <SessionProvider>{children}</SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
