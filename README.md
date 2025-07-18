@@ -226,12 +226,22 @@ docker compose up -d
 
 ## 🔒 Security
 
-- OAuth 2.0 authentication
-- Email whitelist for access control
-- Session management with 30-minute timeout
-- Account numbers masked in UI
-- Environment variables validation with Zod
-- Security headers configured
+- **Authentication**: OAuth 2.0 with Google, MFA support
+- **Authorization**: Role-based access control (RBAC)
+- **Session Security**: 30-minute timeout, anomaly detection, device fingerprinting
+- **CSRF Protection**: Dual-mode (tokens for web, HMAC for APIs)
+- **Rate Limiting**: Configurable limits with burst handling
+- **Data Protection**: PCI compliance, field-level encryption
+- **Security Headers**: HSTS, CSP, X-Frame-Options
+- **Audit Logging**: Comprehensive security event tracking
+
+### Security Documentation
+
+- [Security Overview](docs/SECURITY.md) - Comprehensive security documentation
+- [Implementation Guide](docs/SECURITY_IMPLEMENTATION_GUIDE.md) - Developer security guide
+- [Configuration Reference](docs/SECURITY_CONFIGURATION.md) - Security configuration options
+- [Testing Guide](docs/SECURITY_TESTING_GUIDE.md) - Security testing procedures
+- [Incident Response](docs/SECURITY_INCIDENT_RESPONSE.md) - Emergency response runbook
 
 ## 🤝 Contributing
 

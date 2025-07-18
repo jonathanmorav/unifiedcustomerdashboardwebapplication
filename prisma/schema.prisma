@@ -72,6 +72,7 @@ model User {
   auditLogs      AuditLog[]
   mfaRecovery    MFARecovery[]
   loginAttempts  LoginAttempt[]
+  savedSearches  SavedSearch[]
 }
 
 model VerificationToken {
@@ -142,6 +143,27 @@ model LoginAttempt {
 
   @@index([email, createdAt])
   @@index([userId, createdAt])
+}
+
+// Saved searches for advanced search functionality
+model SavedSearch {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  description  String?
+  searchParams Json     // Stores the complete search parameters
+  useCount     Int      @default(0)
+  lastUsed     DateTime?
+  isTemplate   Boolean  @default(false) // System-provided templates
+  isPublic     Boolean  @default(false) // Shared with team
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([isTemplate, isPublic])
+  @@unique([userId, name])
 }
 
 // Enums
