@@ -45,7 +45,7 @@ jobs:
           SKIP_ENV_VALIDATION: true
 
       - name: Run Lighthouse CI - ${{ matrix.theme }}
-        uses: treosh/lighthouse-ci-action@v10
+        uses: treosh/lighthouse-ci-action@v12
         with:
           urls: |
             http://localhost:3000
