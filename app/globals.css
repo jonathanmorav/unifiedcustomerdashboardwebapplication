@@ -1,26 +1,401 @@
 @import "tailwindcss";
 
+/* Cakewalk Design System CSS Variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary Colors */
+  --cakewalk-primary: #005dfe;
+  --cakewalk-primary-light: #5791f3;
+  --cakewalk-primary-dark: #0a214a;
+  --cakewalk-primary-royal: #0051dc;
+
+  /* Secondary Colors */
+  --cakewalk-success: #15cb94;
+  --cakewalk-success-light: #53edbe;
+  --cakewalk-success-dark: #045d42;
+  --cakewalk-warning: #f59e0b;
+  --cakewalk-error: #ef4444;
+
+  /* Background Colors */
+  --cakewalk-bg-alice-100: #f4f8ff;
+  --cakewalk-bg-alice-200: #eaf2ff;
+  --cakewalk-bg-alice-300: #eef1f8;
+  --cakewalk-bg-lavender: #cbdeff;
+  --cakewalk-bg-white: #ffffff;
+
+  /* Text Colors */
+  --cakewalk-text-primary: #424b5b;
+  --cakewalk-text-secondary: #5d6b85;
+  --cakewalk-text-tertiary: #5d6885;
+
+  /* Spacing */
+  --cakewalk-space-2: 2px;
+  --cakewalk-space-4: 4px;
+  --cakewalk-space-8: 8px;
+  --cakewalk-space-12: 12px;
+  --cakewalk-space-16: 16px;
+  --cakewalk-space-20: 20px;
+  --cakewalk-space-24: 24px;
+  --cakewalk-space-32: 32px;
+  --cakewalk-space-40: 40px;
+
+  /* Border Radius */
+  --cakewalk-radius-small: 8px;
+  --cakewalk-radius-medium: 12px;
+  --cakewalk-radius-large: 16px;
+  --cakewalk-radius-xlarge: 20px;
+
+  /* Default theme */
+  --background: var(--cakewalk-bg-alice-100);
+  --foreground: var(--cakewalk-text-primary);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Colors */
+  --color-cakewalk-primary: var(--cakewalk-primary);
+  --color-cakewalk-primary-light: var(--cakewalk-primary-light);
+  --color-cakewalk-primary-dark: var(--cakewalk-primary-dark);
+  --color-cakewalk-primary-royal: var(--cakewalk-primary-royal);
+  --color-cakewalk-success: var(--cakewalk-success);
+  --color-cakewalk-success-light: var(--cakewalk-success-light);
+  --color-cakewalk-success-dark: var(--cakewalk-success-dark);
+  --color-cakewalk-warning: var(--cakewalk-warning);
+  --color-cakewalk-error: var(--cakewalk-error);
+  --color-cakewalk-bg-alice-100: var(--cakewalk-bg-alice-100);
+  --color-cakewalk-bg-alice-200: var(--cakewalk-bg-alice-200);
+  --color-cakewalk-bg-alice-300: var(--cakewalk-bg-alice-300);
+  --color-cakewalk-bg-lavender: var(--cakewalk-bg-lavender);
+  --color-cakewalk-bg-white: var(--cakewalk-bg-white);
+  --color-cakewalk-text-primary: var(--cakewalk-text-primary);
+  --color-cakewalk-text-secondary: var(--cakewalk-text-secondary);
+  --color-cakewalk-text-tertiary: var(--cakewalk-text-tertiary);
+
+  /* Spacing */
+  --spacing-cakewalk-2: var(--cakewalk-space-2);
+  --spacing-cakewalk-4: var(--cakewalk-space-4);
+  --spacing-cakewalk-8: var(--cakewalk-space-8);
+  --spacing-cakewalk-12: var(--cakewalk-space-12);
+  --spacing-cakewalk-16: var(--cakewalk-space-16);
+  --spacing-cakewalk-20: var(--cakewalk-space-20);
+  --spacing-cakewalk-24: var(--cakewalk-space-24);
+  --spacing-cakewalk-32: var(--cakewalk-space-32);
+  --spacing-cakewalk-40: var(--cakewalk-space-40);
+
+  /* Border Radius */
+  --radius-cakewalk-small: var(--cakewalk-radius-small);
+  --radius-cakewalk-medium: var(--cakewalk-radius-medium);
+  --radius-cakewalk-large: var(--cakewalk-radius-large);
+  --radius-cakewalk-xlarge: var(--cakewalk-radius-xlarge);
+
+  /* Typography */
+  --font-cakewalk-sans:
+    var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-cakewalk-heading:
+    var(--font-space-grotesk), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Font sizes - Mobile Optimized */
+  --font-size-cakewalk-h1: 36px;
+  --font-size-cakewalk-h2: 24px;
+  --font-size-cakewalk-h3: 20px;
+  --font-size-cakewalk-h4: 18px;
+  --font-size-cakewalk-h5: 16px;
+  --font-size-cakewalk-body-lg: 20px;
+  --font-size-cakewalk-body-md: 18px;
+  --font-size-cakewalk-body-sm: 16px;
+  --font-size-cakewalk-body-xs: 14px;
+  --font-size-cakewalk-body-xxs: 13px;
+
+  /* Line heights */
+  --line-height-cakewalk-h1: 1.2;
+  --line-height-cakewalk-h2: 1.3;
+  --line-height-cakewalk-h3: 1.3;
+  --line-height-cakewalk-h4: 1.4;
+  --line-height-cakewalk-h5: 1.4;
+  --line-height-cakewalk-body: 1.5;
+  --line-height-cakewalk-small: 1.4;
+
+  /* Font weights */
+  --font-weight-cakewalk-normal: 400;
+  --font-weight-cakewalk-medium: 500;
+  --font-weight-cakewalk-semibold: 600;
+  --font-weight-cakewalk-bold: 700;
+
+  /* Shadows */
+  --shadow-cakewalk-light: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-cakewalk-medium: 0px 6px 8px rgba(0, 0, 0, 0.05);
+  --shadow-cakewalk-special: 0px 3px 3px rgba(0, 0, 0, 0.05);
+  --shadow-cakewalk-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--cakewalk-primary-dark);
+    --foreground: var(--cakewalk-bg-alice-200);
+
+    /* Adjust colors for dark mode */
+    --cakewalk-bg-alice-100: #0a0a0a;
+    --cakewalk-bg-alice-200: #141414;
+    --cakewalk-bg-alice-300: #1f1f1f;
+    --cakewalk-bg-lavender: #2a2a3e;
+    --cakewalk-bg-white: #1a1a1a;
+    --cakewalk-text-primary: #ededed;
+    --cakewalk-text-secondary: #a8a8a8;
+    --cakewalk-text-tertiary: #808080;
   }
+}
+
+/* Typography utilities */
+.text-cakewalk-h1 {
+  font-size: var(--font-size-cakewalk-h1);
+  line-height: var(--line-height-cakewalk-h1);
+  font-weight: var(--font-weight-cakewalk-bold);
+  font-family: var(--font-cakewalk-heading);
+}
+
+.text-cakewalk-h2 {
+  font-size: var(--font-size-cakewalk-h2);
+  line-height: var(--line-height-cakewalk-h2);
+  font-weight: var(--font-weight-cakewalk-semibold);
+  font-family: var(--font-cakewalk-heading);
+}
+
+.text-cakewalk-h3 {
+  font-size: var(--font-size-cakewalk-h3);
+  line-height: var(--line-height-cakewalk-h3);
+  font-weight: var(--font-weight-cakewalk-semibold);
+  font-family: var(--font-cakewalk-heading);
+}
+
+.text-cakewalk-h4 {
+  font-size: var(--font-size-cakewalk-h4);
+  line-height: var(--line-height-cakewalk-h4);
+  font-weight: var(--font-weight-cakewalk-semibold);
+}
+
+.text-cakewalk-h5 {
+  font-size: var(--font-size-cakewalk-h5);
+  line-height: var(--line-height-cakewalk-h5);
+  font-weight: var(--font-weight-cakewalk-semibold);
+}
+
+.text-cakewalk-body-lg {
+  font-size: var(--font-size-cakewalk-body-lg);
+  line-height: var(--line-height-cakewalk-body);
+}
+
+.text-cakewalk-body-md {
+  font-size: var(--font-size-cakewalk-body-md);
+  line-height: var(--line-height-cakewalk-body);
+}
+
+.text-cakewalk-body-sm {
+  font-size: var(--font-size-cakewalk-body-sm);
+  line-height: var(--line-height-cakewalk-body);
+}
+
+.text-cakewalk-body-xs {
+  font-size: var(--font-size-cakewalk-body-xs);
+  line-height: var(--line-height-cakewalk-small);
+}
+
+.text-cakewalk-body-xxs {
+  font-size: var(--font-size-cakewalk-body-xxs);
+  line-height: var(--line-height-cakewalk-small);
+}
+
+/* Font weight utilities */
+.font-cakewalk-normal {
+  font-weight: var(--font-weight-cakewalk-normal);
+}
+.font-cakewalk-medium {
+  font-weight: var(--font-weight-cakewalk-medium);
+}
+.font-cakewalk-semibold {
+  font-weight: var(--font-weight-cakewalk-semibold);
+}
+.font-cakewalk-bold {
+  font-weight: var(--font-weight-cakewalk-bold);
+}
+
+/* Animation keyframes */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+.animate-slide-up {
+  animation: slide-up 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.animate-slide-down {
+  animation: slide-down 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* Print Styles */
+@media print {
+  /* Hide non-essential elements */
+  .no-print,
+  button,
+  [role="button"],
+  nav,
+  header {
+    display: none !important;
+  }
+
+  /* Adjust layout for print */
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* Ensure content fits on page */
+  .print\:break-inside-avoid {
+    break-inside: avoid;
+  }
+
+  /* Remove backgrounds and shadows */
+  * {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Ensure text is black for better readability */
+  body,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  div {
+    color: black !important;
+  }
+
+  /* Add page breaks where needed */
+  .print\:break-before {
+    break-before: page;
+  }
+
+  /* Show URLs for links */
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  /* Ensure touch targets are at least 44px */
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Optimize spacing for mobile */
+  .mobile\:p-4 {
+    padding: 1rem;
+  }
+
+  /* Stack elements on mobile */
+  .mobile\:flex-col {
+    flex-direction: column;
+  }
+
+  /* Full width on mobile */
+  .mobile\:w-full {
+    width: 100%;
+  }
+}
+
+/* Animation delays */
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+.animate-delay-400 {
+  animation-delay: 400ms;
+}
+.animate-delay-500 {
+  animation-delay: 500ms;
+}
+
+/* Base styles */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-cakewalk-sans);
+  font-size: var(--font-size-cakewalk-body-sm);
+  line-height: var(--line-height-cakewalk-body);
+  font-weight: var(--font-weight-cakewalk-normal);
+}
+
+/* Container */
+.container {
+  max-width: 816px;
+  margin: 0 auto;
+  padding: 0 var(--cakewalk-space-32);
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 var(--cakewalk-space-16);
+  }
 }
