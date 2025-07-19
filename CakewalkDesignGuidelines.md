@@ -18,7 +18,7 @@
 
 ## Brand Identity & Logo
 
-- **Logo**: SVG-based Cakewalk logo with blue gradient icon and dark navy text
+- **Logo**: image.png
 - **Viewbox**: 1213x296 for horizontal layout
 - **Usage**: Responsive sizing with `h-8 w-auto` for headers
 

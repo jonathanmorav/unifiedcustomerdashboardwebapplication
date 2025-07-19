@@ -9,9 +9,11 @@ You're developing a secure web application that consolidates customer data from 
 Please review these critical project documents:
 
 1. **Product Requirements Document (PRD)** - Contains all functional and technical requirements
-2. **Building with Extended Thinking** - Architecture patterns and code optimization principles
-3. **Unified Customer Dashboard - Execution Plan** - Step-by-step implementation guide
-4. **Cakewalk Design System Guidelines** - UI/UX standards and component patterns
+2. **Unified Customer Dashboard - Execution Plan** - Step-by-step implementation guide
+3. **Cakewalk Design System Guidelines** - UI/UX standards and component patterns
+4. **Execution Plan MD - All past and planned execution tasks 
+5. **Claude.MD file 
+6. *project_status.md file
 
 ## 🏗️ TECHNICAL STACK
 
