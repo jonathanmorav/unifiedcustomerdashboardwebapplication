@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createEndpointRateLimiter } from '@/lib/security/middleware/rate-limit-middleware'
+import { log } from '@/lib/logger'
 
 // Custom rate limit for PDF export - more restrictive
 const pdfRateLimiter = createEndpointRateLimiter({
@@ -30,7 +31,10 @@ export async function POST(request: NextRequest) {
       user: session.user.email 
     })
   } catch (error) {
-    console.error('PDF export error:', error)
+    log.error('PDF export error', error as Error, {
+      userId: session?.user?.email,
+      operation: 'pdf_export'
+    })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

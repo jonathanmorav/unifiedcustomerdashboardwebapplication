@@ -2,7 +2,7 @@
 
 import { useTheme as useNextTheme } from "next-themes"
 import { useEffect, useState } from "react"
-import { themeTelemetry } from "@/lib/theme/telemetry"
+import { themeTelemetry } from "@/lib/theme/telemetry-client"
 
 export type Theme = "light" | "dark" | "system"
 

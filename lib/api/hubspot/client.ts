@@ -11,6 +11,7 @@ import type {
   HubSpotObjectType,
   HubSpotBatchReadResponse,
 } from "@/lib/types/hubspot"
+import { log } from "@/lib/logger"
 
 interface RetryConfig {
   maxRetries: number
@@ -104,7 +105,13 @@ export class HubSpotClient {
             this.retryConfig.maxDelay
           )
 
-          console.warn(`Server error (${response.status}). Retrying after ${delay}ms...`)
+          log.warn(`Server error (${response.status}). Retrying after ${delay}ms...`, {
+            status: response.status,
+            delay,
+            retryCount,
+            url,
+            operation: 'hubspot_server_error'
+          })
           await this.sleep(delay)
           return this.fetchWithRetry<T>(url, options, retryCount + 1)
         }
@@ -130,7 +137,13 @@ export class HubSpotClient {
           this.retryConfig.maxDelay
         )
 
-        console.warn(`Network error. Retrying after ${delay}ms...`, error)
+        log.warn(`Network error. Retrying after ${delay}ms...`, {
+          delay,
+          retryCount,
+          url,
+          error: error instanceof Error ? error.message : String(error),
+          operation: 'hubspot_network_error'
+        })
         await this.sleep(delay)
         return this.fetchWithRetry<T>(url, options, retryCount + 1)
       }
@@ -314,7 +327,12 @@ export class HubSpotClient {
       return response.results
     } catch (error) {
       // Monthly invoices might not be configured, so we handle this gracefully
-      console.warn("Could not fetch monthly invoices:", error)
+      log.warn("Could not fetch monthly invoices", {
+        error: error instanceof Error ? error.message : String(error),
+        objectType,
+        objectId,
+        operation: 'hubspot_fetch_invoices'
+      })
       return []
     }
   }

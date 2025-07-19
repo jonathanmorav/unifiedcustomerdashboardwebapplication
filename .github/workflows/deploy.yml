@@ -1,19 +1,79 @@
-name: Deploy
+name: Deploy Pipeline
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
 
 env:
-  NODE_VERSION: "18.x"
+  NODE_VERSION: '20'
+  DOCKER_REGISTRY: ghcr.io
+  NEXT_TELEMETRY_DISABLED: 1
 
 jobs:
-  deploy:
-    name: Deploy to Production
+  # Build and push Docker image
+  build-image:
+    name: Build Docker Image
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            DOCKER_BUILD=true
+
+  # Deploy to staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-image]
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,59 +82,148 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install Vercel CLI
+        run: npm i -g vercel
 
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Build application
-        run: npm run build
-        env:
-          SKIP_ENV_VALIDATION: true
-
-      - name: Deploy to Vercel
-        if: env.VERCEL_TOKEN != ''
-        run: |
-          npm i -g vercel
-          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to Vercel Staging
+        id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
+          vercel build --token=$VERCEL_TOKEN
+          url=$(vercel deploy --prebuilt --token=$VERCEL_TOKEN)
+          echo "url=$url" >> $GITHUB_OUTPUT
+          echo "Deployed to: $url"
 
-      # Alternative: Deploy to custom server
-      # - name: Deploy to Server
-      #   uses: appleboy/ssh-action@v0.1.5
-      #   with:
-      #     host: ${{ secrets.HOST }}
-      #     username: ${{ secrets.USERNAME }}
-      #     key: ${{ secrets.SSH_KEY }}
-      #     script: |
-      #       cd /var/www/unified-customer-dashboard
-      #       git pull origin main
-      #       npm ci
-      #       npx prisma generate
-      #       npx prisma migrate deploy
-      #       npm run build
-      #       pm2 restart unified-dashboard
-
-  # Create a release on successful deploy
-  release:
-    name: Create Release
-    needs: deploy
+  # Deploy to production
+  deploy-production:
+    name: Deploy to Production
     runs-on: ubuntu-latest
-    if: success()
-
+    needs: [build-image]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel
+
+      - name: Deploy to Vercel Production
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+          vercel build --prod --token=$VERCEL_TOKEN
+          url=$(vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN)
+          echo "url=$url" >> $GITHUB_OUTPUT
+          echo "Deployed to: $url"
+
+  # Run database migrations
+  migrate-database:
+    name: Run Database Migrations
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx prisma generate
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PROD }}
+        run: |
+          npx prisma migrate deploy
+          echo "✅ Database migrations completed"
+
+  # Run smoke tests
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run health check
+        env:
+          PROD_URL: ${{ needs.deploy-production.outputs.url || secrets.PRODUCTION_URL }}
+        run: |
+          echo "Testing health endpoint..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL/api/health")
+          if [ $response -eq 200 ]; then
+            echo "✅ Health check passed"
+          else
+            echo "❌ Health check failed with status: $response"
+            exit 1
+          fi
+
+      - name: Run basic smoke tests
+        env:
+          PROD_URL: ${{ needs.deploy-production.outputs.url || secrets.PRODUCTION_URL }}
+        run: |
+          # Test main page loads
+          echo "Testing main page..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL")
+          if [ $response -eq 200 ] || [ $response -eq 307 ]; then
+            echo "✅ Main page accessible"
+          else
+            echo "❌ Main page failed with status: $response"
+            exit 1
+          fi
+
+  # Create release
+  create-release:
+    name: Create Release
+    needs: [deploy-production, migrate-database, smoke-tests]
+    runs-on: ubuntu-latest
+    if: success() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Get version from package.json
         id: package-version
         run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          git log --pretty=format:"- %s (%h)" $(git describe --tags --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD)..HEAD >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -90,7 +239,12 @@ jobs:
             - **Deployment time**: ${{ github.event.head_commit.timestamp }}
 
             ### Changes in this release:
-            ${{ github.event.head_commit.message }}
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ### Deployment Status:
+            - ✅ Application deployed
+            - ✅ Database migrations completed
+            - ✅ Smoke tests passed
 
             ---
             View the [full changelog](https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }})
@@ -98,3 +252,49 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Notify deployment status
+  notify:
+    name: Notify Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-production, migrate-database, smoke-tests]
+    if: always()
+    steps:
+      - name: Send notification
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          DEPLOYMENT_STATUS: ${{ needs.deploy-production.result }}
+          MIGRATION_STATUS: ${{ needs.migrate-database.result }}
+          TEST_STATUS: ${{ needs.smoke-tests.result }}
+        run: |
+          if [ "$DEPLOYMENT_STATUS" == "success" ] && [ "$MIGRATION_STATUS" == "success" ] && [ "$TEST_STATUS" == "success" ]; then
+            emoji="✅"
+            text="Production deployment successful"
+            color="good"
+          else
+            emoji="❌"
+            text="Production deployment failed"
+            color="danger"
+          fi
+          
+          if [ -n "$SLACK_WEBHOOK" ]; then
+            curl -X POST $SLACK_WEBHOOK \
+              -H 'Content-Type: application/json' \
+              -d "{
+                \"attachments\": [{
+                  \"color\": \"$color\",
+                  \"title\": \"$emoji Unified Customer Dashboard Deployment\",
+                  \"text\": \"$text\",
+                  \"fields\": [
+                    {\"title\": \"Branch\", \"value\": \"${{ github.ref_name }}\", \"short\": true},
+                    {\"title\": \"Commit\", \"value\": \"${{ github.sha }}\", \"short\": true},
+                    {\"title\": \"Actor\", \"value\": \"${{ github.actor }}\", \"short\": true},
+                    {\"title\": \"Deployment\", \"value\": \"$DEPLOYMENT_STATUS\", \"short\": true},
+                    {\"title\": \"Migrations\", \"value\": \"$MIGRATION_STATUS\", \"short\": true},
+                    {\"title\": \"Tests\", \"value\": \"$TEST_STATUS\", \"short\": true}
+                  ],
+                  \"footer\": \"GitHub Actions\",
+                  \"ts\": $(date +%s)
+                }]
+              }"
+          fi

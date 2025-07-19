@@ -1,6 +1,7 @@
 /**
  * Theme telemetry for monitoring and analytics
  */
+import { log } from '@/lib/logger'
 
 interface ThemeEvent {
   event: string
@@ -76,7 +77,11 @@ class ThemeTelemetry {
 
     // Log in development
     if (process.env.NODE_ENV === "development") {
-      console.log("[Theme Telemetry]", event, eventData)
+      log.debug("[Theme Telemetry]", {
+        event,
+        eventData,
+        operation: 'theme_telemetry'
+      })
     }
   }
 

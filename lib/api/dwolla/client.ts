@@ -11,6 +11,7 @@ import type {
   DwollaSearchParams,
   MaskedFundingSource,
 } from "@/lib/types/dwolla"
+import { log } from "@/lib/logger"
 
 interface RetryConfig {
   maxRetries: number
@@ -101,11 +102,11 @@ export class DwollaClient {
     // Create a new shared promise for all rate-limited requests
     const delay = Math.max(resetTime - Date.now(), this.retryConfig.initialDelay)
 
-    if (getEnv().NODE_ENV === "development") {
-      console.warn(
-        `[DwollaClient] Rate limited. Waiting ${delay}ms until ${new Date(resetTime).toISOString()}`
-      )
-    }
+    log.warn(`[DwollaClient] Rate limited. Waiting ${delay}ms until ${new Date(resetTime).toISOString()}`, {
+      delay,
+      resetTime: new Date(resetTime).toISOString(),
+      operation: 'dwolla_rate_limit'
+    })
 
     this.rateLimitPromise = this.sleep(delay).then(() => {
       this.rateLimitResetTime = null
@@ -194,9 +195,10 @@ export class DwollaClient {
 
         // Handle token expiry - clear token and retry once
         if (response.status === 401 && retryCount === 0) {
-          if (getEnv().NODE_ENV === "development") {
-            console.warn("[DwollaClient] Token expired, refreshing...")
-          }
+          log.warn("[DwollaClient] Token expired, refreshing...", {
+            url,
+            operation: 'dwolla_token_refresh'
+          })
           const error = new DwollaAPIError("Token expired", 401)
           this.onRetry({ attempt: retryCount + 1, error, url })
           this.tokenManager.clearToken()
@@ -215,11 +217,13 @@ export class DwollaClient {
             this.retryConfig.maxDelay
           )
 
-          if (getEnv().NODE_ENV === "development") {
-            console.warn(
-              `[DwollaClient] Server error (${response.status}). Retrying after ${delay}ms...`
-            )
-          }
+          log.warn(`[DwollaClient] Server error (${response.status}). Retrying after ${delay}ms...`, {
+            status: response.status,
+            delay,
+            retryCount,
+            url,
+            operation: 'dwolla_server_error'
+          })
 
           const error = new DwollaAPIError(
             errorData.message || `Server error: ${response.status}`,
@@ -267,9 +271,13 @@ export class DwollaClient {
           this.retryConfig.maxDelay
         )
 
-        if (getEnv().NODE_ENV === "development") {
-          console.warn(`[DwollaClient] Network error. Retrying after ${delay}ms...`, error)
-        }
+        log.warn(`[DwollaClient] Network error. Retrying after ${delay}ms...`, {
+          delay,
+          retryCount,
+          url,
+          error: error instanceof Error ? error.message : String(error),
+          operation: 'dwolla_network_error'
+        })
 
         this.onRetry({
           attempt: retryCount + 1,
@@ -417,11 +425,10 @@ export class DwollaClient {
           )
         }
 
-        if (getEnv().NODE_ENV === "development") {
-          console.warn(
-            "[DwollaClient] Notifications endpoint not available (404). Returning empty array."
-          )
-        }
+        log.warn("[DwollaClient] Notifications endpoint not available (404). Returning empty array.", {
+          customerId,
+          operation: 'dwolla_notifications_404'
+        })
         return []
       }
 

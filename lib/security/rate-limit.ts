@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { LRUCache } from 'lru-cache'
 import { prisma } from '@/lib/db'
+import { log } from '@/lib/logger'
 
 export interface RateLimitConfig {
   windowMs: number
@@ -205,7 +206,11 @@ export async function logRateLimitViolation(
       },
     })
   } catch (error) {
-    console.error('Failed to log rate limit violation:', error)
+    log.error('Failed to log rate limit violation', error as Error, {
+      endpoint,
+      key,
+      operation: 'rate_limit_logging'
+    })
   }
 }
 
@@ -234,7 +239,12 @@ export async function detectAbusePattern(
     // If more than 10 violations in an hour, it's likely abuse
     return recentViolations > 10
   } catch (error) {
-    console.error('Failed to detect abuse pattern:', error)
+    log.error('Failed to detect abuse pattern', error as Error, {
+      userId,
+      ipAddress,
+      endpoint,
+      operation: 'abuse_detection'
+    })
     return false
   }
 }

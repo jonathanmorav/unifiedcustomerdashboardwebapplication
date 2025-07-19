@@ -1,19 +1,20 @@
-name: CI
+name: CI Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 env:
-  NODE_VERSION: "18.x"
+  NODE_VERSION: '20'
+  NEXT_TELEMETRY_DISABLED: 1
 
 jobs:
-  lint:
-    name: Lint
+  # Lint and Type Check
+  quality:
+    name: Code Quality Checks
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,50 +23,43 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run ESLint
+      - name: Run linter
         run: npm run lint
+
+      - name: Run type check
+        run: npm run typecheck
 
       - name: Check formatting
         run: npm run format:check
 
-  typecheck:
-    name: Type Check
+  # Security Scan
+  security:
+    name: Security Scan
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+      - name: Run security audit
+        run: npm audit --audit-level=high
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Run license check
+        run: npx license-checker --production --onlyAllow 'MIT;Apache-2.0;BSD-3-Clause;BSD-2-Clause;ISC;CC0-1.0'
 
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Run TypeScript compiler
-        run: npm run typecheck
-
+  # Test Suite
   test:
-    name: Test
+    name: Test Suite
     runs-on: ubuntu-latest
-
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16
         env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
         options: >-
           --health-cmd pg_isready
@@ -75,20 +69,6 @@ jobs:
         ports:
           - 5432:5432
 
-    env:
-      DATABASE_URL: postgresql://testuser:testpass@localhost:5432/test_db
-      NEXTAUTH_URL: http://localhost:3000
-      NEXTAUTH_SECRET: test-secret-for-ci-only
-      GOOGLE_CLIENT_ID: test-client-id
-      GOOGLE_CLIENT_SECRET: test-client-secret
-      ALLOWED_EMAILS: test@example.com
-      HUBSPOT_ACCESS_TOKEN: test-token
-      HUBSPOT_BASE_URL: https://api.hubapi.com
-      DWOLLA_CLIENT_ID: test-client-id
-      DWOLLA_CLIENT_SECRET: test-client-secret
-      DWOLLA_ENVIRONMENT: sandbox
-      DWOLLA_BASE_URL: https://api-sandbox.dwolla.com
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -97,24 +77,47 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma Client
+      - name: Generate Prisma client
         run: npx prisma generate
 
       - name: Run database migrations
-        run: npx prisma db push
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        run: npx prisma migrate deploy
 
       - name: Run tests
-        run: npm test -- --passWithNoTests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: test-secret-for-ci
+          GOOGLE_CLIENT_ID: test-client-id
+          GOOGLE_CLIENT_SECRET: test-client-secret
+          AUTHORIZED_EMAILS: test@example.com
+          DEMO_MODE: true
+          HUBSPOT_API_KEY: test-key
+          HUBSPOT_BASE_URL: https://api.hubapi.com
+          DWOLLA_CLIENT_ID: test-client
+          DWOLLA_CLIENT_SECRET: test-secret
+          DWOLLA_ENVIRONMENT: sandbox
+          DWOLLA_BASE_URL: https://api-sandbox.dwolla.com
+        run: npm run test:ci
 
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+  # Build Check
   build:
-    name: Build
+    name: Build Check
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -123,18 +126,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma Client
+      - name: Generate Prisma client
         run: npx prisma generate
 
       - name: Build application
-        run: npm run build
         env:
-          SKIP_ENV_VALIDATION: true
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: build-secret
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+        run: npm run build
+
+      - name: Check build output
+        run: |
+          if [ ! -d ".next" ]; then
+            echo "Build failed - .next directory not found"
+            exit 1
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -146,29 +158,38 @@ jobs:
             package.json
             package-lock.json
             next.config.ts
+            prisma
           retention-days: 7
 
-  security:
-    name: Security Scan
+  # Docker Build
+  docker:
+    name: Docker Build
     runs-on: ubuntu-latest
-
+    if: github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run security audit
-        run: npm audit --audit-level=high
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Run license check
-        run: npx license-checker --production --summary
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: unified-customer-dashboard:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_APP_URL=https://example.com
 
   # Summary job to ensure all checks pass
   ci-success:
     name: CI Success
-    needs: [lint, typecheck, test, build, security]
+    needs: [quality, security, test, build, docker]
     runs-on: ubuntu-latest
     if: success()
-
     steps:
       - name: CI passed
-        run: echo "All CI checks passed successfully!"
+        run: echo "✅ All CI checks passed successfully!"

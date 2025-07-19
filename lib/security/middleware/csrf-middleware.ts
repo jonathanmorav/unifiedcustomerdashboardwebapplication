@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { CSRFProtection } from '@/lib/security/csrf'
-import { prisma } from '@/lib/db'
+import { log } from '@/lib/logger-edge'
 
 export async function csrfMiddleware(request: NextRequest) {
   // Skip CSRF for GET requests and exempt paths
@@ -74,7 +74,11 @@ async function logAPIAccess(request: NextRequest, apiKey: string) {
       }
     })
   } catch (error) {
-    console.error('Failed to log API access:', error)
+    log.error('Failed to log API access', error as Error, {
+      apiKey: apiKey.substring(0, 8) + '...',
+      pathname: request.nextUrl.pathname,
+      operation: 'api_access_logging'
+    })
   }
 }
 
@@ -102,6 +106,10 @@ async function logCSRFViolation(request: NextRequest, userId: string) {
       }
     })
   } catch (error) {
-    console.error('Failed to log CSRF violation:', error)
+    log.error('Failed to log CSRF violation', error as Error, {
+      userId,
+      pathname: request.nextUrl.pathname,
+      operation: 'csrf_violation_logging'
+    })
   }
 }

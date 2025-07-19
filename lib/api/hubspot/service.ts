@@ -5,6 +5,7 @@ import type {
   HubSpotCompany,
   HubSpotPolicy,
 } from "@/lib/types/hubspot"
+import { log } from "@/lib/logger"
 
 export interface HubSpotSearchParams {
   searchTerm: string
@@ -58,7 +59,11 @@ export class HubSpotService {
         monthlyInvoices,
       }
     } catch (error) {
-      console.error("Error searching HubSpot customer:", error)
+      log.error("Error searching HubSpot customer", error as Error, {
+        searchTerm: params.searchTerm,
+        searchType: params.searchType,
+        operation: 'hubspot_search_customer'
+      })
       throw error
     }
   }
@@ -100,7 +105,10 @@ export class HubSpotService {
         monthlyInvoices,
       }
     } catch (error) {
-      console.error("Error getting HubSpot customer data:", error)
+      log.error("Error getting HubSpot customer data", error as Error, {
+        companyId,
+        operation: 'hubspot_get_customer_data'
+      })
       throw error
     }
   }

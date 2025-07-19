@@ -1,5 +1,6 @@
 import { getEnv } from "@/lib/env"
 import type { DwollaTokenResponse } from "@/lib/types/dwolla"
+import { log } from "@/lib/logger"
 
 export class DwollaAuthError extends Error {
   constructor(
@@ -92,13 +93,11 @@ export class DwollaTokenManager {
         // Sanitize error message for production
         const sanitizedError = this.sanitizeErrorMessage(errorText, response.status)
 
-        // Log full error internally (would use proper logger in production)
-        if (getEnv().NODE_ENV === "development") {
-          console.error("[DwollaAuth] Token refresh failed:", {
-            status: response.status,
-            error: errorText,
-          })
-        }
+        // Log full error internally
+        log.error("[DwollaAuth] Token refresh failed", new Error(errorText), {
+          status: response.status,
+          operation: 'dwolla_token_refresh'
+        })
 
         throw new DwollaAuthError(sanitizedError, response.status)
       }
@@ -112,14 +111,13 @@ export class DwollaTokenManager {
       const expiryMs = data.expires_in * 1000 - this.tokenExpiryBufferMs
       this.tokenExpiryTimestamp = startTime + expiryMs
 
-      // Log success (would use proper logger in production)
-      if (getEnv().NODE_ENV === "development") {
-        console.log("[DwollaAuth] Token refreshed successfully", {
-          expiresIn: data.expires_in,
-          bufferSeconds: this.tokenExpiryBufferMs / 1000,
-          expiryTimestamp: new Date(this.tokenExpiryTimestamp).toISOString(),
-        })
-      }
+      // Log success
+      log.debug("[DwollaAuth] Token refreshed successfully", {
+        expiresIn: data.expires_in,
+        bufferSeconds: this.tokenExpiryBufferMs / 1000,
+        expiryTimestamp: new Date(this.tokenExpiryTimestamp).toISOString(),
+        operation: 'dwolla_token_success'
+      })
 
       return this.accessToken
     } catch (error) {
@@ -131,9 +129,9 @@ export class DwollaTokenManager {
       }
 
       // Log network errors internally
-      if (getEnv().NODE_ENV === "development") {
-        console.error("[DwollaAuth] Network error:", error)
-      }
+      log.error("[DwollaAuth] Network error", error as Error, {
+        operation: 'dwolla_auth_network_error'
+      })
 
       throw new DwollaAuthError(
         "Failed to authenticate with Dwolla. Please check your connection and try again."

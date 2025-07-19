@@ -3,6 +3,7 @@ import QRCode from 'qrcode'
 import { prisma } from '@/lib/db'
 import { Encryption } from './encryption'
 import { getEnv } from '@/lib/env'
+import { log } from '@/lib/logger'
 
 export interface MFASetupData {
   qrCodeUrl: string
@@ -93,7 +94,10 @@ export class MFAService {
     try {
       secret = Encryption.decrypt(user.mfaSecret)
     } catch (error) {
-      console.error('Failed to decrypt MFA secret:', error)
+      log.error('Failed to decrypt MFA secret', error as Error, {
+        userId,
+        operation: 'mfa_decrypt'
+      })
       return { success: false, reason: 'MFA configuration error' }
     }
 

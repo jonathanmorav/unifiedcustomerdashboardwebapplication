@@ -65,6 +65,7 @@ model User {
   lastLoginAt         DateTime?
   lastLoginIp         String?
   passwordChangedAt   DateTime?
+  passwordHash        String?   // For users with password auth
 
   accounts       Account[]
   sessions       Session[]

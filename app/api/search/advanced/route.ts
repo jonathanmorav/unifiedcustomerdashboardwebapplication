@@ -5,6 +5,7 @@ import { getAdvancedSearchEngine } from "@/lib/search/advanced-search"
 import { SearchHistoryManager } from "@/lib/search/search-history"
 import { z } from "zod"
 import type { AdvancedSearchParams } from "@/lib/types/search"
+import { log } from "@/lib/logger"
 
 // Request validation schema for advanced search
 const advancedSearchSchema = z.object({
@@ -132,7 +133,11 @@ export async function POST(request: NextRequest) {
       }
 
       SearchHistoryManager.saveSearch(historyEntry as any, session.user.email).catch((err) => {
-        console.error("Failed to save search history:", err)
+        log.error("Failed to save search history", err as Error, {
+          userId: session.user.email,
+          searchTerm: result.searchTerm,
+          operation: 'advanced_search_history'
+        })
       })
 
       return NextResponse.json({
@@ -145,7 +150,10 @@ export async function POST(request: NextRequest) {
       clearTimeout(timeoutId)
     }
   } catch (error) {
-    console.error("Advanced search API error:", error)
+    log.error("Advanced search API error", error as Error, {
+      userId: session?.user?.email,
+      operation: 'advanced_search'
+    })
 
     if (error instanceof Error && error.name === "AbortError") {
       return NextResponse.json({ error: "Search timeout" }, { status: 408 })
@@ -203,7 +211,10 @@ export async function GET(request: NextRequest) {
       data: filterOptions,
     })
   } catch (error) {
-    console.error("Filter options API error:", error)
+    log.error("Filter options API error", error as Error, {
+      userId: session?.user?.email,
+      operation: 'advanced_search_filters'
+    })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

@@ -6,6 +6,7 @@ import { AccountSecurity } from '@/lib/security/account-security'
 import { rateLimiter, rateLimitConfigs } from '@/lib/security/rate-limit'
 import { z } from 'zod'
 import { headers } from 'next/headers'
+import { log } from '@/lib/logger'
 
 // Rate limit configuration for MFA endpoints
 const mfaRateLimitConfig = {
@@ -93,7 +94,10 @@ export async function GET(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('MFA setup error:', error)
+    log.error('MFA setup error', error as Error, {
+      userId: session?.user?.id,
+      operation: 'mfa_setup'
+    })
     
     // Log error internally but return generic message
     await AccountSecurity.escalateSecurityEvent(
@@ -240,7 +244,10 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('MFA verification error:', error)
+    log.error('MFA verification error', error as Error, {
+      userId: session?.user?.id,
+      operation: 'mfa_verification'
+    })
     
     // Log error internally
     await AccountSecurity.escalateSecurityEvent(

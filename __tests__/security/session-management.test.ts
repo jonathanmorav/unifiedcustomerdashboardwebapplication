@@ -1,21 +1,8 @@
 import { SessionManagement } from '@/lib/security/session-management'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import crypto from 'crypto'
 
-// Mock database
-jest.mock('@/lib/db', () => ({
-  db: {
-    session: {
-      findMany: jest.fn(),
-      count: jest.fn(),
-      deleteMany: jest.fn(),
-      findFirst: jest.fn(),
-    },
-    auditLog: {
-      create: jest.fn(),
-    },
-  },
-}))
+// Mock database is already provided in jest.setup.ts
 
 describe('SessionManagement', () => {
   const mockUserId = 'test-user-123'
@@ -24,35 +11,29 @@ describe('SessionManagement', () => {
     jest.clearAllMocks()
   })
 
-  describe('getDeviceFingerprint', () => {
+  describe('createDeviceFingerprint', () => {
     it('should generate consistent fingerprint for same device', () => {
-      const deviceInfo = {
-        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-        acceptLanguage: 'en-US,en;q=0.9',
-        acceptEncoding: 'gzip, deflate, br',
-        screenResolution: '1920x1080',
-      }
+      const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
+      const acceptLanguage = 'en-US,en;q=0.9'
+      const acceptEncoding = 'gzip, deflate, br'
 
-      const fingerprint1 = SessionManagement.getDeviceFingerprint(deviceInfo)
-      const fingerprint2 = SessionManagement.getDeviceFingerprint(deviceInfo)
+      const fingerprint1 = SessionManagement.createDeviceFingerprint(userAgent, acceptLanguage, acceptEncoding)
+      const fingerprint2 = SessionManagement.createDeviceFingerprint(userAgent, acceptLanguage, acceptEncoding)
 
       expect(fingerprint1).toBe(fingerprint2)
-      expect(fingerprint1).toMatch(/^[a-f0-9]{64}$/) // SHA256 hash
+      expect(fingerprint1).toMatch(/^[a-f0-9]{16}$/) // Truncated SHA256 hash
     })
 
     it('should generate different fingerprints for different devices', () => {
-      const device1 = {
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        acceptLanguage: 'en-US',
-      }
-
-      const device2 = {
-        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0)',
-        acceptLanguage: 'en-GB',
-      }
-
-      const fingerprint1 = SessionManagement.getDeviceFingerprint(device1)
-      const fingerprint2 = SessionManagement.getDeviceFingerprint(device2)
+      const fingerprint1 = SessionManagement.createDeviceFingerprint(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'en-US'
+      )
+      
+      const fingerprint2 = SessionManagement.createDeviceFingerprint(
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0)',
+        'en-GB'
+      )
 
       expect(fingerprint1).not.toBe(fingerprint2)
     })
@@ -78,7 +59,7 @@ describe('SessionManagement', () => {
         },
       ]
 
-      ;(db.session.findMany as jest.Mock).mockResolvedValue(existingSessions)
+      ;(prisma.loginAttempt.findMany as jest.Mock).mockResolvedValue([])
 
       const anomalies = await SessionManagement.detectSessionAnomalies(mockUserId, currentDevice)
 
@@ -102,7 +83,7 @@ describe('SessionManagement', () => {
         },
       ]
 
-      ;(db.session.findMany as jest.Mock).mockResolvedValue(existingSessions)
+      ;(prisma.loginAttempt.findMany as jest.Mock).mockResolvedValue([])
 
       const anomalies = await SessionManagement.detectSessionAnomalies(mockUserId, currentDevice)
 
@@ -129,7 +110,7 @@ describe('SessionManagement', () => {
         },
       ]
 
-      ;(db.session.findMany as jest.Mock).mockResolvedValue(existingSessions)
+      ;(prisma.loginAttempt.findMany as jest.Mock).mockResolvedValue([])
 
       const anomalies = await SessionManagement.detectSessionAnomalies(mockUserId, currentDevice)
 
@@ -158,7 +139,7 @@ describe('SessionManagement', () => {
         },
       ]
 
-      ;(db.session.findMany as jest.Mock).mockResolvedValue(existingSessions)
+      ;(prisma.loginAttempt.findMany as jest.Mock).mockResolvedValue([])
 
       const anomalies = await SessionManagement.detectSessionAnomalies(mockUserId, currentDevice)
 
@@ -183,7 +164,7 @@ describe('SessionManagement', () => {
         },
       ]
 
-      ;(db.session.findMany as jest.Mock).mockResolvedValue(existingSessions)
+      ;(prisma.loginAttempt.findMany as jest.Mock).mockResolvedValue([])
 
       const anomalies = await SessionManagement.detectSessionAnomalies(mockUserId, currentDevice)
 
@@ -193,7 +174,7 @@ describe('SessionManagement', () => {
 
   describe('checkConcurrentSessions', () => {
     it('should allow sessions within limit', async () => {
-      ;(db.session.count as jest.Mock).mockResolvedValue(2)
+      ;(prisma.session.count as jest.Mock).mockResolvedValue(2)
 
       const result = await SessionManagement.checkConcurrentSessions(mockUserId, 'current-session')
 
@@ -203,7 +184,7 @@ describe('SessionManagement', () => {
     })
 
     it('should block sessions exceeding limit', async () => {
-      ;(db.session.count as jest.Mock).mockResolvedValue(3)
+      ;(prisma.session.count as jest.Mock).mockResolvedValue(3)
 
       const result = await SessionManagement.checkConcurrentSessions(mockUserId, 'current-session')
 
@@ -214,19 +195,19 @@ describe('SessionManagement', () => {
     })
 
     it('should identify oldest session for revocation', async () => {
-      ;(db.session.count as jest.Mock).mockResolvedValue(3)
+      ;(prisma.session.count as jest.Mock).mockResolvedValue(3)
       
       const oldestSession = {
         id: 'oldest-session',
         expires: new Date('2025-01-01'),
       }
       
-      ;(db.session.findFirst as jest.Mock).mockResolvedValue(oldestSession)
+      ;(prisma.session.findFirst as jest.Mock).mockResolvedValue(oldestSession)
 
       const result = await SessionManagement.checkConcurrentSessions(mockUserId, 'current-session')
 
       expect(result.oldestSession).toBe('oldest-session')
-      expect(db.session.findFirst).toHaveBeenCalledWith({
+      expect(prisma.session.findFirst).toHaveBeenCalledWith({
         where: {
           userId: mockUserId,
           id: { not: 'current-session' },
@@ -241,20 +222,20 @@ describe('SessionManagement', () => {
       const sessionId = 'session-to-revoke'
       const reason = 'User initiated logout'
 
-      ;(db.session.deleteMany as jest.Mock).mockResolvedValue({ count: 1 })
+      ;(prisma.session.deleteMany as jest.Mock).mockResolvedValue({ count: 1 })
 
       const result = await SessionManagement.revokeSession(mockUserId, sessionId, reason)
 
       expect(result).toBe(1)
       
-      expect(db.session.deleteMany).toHaveBeenCalledWith({
+      expect(prisma.session.deleteMany).toHaveBeenCalledWith({
         where: {
           userId: mockUserId,
           id: sessionId,
         },
       })
 
-      expect(db.auditLog.create).toHaveBeenCalledWith({
+      expect(prisma.auditLog.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           userId: mockUserId,
           action: 'SESSION_REVOKED',
@@ -270,20 +251,20 @@ describe('SessionManagement', () => {
     it('should revoke all sessions except current', async () => {
       const currentSessionId = 'current-session'
 
-      ;(db.session.deleteMany as jest.Mock).mockResolvedValue({ count: 5 })
+      ;(prisma.session.deleteMany as jest.Mock).mockResolvedValue({ count: 5 })
 
       const result = await SessionManagement.revokeAllSessions(mockUserId, currentSessionId)
 
       expect(result).toBe(5)
       
-      expect(db.session.deleteMany).toHaveBeenCalledWith({
+      expect(prisma.session.deleteMany).toHaveBeenCalledWith({
         where: {
           userId: mockUserId,
           id: { not: currentSessionId },
         },
       })
 
-      expect(db.auditLog.create).toHaveBeenCalledWith({
+      expect(prisma.auditLog.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           action: 'ALL_SESSIONS_REVOKED',
           metadata: { 
@@ -295,13 +276,13 @@ describe('SessionManagement', () => {
     })
 
     it('should revoke all sessions when no exception provided', async () => {
-      ;(db.session.deleteMany as jest.Mock).mockResolvedValue({ count: 3 })
+      ;(prisma.session.deleteMany as jest.Mock).mockResolvedValue({ count: 3 })
 
       const result = await SessionManagement.revokeAllSessions(mockUserId)
 
       expect(result).toBe(3)
       
-      expect(db.session.deleteMany).toHaveBeenCalledWith({
+      expect(prisma.session.deleteMany).toHaveBeenCalledWith({
         where: { userId: mockUserId },
       })
     })

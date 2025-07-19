@@ -4,6 +4,7 @@ import { getToken } from 'next-auth/jwt'
 import { authOptions } from '@/lib/auth'
 import { SessionManagement } from '@/lib/security/session-management'
 import { z } from 'zod'
+import { log } from '@/lib/logger'
 
 // GET - Get all active sessions for the current user
 export async function GET(request: NextRequest) {
@@ -43,7 +44,10 @@ export async function GET(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('Get sessions error:', error)
+    log.error('Get sessions error', error as Error, {
+      userId: session?.user?.id,
+      operation: 'get_sessions'
+    })
     
     return NextResponse.json(
       { error: 'Unable to retrieve sessions' },
@@ -128,7 +132,10 @@ export async function DELETE(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('Revoke session error:', error)
+    log.error('Revoke session error', error as Error, {
+      userId: session?.user?.id,
+      operation: 'revoke_session'
+    })
     
     return NextResponse.json(
       { error: 'Operation failed' },

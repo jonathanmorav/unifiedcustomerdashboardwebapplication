@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { getEnv } from '@/lib/env'
+import { EmailService } from '@/lib/services/email'
 
 export interface LoginAttemptData {
   email: string
@@ -111,8 +112,12 @@ export class AccountSecurity {
         }
       })
 
-      // TODO: Send email notification about account lockout
-      // await sendAccountLockoutEmail(user.email, lockoutUntil)
+      // Send email notification about account lockout
+      await EmailService.sendAccountLockoutNotification(
+        user.email,
+        lockoutUntil,
+        ipAddress
+      )
     }
   }
 
@@ -315,7 +320,7 @@ export class AccountSecurity {
       }
     })
 
-    // TODO: Send notification to security team
-    // await notifySecurityTeam(userId, event, details)
+    // Send notification to security team
+    await EmailService.notifySecurityTeam(userId, event, details)
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { SearchHistoryManager } from "@/lib/search/search-history"
+import { log } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,7 +33,11 @@ export async function GET(request: NextRequest) {
       data: suggestions,
     })
   } catch (error) {
-    console.error("Search suggestions API error:", error)
+    log.error("Search suggestions API error", error as Error, {
+      userId: session?.user?.email,
+      query,
+      operation: 'search_suggestions'
+    })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

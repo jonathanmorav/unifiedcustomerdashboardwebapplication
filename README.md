@@ -1,279 +1,264 @@
-# Unified Customer Dashboard
+# Cakewalk Benefits - Unified Customer Dashboard
 
-An enterprise-grade web application that consolidates customer data from HubSpot and Dwolla, providing support teams with a unified interface to eliminate context switching and reduce task completion time from 8-10 minutes to 2-3 minutes.
+<div align="center">
+  
+  An enterprise-grade customer data management platform that consolidates customer information from HubSpot CRM and Dwolla payment systems.
+  
+  [![Next.js](https://img.shields.io/badge/Next.js-14.0-black)](https://nextjs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.0-38B2AC)](https://tailwindcss.com/)
+  [![WCAG 2.1 AA](https://img.shields.io/badge/WCAG_2.1_AA-compliant-green)](https://www.w3.org/WAI/WCAG21/quickref/)
+  [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
+</div>
 
-![CI](https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication/actions/workflows/ci.yml/badge.svg)
-![Accessibility](https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication/actions/workflows/a11y.yml/badge.svg)
-![Deploy](https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication/actions/workflows/deploy.yml/badge.svg)
-![Next.js](https://img.shields.io/badge/Next.js-15.4.1-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC)
-![WCAG 2.1 AA](https://img.shields.io/badge/WCAG_2.1_AA-compliant-green)
-![License](https://img.shields.io/badge/license-MIT-green)
+## 📋 Overview
 
-## 🚀 Features
+The Unified Customer Dashboard provides support teams with a single interface to search and manage customer data, reducing task completion time from 8-10 minutes to 2-3 minutes by eliminating context switching between multiple systems.
+
+## ✨ Key Features
 
 ### Core Functionality
+- **🔍 Unified Search**: Search across HubSpot and Dwolla simultaneously
+- **⚡ Smart Detection**: Automatically identifies email, name, business name, or customer IDs
+- **🚀 Fast Response**: Parallel API execution ensures < 3 second response times
+- **📊 Consolidated View**: All customer data in one intuitive interface
 
-- **Unified Search**: Search across HubSpot and Dwolla simultaneously
-- **Smart Search Detection**: Automatically detects email, name, business name, or Dwolla ID
-- **Parallel API Execution**: Concurrent API calls for < 3 second response times
-- **Real-time Results**: Split-panel view showing data from both platforms
-- **Export Options**: Export results as CSV, JSON, or PDF
-- **Search History**: Autocomplete suggestions from previous searches
+### Security & Compliance
+- **🔐 Google OAuth**: Secure authentication with session management
+- **🛡️ Enterprise Security**: CSRF protection, rate limiting, and audit logging
+- **♿ WCAG 2.1 AA**: Full accessibility compliance
+- **🔒 Data Protection**: Field-level encryption for PII (planned)
 
-### Technical Features
+### User Experience
+- **🎨 Modern Design**: Cakewalk Benefits design system
+- **🌓 Dark Mode**: Automatic theme switching
+- **📱 Responsive**: Mobile-first design approach
+- **⌨️ Keyboard Navigation**: Full keyboard accessibility
 
-- **Enterprise Authentication**: Google OAuth with email whitelist
-- **Type Safety**: Full TypeScript implementation
-- **Responsive Design**: Mobile-first approach with Cakewalk Design System
-- **Dark Mode & Accessibility**: WCAG 2.1 AA compliant theming with smooth transitions
-- **PCI Compliance**: Account numbers masked for security
-- **Rate Limiting**: Intelligent API rate limit handling
-- **Error Recovery**: Automatic retry logic with exponential backoff
-- **Performance Monitoring**: Real-time metrics display
+## 🚀 Quick Start
 
-### Accessibility Features
-
-- **WCAG 2.1 AA Compliance**: All colors meet contrast ratio standards
-- **Keyboard Navigation**: Full keyboard support with Alt+T shortcut
-- **Screen Reader Support**: ARIA landmarks and live announcements
-- **Skip Links**: Direct navigation to main content
-- **Theme Persistence**: User preference saved across sessions
-- **System Theme Detection**: Automatic dark/light mode based on OS preference
-
-## 📋 Prerequisites
-
-- Node.js 18.x or higher
-- PostgreSQL 14.x or higher
+### Prerequisites
+- Node.js 18+ and npm
+- PostgreSQL 14+
 - Google OAuth credentials
-- HubSpot API access token
-- Dwolla API credentials
+- Docker (optional)
 
-## 🛠️ Installation
+### Installation
 
 1. **Clone the repository**
-
    ```bash
-   git clone https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication.git
-   cd unifiedcustomerdashboardwebapplication
+   git clone https://github.com/cakewalk-benefits/unified-customer-dashboard.git
+   cd unified-customer-dashboard
    ```
 
 2. **Install dependencies**
-
    ```bash
    npm install
    ```
 
-3. **Set up environment variables**
-
+3. **Configure environment**
    ```bash
-   cp .env.example .env.local
+   cp .env.local.example .env.local
+   # Edit .env.local with your configuration
    ```
 
-   Edit `.env.local` with your credentials
-
-4. **Set up the database**
-
+4. **Set up database**
    ```bash
-   npx prisma generate
-   npx prisma db push
+   # Using Docker
+   docker-compose -f docker-compose.dev.yml up -d postgres
+   
+   # Run migrations
+   npm run setup:db
    ```
 
-5. **Run the development server**
-
+5. **Start development server**
    ```bash
    npm run dev
    ```
 
-6. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+### Demo Mode
 
-## 🔧 Configuration
-
-### Environment Variables
-
-```env
-# NextAuth Configuration
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-here # Generate with: openssl rand -base64 32
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/unified_customer_dashboard
-
-# Allowed Emails (comma-separated)
-ALLOWED_EMAILS=user1@example.com,user2@example.com
-
-# HubSpot API
-HUBSPOT_ACCESS_TOKEN=your-hubspot-access-token
-HUBSPOT_BASE_URL=https://api.hubapi.com
-
-# Dwolla API
-DWOLLA_CLIENT_ID=your-dwolla-client-id
-DWOLLA_CLIENT_SECRET=your-dwolla-client-secret
-DWOLLA_ENVIRONMENT=sandbox # or production
-DWOLLA_BASE_URL=https://api-sandbox.dwolla.com
+Try the application with mock data:
+```bash
+npm run setup:demo
+npm run dev
 ```
-
-### Google OAuth Setup
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing
-3. Enable Google+ API
-4. Create OAuth 2.0 credentials
-5. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
-
-### HubSpot Configuration
-
-1. Access your HubSpot account
-2. Navigate to Settings > Integrations > API Key
-3. Generate a new API key or use existing
-4. Ensure access to Companies, Custom Objects (Summary of Benefits, Policies)
-
-### Dwolla Setup
-
-1. Create a Dwolla Sandbox account for development
-2. Generate API credentials
-3. Configure OAuth application settings
-4. Set appropriate scopes for customer and funding source access
 
 ## 🏗️ Architecture
 
-```
-unified-customer-dashboard/
-├── app/                    # Next.js 14 App Router
-│   ├── api/               # API routes
-│   ├── auth/              # Authentication pages
-│   └── dashboard/         # Main application
-├── components/            # React components
-│   ├── search/           # Search-related components
-│   ├── results/          # Result display components
-│   └── ui/               # Shared UI components
-├── lib/                   # Core business logic
-│   ├── api/              # API clients and services
-│   ├── search/           # Unified search engine
-│   └── types/            # TypeScript definitions
-├── hooks/                 # Custom React hooks
-├── utils/                 # Utility functions
-└── prisma/               # Database schema
-```
+### Tech Stack
 
-## 📱 Usage
-
-### Basic Search
-
-1. Sign in with your authorized Google account
-2. Enter search term in the search bar
-3. Select search type or use auto-detection
-4. View results in split-panel layout
-
-### Keyboard Shortcuts
-
-- `Cmd/Ctrl + K`: Focus search input
-- `Escape`: Clear search
-- `Enter`: Execute search
-
-### Export Data
-
-1. Complete a search
-2. Click the export button in the action bar
-3. Choose format: CSV, JSON, or PDF
-4. File downloads automatically
-
-## 🧪 Development
-
-### Available Scripts
-
-```bash
-npm run dev        # Start development server
-npm run build      # Build for production
-npm run start      # Start production server
-npm run lint       # Run ESLint
-npm run format     # Format with Prettier
-npm run typecheck  # TypeScript type checking
-```
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | Next.js 14, React 19, TypeScript, Tailwind CSS |
+| **Backend** | Next.js API Routes, Prisma ORM |
+| **Database** | PostgreSQL with connection pooling |
+| **Auth** | NextAuth.js with Google OAuth |
+| **Security** | CSRF tokens, rate limiting, helmet.js |
+| **Testing** | Jest, React Testing Library, Playwright |
+| **Monitoring** | Custom metrics, health checks |
 
 ### Project Structure
 
-- **API Layer**: Separate client and service layers for each integration
-- **Type Safety**: Comprehensive TypeScript types for all API responses
-- **Error Handling**: Centralized error handling with custom error classes
-- **State Management**: React hooks for local state, no external state library needed
+```
+unified-customer-dashboard/
+├── app/                    # Next.js App Router
+│   ├── api/               # API endpoints
+│   ├── dashboard/         # Dashboard UI
+│   └── auth/              # Authentication
+├── components/            # React components
+│   ├── ui/               # Design system components
+│   ├── search/           # Search functionality
+│   └── errors/           # Error boundaries
+├── lib/                   # Core libraries
+│   ├── auth/             # Authentication logic
+│   ├── search/           # Search implementation
+│   ├── security/         # Security middleware
+│   └── errors/           # Error handling
+├── prisma/               # Database schema
+├── public/               # Static assets
+├── docs/                 # Documentation
+└── __tests__/            # Test suites
+```
 
-### Code Quality
+## 🔧 Configuration
 
-- ESLint configuration for code quality
-- Prettier for consistent formatting
-- TypeScript strict mode enabled
-- Git hooks for pre-commit checks (coming soon)
+### Required Environment Variables
 
-## 🐳 Docker Support (Coming Soon)
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `NEXTAUTH_URL` | Application URL |
+| `NEXTAUTH_SECRET` | 32+ character secret |
+| `GOOGLE_CLIENT_ID` | OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | OAuth secret |
+
+### Optional API Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HUBSPOT_API_KEY` | HubSpot API key | Demo mode |
+| `DWOLLA_CLIENT_ID` | Dwolla client ID | Demo mode |
+| `DWOLLA_CLIENT_SECRET` | Dwolla secret | Demo mode |
+| `DEMO_MODE` | Enable mock data | `false` |
+
+## 📝 Development
+
+### Commands
 
 ```bash
-docker compose up -d
+# Development
+npm run dev          # Start dev server
+npm run build        # Build for production
+npm run start        # Start production server
+
+# Testing
+npm test            # Run all tests
+npm run test:watch  # Watch mode
+npm run test:coverage # Coverage report
+
+# Code Quality
+npm run lint        # ESLint
+npm run format      # Prettier
+npm run typecheck   # TypeScript
+
+# Database
+npm run setup:db    # Run migrations
+npm run db:studio   # Prisma Studio
 ```
+
+### Code Standards
+
+- **TypeScript**: Strict mode enabled
+- **ESLint**: Airbnb configuration
+- **Prettier**: Automatic formatting
+- **Commits**: Conventional commits
+
+## 🚢 Deployment
+
+### Docker
+
+```bash
+# Production build
+docker build -t cakewalk-dashboard .
+docker run -p 3000:3000 cakewalk-dashboard
+
+# Docker Compose
+docker-compose up --build
+```
+
+### Vercel
+
+```bash
+vercel --prod
+```
+
+### Manual
+
+```bash
+npm run build
+npm start
+```
+
+## 🔒 Security Features
+
+- **Authentication**: Google OAuth with JWT sessions
+- **Authorization**: Role-based access control
+- **API Security**: Rate limiting, CORS, CSP headers
+- **Data Protection**: Input validation, SQL injection prevention
+- **Audit Trail**: Comprehensive logging of sensitive operations
 
 ## 📊 Performance
 
-- **Search Response**: < 3 seconds (target)
-- **API Calls**: Parallel execution with Promise.allSettled
-- **Caching**: Browser cache for search history (Redis coming soon)
-- **Bundle Size**: Optimized with Next.js automatic code splitting
+- **Response Time**: < 3 seconds for search operations
+- **Lighthouse Score**: 95+ across all metrics
+- **Bundle Size**: Optimized with code splitting
+- **Caching**: Redis integration (planned)
 
-## 🔒 Security
+## 🧪 Testing
 
-- **Authentication**: OAuth 2.0 with Google, MFA support
-- **Authorization**: Role-based access control (RBAC)
-- **Session Security**: 30-minute timeout, anomaly detection, device fingerprinting
-- **CSRF Protection**: Dual-mode (tokens for web, HMAC for APIs)
-- **Rate Limiting**: Configurable limits with burst handling
-- **Data Protection**: PCI compliance, field-level encryption
-- **Security Headers**: HSTS, CSP, X-Frame-Options
-- **Audit Logging**: Comprehensive security event tracking
+```bash
+# Unit tests
+npm test
 
-### Security Documentation
+# Integration tests
+npm run test:integration
 
-- [Security Overview](docs/SECURITY.md) - Comprehensive security documentation
-- [Implementation Guide](docs/SECURITY_IMPLEMENTATION_GUIDE.md) - Developer security guide
-- [Configuration Reference](docs/SECURITY_CONFIGURATION.md) - Security configuration options
-- [Testing Guide](docs/SECURITY_TESTING_GUIDE.md) - Security testing procedures
-- [Incident Response](docs/SECURITY_INCIDENT_RESPONSE.md) - Emergency response runbook
+# E2E tests
+npm run test:e2e
+
+# Accessibility tests
+npm run test:a11y
+
+# Security tests
+npm run test:security
+```
+
+## 📚 Documentation
+
+- [API Documentation](docs/API.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [Security Overview](docs/SECURITY.md)
+- [Contributing Guide](CONTRIBUTING.md)
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Coding Standards
-
-- Follow the existing code style
-- Add tests for new features
-- Update documentation as needed
-- Ensure all tests pass before submitting PR
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'feat: add amazing feature'`)
+4. Push branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Proprietary software owned by Cakewalk Benefits. All rights reserved.
 
-## 🙏 Acknowledgments
+## 🆘 Support
 
-- Built with [Next.js](https://nextjs.org/)
-- UI components from [shadcn/ui](https://ui.shadcn.com/)
-- Styled with [Tailwind CSS](https://tailwindcss.com/)
-- Authentication by [NextAuth.js](https://next-auth.js.org/)
-- Database ORM by [Prisma](https://www.prisma.io/)
-
-## 📞 Support
-
-For issues and feature requests, please use the [GitHub Issues](https://github.com/jonathanmorav/unifiedcustomerdashboardwebapplication/issues) page.
+- Email: support@cakewalkbenefits.com
+- Documentation: [docs.cakewalkbenefits.com](https://docs.cakewalkbenefits.com)
+- Issues: [GitHub Issues](https://github.com/cakewalk-benefits/unified-customer-dashboard/issues)
 
 ---
 
-Built with ❤️ for support teams everywhere
+Built with ❤️ by the Cakewalk Benefits team

@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ClockIcon, DownloadIcon, TrashIcon } from "lucide-react"
 import { useSearchHistory } from "@/hooks/use-search-history"
-import { SearchHistoryManager } from "@/lib/search/search-history"
+import { SearchHistory as SearchHistoryManager } from "@/lib/search/search-history-client"
+import { toast } from "sonner"
 
 export function SearchHistory() {
   const { history, isLoading, error, clearHistory } = useSearchHistory()
@@ -25,7 +26,7 @@ export function SearchHistory() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (err) {
-      console.error("Failed to export history:", err)
+      toast.error("Failed to export search history")
     } finally {
       setIsExporting(false)
     }

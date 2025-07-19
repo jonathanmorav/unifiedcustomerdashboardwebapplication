@@ -1,11 +1,23 @@
 import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
-import { csrfMiddleware } from "@/lib/security/middleware/csrf-middleware"
-import { rateLimitMiddleware } from "@/lib/security/middleware/rate-limit-middleware"
-import crypto from "crypto"
+import { csrfMiddleware } from "@/lib/security/middleware/csrf-middleware-edge"
+import { rateLimitMiddleware } from "@/lib/security/middleware/rate-limit-middleware-edge"
+import { monitoringMiddleware } from "@/lib/monitoring/middleware-edge"
+
+// Simple UUID generator for Edge Runtime
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
 
 export default withAuth(
   async function middleware(req) {
+    // Apply monitoring middleware first to track all requests
+    const monitoredResponse = monitoringMiddleware(req)
+    
     // Apply rate limiting
     const rateLimitResponse = await rateLimitMiddleware(req)
     if (rateLimitResponse.status === 429) {
@@ -28,8 +40,8 @@ export default withAuth(
     }
 
     // Generate request ID and correlation ID
-    const requestId = crypto.randomUUID()
-    const correlationId = req.headers.get("X-Correlation-ID") || crypto.randomUUID()
+    const requestId = generateUUID()
+    const correlationId = req.headers.get("X-Correlation-ID") || generateUUID()
 
     // Add security headers
     const headers = new Headers(req.headers)
@@ -98,7 +110,8 @@ export const config = {
     "/api/dwolla/:path*",
     "/api/search/:path*",
     "/api/export/:path*",
-    // Skip auth routes and static files
-    "/((?!api/auth|auth|_next/static|_next/image|favicon.ico).*)",
+    "/api/metrics",
+    // Health endpoints are public but monitored
+    "/api/health/:path*",
   ],
 }

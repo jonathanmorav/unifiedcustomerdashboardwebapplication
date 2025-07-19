@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { DM_Sans, Space_Grotesk } from "next/font/google"
 import { SessionProvider } from "@/components/providers/session-provider"
 import { ThemeProvider } from "@/components/providers/theme-provider"
+import { ErrorProvider } from "@/components/providers/error-provider"
 import { ThemeScript } from "@/lib/theme/theme-script"
 import "./globals.css"
 
@@ -18,9 +19,9 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: "Unified Customer Dashboard",
-  description: "Enterprise-grade customer data management platform",
-  keywords: "customer dashboard, HubSpot, Dwolla, support tools",
+  title: "Cakewalk Benefits - Customer Dashboard",
+  description: "Enterprise-grade customer data management platform by Cakewalk Benefits",
+  keywords: "cakewalk benefits, customer dashboard, HubSpot, Dwolla, support tools",
 }
 
 export default function RootLayout({
@@ -35,10 +36,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <ThemeScript />
       </head>
-      <body className={`${dmSans.variable} ${spaceGrotesk.variable} antialiased`}>
-        <ThemeProvider>
-          <SessionProvider>{children}</SessionProvider>
-        </ThemeProvider>
+      <body className={`${dmSans.variable} ${spaceGrotesk.variable} antialiased bg-cakewalk-bg-alice-100 text-cakewalk-text-primary font-dm-sans`}>
+        <ErrorProvider>
+          <ThemeProvider>
+            <SessionProvider>{children}</SessionProvider>
+          </ThemeProvider>
+        </ErrorProvider>
       </body>
     </html>
   )

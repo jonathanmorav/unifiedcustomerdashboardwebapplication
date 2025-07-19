@@ -1,4 +1,5 @@
 import { UnifiedSearchResult } from "./unified-search"
+import { log } from '@/lib/logger'
 
 export interface SearchHistoryEntry {
   id: string
@@ -55,7 +56,11 @@ export class SearchHistoryManager {
 
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history))
       } catch (error) {
-        console.error("Failed to save search history:", error)
+        log.error("Failed to save search history", error as Error, {
+          userId,
+          searchTerm: result.searchTerm,
+          operation: 'search_history_save'
+        })
       }
     }
 
@@ -107,7 +112,10 @@ export class SearchHistoryManager {
 
       return history
     } catch (error) {
-      console.error("Failed to load search history:", error)
+      log.error("Failed to load search history", error as Error, {
+        filter,
+        operation: 'search_history_load'
+      })
       return []
     }
   }
@@ -158,7 +166,10 @@ export class SearchHistoryManager {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filtered))
       }
     } catch (error) {
-      console.error("Failed to clear search history:", error)
+      log.error("Failed to clear search history", error as Error, {
+        userId,
+        operation: 'search_history_clear'
+      })
     }
   }
 

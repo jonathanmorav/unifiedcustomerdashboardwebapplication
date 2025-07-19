@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { defaultSearchTemplates } from "@/lib/search/search-templates"
+import { log } from "@/lib/logger"
 
 // Request validation schema for creating saved search
 const createSavedSearchSchema = z.object({
@@ -77,7 +78,10 @@ export async function GET(request: NextRequest) {
       data: results,
     })
   } catch (error) {
-    console.error("Fetch saved searches error:", error)
+    log.error("Fetch saved searches error", error as Error, {
+      userId: session?.user?.id,
+      operation: 'fetch_saved_searches'
+    })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -148,7 +152,10 @@ export async function POST(request: NextRequest) {
       data: savedSearch,
     })
   } catch (error) {
-    console.error("Create saved search error:", error)
+    log.error("Create saved search error", error as Error, {
+      userId: session?.user?.id,
+      operation: 'create_saved_search'
+    })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -218,7 +225,11 @@ export async function PATCH(request: NextRequest) {
       data: updated,
     })
   } catch (error) {
-    console.error("Update saved search error:", error)
+    log.error("Update saved search error", error as Error, {
+      userId: session?.user?.id,
+      searchId: id,
+      operation: 'update_saved_search'
+    })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -278,7 +289,11 @@ export async function DELETE(request: NextRequest) {
       success: true,
     })
   } catch (error) {
-    console.error("Delete saved search error:", error)
+    log.error("Delete saved search error", error as Error, {
+      userId: session?.user?.id,
+      searchId: id,
+      operation: 'delete_saved_search'
+    })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

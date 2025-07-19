@@ -4,6 +4,7 @@ import { AccountSecurity } from '@/lib/security/account-security'
 import { rateLimiter } from '@/lib/security/rate-limit'
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
+import { log } from '@/lib/logger'
 
 // Input validation
 const verifySchema = z.object({
@@ -191,7 +192,9 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('MFA verification error:', error)
+    log.error('MFA verification error', error as Error, {
+      operation: 'mfa_login_verification'
+    })
     
     // Log error internally
     await prisma.auditLog.create({

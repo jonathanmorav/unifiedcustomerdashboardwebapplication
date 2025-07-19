@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { MFAService } from '@/lib/security/mfa'
 import { AccountSecurity } from '@/lib/security/account-security'
+import { PasswordService } from '@/lib/security/password'
 import { rateLimiter } from '@/lib/security/rate-limit'
 import { z } from 'zod'
 
@@ -94,8 +95,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: In production, also verify password here
-    // For now, we'll trust the TOTP verification
+    // Verify password for sensitive operation
+    const passwordResult = await PasswordService.verifyUserPassword(
+      session.user.id,
+      validation.data.password,
+      ipAddress,
+      request.headers.get('user-agent') || undefined
+    )
+
+    if (!passwordResult.success) {
+      await AccountSecurity.recordLoginAttempt({
+        email: session.user.email,
+        success: false,
+        ipAddress,
+        userAgent: request.headers.get('user-agent') || undefined,
+        reason: 'Failed backup code regeneration - invalid password'
+      })
+
+      return NextResponse.json(
+        { error: 'Verification failed' },
+        { status: 401 }
+      )
+    }
 
     // Generate new backup codes
     const newCodes = await MFAService.regenerateBackupCodes(session.user.id)
