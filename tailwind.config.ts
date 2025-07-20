@@ -1,120 +1,96 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from "tailwindcss"
 
 const config: Config = {
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/v0/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
-        cakewalk: {
-          // Primary colors
-          primary: '#005dfe',         // Medium Slate Blue
-          'primary-light': '#5791f3', // Cornflower Blue
-          'primary-dark': '#0a214a',  // Dark Slate Blue
-          'primary-royal': '#0051dc', // Royal Blue
-          
-          // Secondary colors
-          'success': '#15cb94',       // Medium Sea Green
-          'success-light': '#53edbe', // Aquamarine
-          'success-dark': '#045d42',  // Sea Green
-          'warning': '#f59e0b',
-          'error': '#ef4444',
-          
-          // Background colors
-          bg: {
-            'alice-100': '#f4f8ff',   // Main page background
-            'alice-200': '#eaf2ff',   // Card backgrounds
-            'alice-300': '#eef1f8',   // Subtle backgrounds
-          },
-          
-          // Border colors
-          border: '#cbdeff',          // Lavender
-          
-          // Text colors
-          text: {
-            primary: '#424b5b',       // Dark Slate Gray
-            secondary: '#5d6b85',     // Slate Gray
-            tertiary: '#5d6885',      // Slate Gray 200
-          }
-        }
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        // Cakewalk-specific colors
+        "cakewalk-primary": "hsl(var(--cakewalk-primary))",
+        "cakewalk-primary-light": "hsl(var(--cakewalk-primary-light))",
+        "cakewalk-primary-dark": "hsl(var(--cakewalk-primary-dark))",
+        "cakewalk-primary-royal": "hsl(var(--cakewalk-primary-royal))",
+        "cakewalk-success": "hsl(var(--cakewalk-success))",
+        "cakewalk-success-light": "hsl(var(--cakewalk-success-light))",
+        "cakewalk-success-dark": "hsl(var(--cakewalk-success-dark))",
+        "cakewalk-error": "hsl(var(--cakewalk-error))",
+        "cakewalk-warning": "hsl(var(--cakewalk-warning))",
+        "cakewalk-alice-100": "hsl(var(--cakewalk-bg-alice-100))",
+        "cakewalk-alice-200": "hsl(var(--cakewalk-bg-alice-200))",
+        "cakewalk-alice-300": "hsl(var(--cakewalk-bg-alice-300))",
+        "cakewalk-border": "hsl(var(--cakewalk-border))",
+        "cakewalk-text-primary": "hsl(var(--cakewalk-text-primary))",
+        "cakewalk-text-secondary": "hsl(var(--cakewalk-text-secondary))",
+        "cakewalk-text-tertiary": "hsl(var(--cakewalk-text-tertiary))",
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        'dm-sans': ['DM Sans', 'sans-serif'],
-        'space-grotesk': ['Space Grotesk', 'sans-serif'],
+        "dm-sans": ["DM Sans", "sans-serif"],
+        "space-grotesk": ["Space Grotesk", "sans-serif"],
       },
       fontSize: {
         // Cakewalk typography scale
-        'cakewalk-h1': ['36px', { lineHeight: '1.2' }],
-        'cakewalk-h2': ['24px', { lineHeight: '1.3' }],
-        'cakewalk-h3': ['20px', { lineHeight: '1.3' }],
-        'cakewalk-h4': ['18px', { lineHeight: '1.4' }],
-        'cakewalk-h5': ['16px', { lineHeight: '1.4' }],
-        'cakewalk-body-lg': ['20px', { lineHeight: '1.5' }],
-        'cakewalk-body': ['18px', { lineHeight: '1.5' }],
-        'cakewalk-body-sm': ['16px', { lineHeight: '1.5' }],
-        'cakewalk-body-xs': ['14px', { lineHeight: '1.4' }],
-        'cakewalk-body-xxs': ['13px', { lineHeight: '1.4' }],
-      },
-      fontWeight: {
-        'cakewalk-normal': '400',
-        'cakewalk-medium': '500',
-        'cakewalk-semibold': '600',
-        'cakewalk-bold': '700',
-      },
-      spacing: {
-        // Cakewalk spacing system
-        'cakewalk-2': '2px',
-        'cakewalk-4': '4px',
-        'cakewalk-8': '8px',
-        'cakewalk-12': '12px',
-        'cakewalk-16': '16px',
-        'cakewalk-20': '20px',
-        'cakewalk-24': '24px',
-        'cakewalk-32': '32px',
-        'cakewalk-40': '40px',
-      },
-      borderRadius: {
-        'cakewalk-small': '8px',
-        'cakewalk-medium': '12px',
-        'cakewalk-large': '16px',
-        'cakewalk-xlarge': '20px',
+        "cakewalk-h1": ["48px", { lineHeight: "56px", fontWeight: "700" }],
+        "cakewalk-h2": ["36px", { lineHeight: "44px", fontWeight: "700" }],
+        "cakewalk-h3": ["28px", { lineHeight: "36px", fontWeight: "600" }],
+        "cakewalk-h4": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+        "cakewalk-h5": ["16px", { lineHeight: "24px", fontWeight: "600" }],
+        "cakewalk-body": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+        "cakewalk-body-sm": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+        "cakewalk-body-xs": ["13px", { lineHeight: "18px", fontWeight: "400" }],
+        "cakewalk-body-xxs": ["12px", { lineHeight: "16px", fontWeight: "400" }],
       },
       boxShadow: {
-        'cakewalk-light': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-        'cakewalk-medium': '0px 6px 8px rgba(0,0,0,0.05)',
-        'cakewalk-special': '0px 3px 3px rgba(0,0,0,0.05)',
-        'cakewalk-hover': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-      },
-      animation: {
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'slide-up': 'slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1)',
-        'slide-down': 'slideDown 0.3s cubic-bezier(0.23, 1, 0.32, 1)',
-        'scale-in': 'scaleIn 0.2s ease-out',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideDown: {
-          '0%': { opacity: '0', transform: 'translateY(-20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        scaleIn: {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
-        },
+        "cakewalk-light": "0 1px 3px rgba(52, 89, 183, 0.06)",
+        "cakewalk-medium": "0 4px 12px rgba(52, 89, 183, 0.08)",
+        "cakewalk-heavy": "0 8px 24px rgba(52, 89, 183, 0.12)",
+        "cakewalk-hover": "0 8px 16px rgba(52, 89, 183, 0.16)",
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 }
 
 export default config
