@@ -464,9 +464,30 @@ export class HubSpotClient {
       offset: offset.toString(),
     })
 
-    const response = await this.fetchWithRetry<HubSpotListsResponse>(
+    const response = await this.fetchWithRetry<any>(
       `${url}?${params.toString()}`
     )
+    
+    // Log the raw response to check field names
+    if (response.lists && response.lists.length > 0) {
+      const sampleList = response.lists[0]
+      await log.info("HubSpot Lists API raw response", {
+        sampleList: {
+          listId: sampleList.listId,
+          name: sampleList.name,
+          listType: sampleList.listType,
+          hasMetaData: !!sampleList.metaData,
+          metaDataSize: sampleList.metaData?.size,
+          hasSize: 'size' in sampleList,
+          sizeValue: sampleList.size,
+          hasMembershipCount: 'membershipCount' in sampleList,
+          membershipCountValue: sampleList.membershipCount,
+          allKeys: Object.keys(sampleList)
+        },
+        totalLists: response.lists.length,
+        operation: "hubspot_lists_raw_response"
+      })
+    }
 
     return response
   }

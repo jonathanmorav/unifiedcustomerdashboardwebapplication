@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       listId: list.listId,
       listName: list.name,
       listType: list.listType,
-      memberCount: list.membershipCount || 0,
+      memberCount: (list as any).metaData?.size || (list as any).size || list.membershipCount || 0,
       snapshotDate: now,
     }))
 

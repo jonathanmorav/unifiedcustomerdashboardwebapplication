@@ -29,11 +29,12 @@ export async function GET(request: NextRequest) {
     const listsResponse = await hubspotClient.getAllLists(250) // Get up to 250 lists
 
     // Transform the response to include proper types
+    // HubSpot Lists API v1 uses 'metaData.size' for member count
     const lists = listsResponse.lists.map(list => ({
       listId: list.listId,
       name: list.name,
       listType: list.listType,
-      membershipCount: list.membershipCount || 0,
+      membershipCount: (list as any).metaData?.size || (list as any).size || list.membershipCount || 0,
       createdAt: list.createdAt,
       updatedAt: list.updatedAt,
     }))
