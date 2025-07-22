@@ -70,6 +70,59 @@ export type HubSpotMonthlyInvoice = HubSpotObject<{
   [key: string]: string | number | boolean | undefined
 }>
 
+// List-related types
+export interface HubSpotList {
+  listId: number
+  parentId?: number
+  name: string
+  objectTypeId: string
+  listType: "STATIC" | "DYNAMIC"
+  membershipCount: number
+  createdAt: string
+  updatedAt: string
+  filters?: HubSpotListFilter[]
+}
+
+export interface HubSpotListFilter {
+  filterFamily: string
+  withinTimeMode: string
+  checkPastVersions: boolean
+  filterLines: Array<{
+    property: string
+    operation: {
+      operationType: string
+      includeObjectsWithNoValueSet: boolean
+    }
+    value: string | number | boolean
+  }>
+}
+
+export interface HubSpotListMembership {
+  listId: number
+  listName: string
+  listType: "STATIC" | "DYNAMIC"
+  membershipTimestamp?: string
+}
+
+export interface HubSpotListsResponse {
+  lists: HubSpotList[]
+  hasMore: boolean
+  offset?: number
+  total?: number
+}
+
+export interface HubSpotListMembershipsResponse {
+  lists: HubSpotListMembership[]
+  total: number
+}
+
+export interface HubSpotListTrend {
+  listId: number
+  listName: string
+  date: string
+  memberCount: number
+}
+
 export interface HubSpotSearchResponse<T> {
   total: number
   results: HubSpotObject<T>[]
@@ -142,6 +195,7 @@ export type HubSpotObjectType =
   | "summary_of_benefits"
   | "policies"
   | "monthly_invoices"
+  | "lists"
 
 // Consolidated result type for our dashboard
 export interface HubSpotCustomerData {
@@ -149,4 +203,5 @@ export interface HubSpotCustomerData {
   summaryOfBenefits: HubSpotObject<HubSpotSummaryOfBenefits["properties"]>[]
   policies: HubSpotObject<HubSpotPolicy["properties"]>[]
   monthlyInvoices?: HubSpotObject<HubSpotMonthlyInvoice["properties"]>[]
+  activeLists?: HubSpotListMembership[]
 }

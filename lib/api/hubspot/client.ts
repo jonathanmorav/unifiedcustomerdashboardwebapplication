@@ -10,6 +10,10 @@ import type {
   HubSpotSearchRequest,
   HubSpotObjectType,
   HubSpotBatchReadResponse,
+  HubSpotList,
+  HubSpotListMembership,
+  HubSpotListsResponse,
+  HubSpotListMembershipsResponse,
 } from "@/lib/types/hubspot"
 import { log } from "@/lib/logger"
 
@@ -446,6 +450,194 @@ export class HubSpotClient {
         operation: 'hubspot_fetch_invoices'
       })
       return []
+    }
+  }
+
+  // Get all lists (with pagination support)
+  async getAllLists(
+    limit = 50,
+    offset = 0
+  ): Promise<HubSpotListsResponse> {
+    const url = `${this.baseUrl}/contacts/v1/lists`
+    const params = new URLSearchParams({
+      count: limit.toString(),
+      offset: offset.toString(),
+    })
+
+    const response = await this.fetchWithRetry<HubSpotListsResponse>(
+      `${url}?${params.toString()}`
+    )
+
+    return response
+  }
+
+  // Get list details by ID
+  async getListById(listId: number): Promise<HubSpotList> {
+    const url = `${this.baseUrl}/contacts/v1/lists/${listId}`
+    
+    return this.fetchWithRetry<HubSpotList>(url)
+  }
+
+  // Get list memberships for a contact
+  async getContactListMemberships(
+    contactId: string
+  ): Promise<HubSpotListMembershipsResponse> {
+    await log.info(`Getting list memberships for contact`, {
+      contactId,
+      operation: 'hubspot_get_contact_lists_start'
+    })
+
+    const url = `${this.baseUrl}/contacts/v1/contact/vid/${contactId}/lists`
+
+    try {
+      const response = await this.fetchWithRetry<{
+        lists: Array<{
+          listId: number
+          name: string
+          internal: boolean
+          listType: "STATIC" | "DYNAMIC"
+          metaData: {
+            processing: string
+            size: number
+          }
+          updatedAt: number
+          internalListId: number
+        }>
+      }>(url)
+
+      // Transform to our interface format
+      const memberships: HubSpotListMembershipsResponse = {
+        lists: response.lists
+          .filter(list => !list.internal) // Filter out internal HubSpot lists
+          .map(list => ({
+            listId: list.listId,
+            listName: list.name,
+            listType: list.listType,
+            membershipTimestamp: new Date(list.updatedAt).toISOString()
+          })),
+        total: response.lists.filter(list => !list.internal).length
+      }
+
+      await log.info(`Retrieved list memberships for contact`, {
+        contactId,
+        totalLists: memberships.total,
+        listNames: memberships.lists.map(l => l.listName),
+        operation: 'hubspot_get_contact_lists_success'
+      })
+
+      return memberships
+    } catch (error) {
+      await log.error(`Failed to get list memberships`, {
+        contactId,
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'hubspot_get_contact_lists_error'
+      })
+      throw error
+    }
+  }
+
+  // Get contacts associated with a company
+  async getCompanyContacts(
+    companyId: string
+  ): Promise<Array<{ id: string; properties: { email?: string } }>> {
+    await log.info(`Getting contacts for company`, {
+      companyId,
+      operation: 'hubspot_get_company_contacts_start'
+    })
+
+    try {
+      // Get contact associations
+      const associations = await this.getAssociations("companies", companyId, "contacts")
+
+      if (!associations.results.length) {
+        await log.info(`No contacts found for company`, {
+          companyId,
+          operation: 'hubspot_get_company_contacts_empty'
+        })
+        return []
+      }
+
+      // Batch read contact details
+      const contactIds = associations.results.map((a) => a.id)
+      const response = await this.batchReadObjects<{ email?: string }>(
+        "contacts",
+        contactIds,
+        ["email"]
+      )
+
+      await log.info(`Retrieved contacts for company`, {
+        companyId,
+        contactCount: response.results.length,
+        operation: 'hubspot_get_company_contacts_success'
+      })
+
+      return response.results
+    } catch (error) {
+      await log.error(`Failed to get company contacts`, {
+        companyId,
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'hubspot_get_company_contacts_error'
+      })
+      throw error
+    }
+  }
+
+  // Get aggregated list memberships for a company (via its contacts)
+  async getCompanyListMemberships(
+    companyId: string
+  ): Promise<HubSpotListMembershipsResponse> {
+    await log.info(`Getting list memberships for company`, {
+      companyId,
+      operation: 'hubspot_get_company_lists_start'
+    })
+
+    try {
+      // First get all contacts for the company
+      const contacts = await this.getCompanyContacts(companyId)
+
+      if (!contacts.length) {
+        return { lists: [], total: 0 }
+      }
+
+      // Get list memberships for each contact
+      const allMemberships = await Promise.all(
+        contacts.map(contact => 
+          this.getContactListMemberships(contact.id).catch(() => ({ lists: [], total: 0 }))
+        )
+      )
+
+      // Aggregate and deduplicate lists
+      const listMap = new Map<number, HubSpotListMembership>()
+      
+      allMemberships.forEach(membership => {
+        membership.lists.forEach(list => {
+          if (!listMap.has(list.listId)) {
+            listMap.set(list.listId, list)
+          }
+        })
+      })
+
+      const aggregatedLists = Array.from(listMap.values())
+
+      await log.info(`Aggregated list memberships for company`, {
+        companyId,
+        contactCount: contacts.length,
+        uniqueListCount: aggregatedLists.length,
+        listNames: aggregatedLists.map(l => l.listName),
+        operation: 'hubspot_get_company_lists_success'
+      })
+
+      return {
+        lists: aggregatedLists,
+        total: aggregatedLists.length
+      }
+    } catch (error) {
+      await log.error(`Failed to get company list memberships`, {
+        companyId,
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'hubspot_get_company_lists_error'
+      })
+      return { lists: [], total: 0 }
     }
   }
 }

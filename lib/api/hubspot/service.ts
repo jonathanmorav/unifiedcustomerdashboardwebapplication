@@ -43,9 +43,10 @@ export class HubSpotService {
       log.debug(`HubSpotService.searchCustomer: Using first company with ID ${company.id}`)
 
       // Get all related data in parallel
-      const [summaryOfBenefits, monthlyInvoices] = await Promise.all([
+      const [summaryOfBenefits, monthlyInvoices, listMemberships] = await Promise.all([
         this.client.getCompanySummaryOfBenefits(company.id),
         this.client.getMonthlyInvoices("companies", company.id),
+        this.client.getCompanyListMemberships(company.id),
       ])
 
       log.debug(`HubSpotService.searchCustomer: Fetched ${summaryOfBenefits.length} Summary of Benefits, ${monthlyInvoices.length} Monthly Invoices`)
@@ -66,9 +67,10 @@ export class HubSpotService {
         summaryOfBenefits,
         policies: allPolicies,
         monthlyInvoices,
+        activeLists: listMemberships.lists,
       }
       
-      log.debug(`HubSpotService.searchCustomer: Returning complete customer data for company ${company.id}`)
+      log.debug(`HubSpotService.searchCustomer: Returning complete customer data for company ${company.id} with ${listMemberships.total} active lists`)
       return result
     } catch (error) {
       log.error("Error searching HubSpot customer", error as Error, {
@@ -96,9 +98,10 @@ export class HubSpotService {
       const company: HubSpotCompany = companyObject
 
       // Get all related data in parallel
-      const [summaryOfBenefits, monthlyInvoices] = await Promise.all([
+      const [summaryOfBenefits, monthlyInvoices, listMemberships] = await Promise.all([
         this.client.getCompanySummaryOfBenefits(companyId),
         this.client.getMonthlyInvoices("companies", companyId),
+        this.client.getCompanyListMemberships(companyId),
       ])
 
       // Get policies for each SOB in parallel
@@ -115,6 +118,7 @@ export class HubSpotService {
         summaryOfBenefits,
         policies: allPolicies,
         monthlyInvoices,
+        activeLists: listMemberships.lists,
       }
     } catch (error) {
       log.error("Error getting HubSpot customer data", error as Error, {
@@ -158,6 +162,12 @@ export class HubSpotService {
       invoiceDate: string
       totalAmount: number
       status: string
+    }>
+    activeLists: Array<{
+      listId: number
+      listName: string
+      listType: "STATIC" | "DYNAMIC"
+      membershipTimestamp: string | null
     }>
   } {
     // Group policies by SOB
@@ -210,6 +220,12 @@ export class HubSpotService {
         invoiceDate: String(invoice.properties.invoice_date || ""),
         totalAmount: Number(invoice.properties.total_amount) || 0,
         status: String(invoice.properties.status || ""),
+      })),
+      activeLists: (data.activeLists || []).map((list) => ({
+        listId: list.listId,
+        listName: list.listName,
+        listType: list.listType,
+        membershipTimestamp: list.membershipTimestamp || null,
       })),
     }
   }

@@ -5,6 +5,8 @@ import { Header } from "./header"
 import { SearchSection } from "./search-section"
 import { DataPanels } from "./data-panels"
 import { RecentSearches } from "./recent-searches"
+import { ListAnalyticsDashboard } from "@/components/lists/list-analytics-dashboard"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { useSearchContext } from "@/contexts/search-context"
 
 // Mock data for demonstration - matches HubSpot result panel structure
@@ -45,6 +47,32 @@ const mockData = {
             status: "active"
           }
         ]
+      }
+    ],
+    activeLists: [
+      {
+        listId: 1001,
+        listName: "High-Value Customers",
+        listType: "DYNAMIC",
+        membershipTimestamp: "2025-01-15T10:30:00Z"
+      },
+      {
+        listId: 1002,
+        listName: "Q1 2025 Campaign Recipients",
+        listType: "STATIC",
+        membershipTimestamp: "2025-01-10T14:15:00Z"
+      },
+      {
+        listId: 1003,
+        listName: "Enterprise Accounts",
+        listType: "DYNAMIC",
+        membershipTimestamp: "2025-01-12T09:45:00Z"
+      },
+      {
+        listId: 1004,
+        listName: "Newsletter Subscribers",
+        listType: "DYNAMIC",
+        membershipTimestamp: "2025-01-08T16:20:00Z"
       }
     ]
   },
@@ -124,14 +152,28 @@ export function Dashboard() {
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="space-y-6">
           <SearchSection />
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3">
-              <DataPanels data={displayData} />
-            </div>
-            <div className="lg:col-span-1">
-              <RecentSearches />
-            </div>
-          </div>
+          
+          <Tabs defaultValue="customer" className="w-full">
+            <TabsList className="grid grid-cols-2 max-w-md mx-auto mb-6">
+              <TabsTrigger value="customer">Customer Data</TabsTrigger>
+              <TabsTrigger value="lists">List Analytics</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="customer" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="lg:col-span-3">
+                  <DataPanels data={displayData} />
+                </div>
+                <div className="lg:col-span-1">
+                  <RecentSearches />
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="lists" className="space-y-6">
+              <ListAnalyticsDashboard />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </main>
