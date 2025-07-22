@@ -8,23 +8,23 @@ import { Card, CardContent } from "./ui/card"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
-import { useSearch } from "@/hooks/use-search"
+import { useSearchContext } from "@/contexts/search-context"
 
 export function SearchSection() {
   const [searchValue, setSearchValue] = useState("")
   const [activeTab, setActiveTab] = useState("email")
-  const { search, isLoading } = useSearch()
+  const { search, isLoading } = useSearchContext()
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchValue) return
 
     // Map tab values to search types
-    const searchTypeMap: Record<string, string> = {
+    const searchTypeMap: Record<string, SearchType> = {
       email: "email",
       name: "name",
-      business: "business",
-      dwolla: "dwollaId"
+      business: "business_name",
+      dwolla: "dwolla_id"
     }
 
     await search(searchValue, searchTypeMap[activeTab] || "email")

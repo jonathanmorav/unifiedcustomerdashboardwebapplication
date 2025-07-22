@@ -5,61 +5,67 @@ import { Header } from "./header"
 import { SearchSection } from "./search-section"
 import { DataPanels } from "./data-panels"
 import { RecentSearches } from "./recent-searches"
-import { useSearch } from "@/hooks/use-search"
+import { useSearchContext } from "@/contexts/search-context"
 
-// Mock data for demonstration (same as in V0)
+// Mock data for demonstration - matches HubSpot result panel structure
 const mockData = {
   hubspot: {
     company: {
       id: "CMP-12345",
       name: "Acme Corporation",
       ownerEmail: "john.smith@acmecorp.com",
+      dwollaId: "12345678-1234-5678-9012-123456789012"
     },
-    summaryOfBenefits: {
-      amountToDraft: "$2,500.00",
-      feeAmount: "$125.00",
-      monthlyInvoice: "INV-789012",
-      policies: [
-        {
-          id: "POL-001",
-          name: "Health Insurance",
-          amount: "$1,200.00",
-          status: "Active",
-        },
-        {
-          id: "POL-002",
-          name: "Dental Insurance",
-          amount: "$300.00",
-          status: "Active",
-        },
-        {
-          id: "POL-003",
-          name: "Vision Insurance",
-          amount: "$150.00",
-          status: "Pending",
-        },
-        {
-          id: "POL-004",
-          name: "Life Insurance",
-          amount: "$850.00",
-          status: "Failed",
-        },
-      ],
-    },
+    summaryOfBenefits: [
+      {
+        id: "SOB-001",
+        amountToDraft: 12450.00,
+        feeAmount: 125.00,
+        totalPolicies: 2,
+        pdfDocumentUrl: "https://example.com/sob-001.pdf",
+        policies: [
+          {
+            id: "POL-001",
+            policyNumber: "POL-2025-001",
+            policyHolderName: "John Smith",
+            coverageType: "Health Insurance",
+            premiumAmount: 8500.00,
+            effectiveDate: "2025-01-01",
+            expirationDate: "2025-12-31",
+            status: "active"
+          },
+          {
+            id: "POL-002",
+            policyNumber: "POL-2025-002", 
+            policyHolderName: "John Smith",
+            coverageType: "Dental Coverage",
+            premiumAmount: 2200.00,
+            effectiveDate: "2025-01-01",
+            expirationDate: "2025-12-31",
+            status: "active"
+          }
+        ]
+      }
+    ]
   },
   dwolla: {
     customer: {
       id: "DW-98765",
       email: "billing@acmecorp.com",
       name: "Acme Corporation",
-      status: "Verified",
+      status: "verified",
     },
-    fundingSource: {
-      accountType: "checking",
-      accountNumber: "****4567",
-      routingNumber: "123456789",
-      verificationStatus: "Verified",
-    },
+    fundingSources: [
+      {
+        id: "FS-001",
+        name: "Business Checking - ****4567",
+        type: "bank",
+        bankAccountType: "checking",
+        accountNumberMasked: "****4567",
+        routingNumber: "123456789",
+        status: "verified",
+      }
+    ],
     transfers: [
       {
         id: "TR-001",
@@ -83,6 +89,7 @@ const mockData = {
         type: "Withdrawal",
       },
     ],
+    notificationCount: 2,
     notifications: [
       {
         id: "NOT-001",
@@ -102,7 +109,7 @@ const mockData = {
 
 export function Dashboard() {
   const [displayData, setDisplayData] = useState<any>(mockData)
-  const { search, isLoading, error, result } = useSearch()
+  const { result } = useSearchContext()
 
   // Update display data when backend result changes
   useEffect(() => {

@@ -92,66 +92,85 @@ export function DataPanels({ data }: DataPanelsProps) {
           <Separator className="bg-cakewalk-border" />
 
           {/* Summary of Benefits */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary">Summary of Benefits</h4>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-cakewalk-border text-cakewalk-primary hover:bg-cakewalk-alice-200 bg-transparent transition-colors duration-300"
-              >
-                <FileText className="w-4 h-4 mr-1" />
-                View PDF
-              </Button>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Amount to Draft:</span>
-                <span className="text-cakewalk-body-xs font-semibold text-cakewalk-text-primary">
-                  {hubspot.summaryOfBenefits.amountToDraft}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Fee Amount:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                  {hubspot.summaryOfBenefits.feeAmount}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Monthly Invoice:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                  {hubspot.summaryOfBenefits.monthlyInvoice}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <Separator className="bg-cakewalk-border" />
-
-          {/* Policies */}
-          <div>
-            <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
-              Associated Policies ({hubspot.summaryOfBenefits.policies.length})
-            </h4>
-            <div className="space-y-2">
-              {hubspot.summaryOfBenefits.policies.map((policy: any) => (
-                <div
-                  key={policy.id}
-                  className="flex items-center justify-between p-3 bg-cakewalk-alice-200 rounded-xl transition-colors duration-300"
-                >
-                  <div>
-                    <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">{policy.name}</p>
-                    <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">{policy.id}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-cakewalk-body-xs font-semibold text-cakewalk-text-primary">{policy.amount}</p>
-                    {getStatusBadge(policy.status)}
-                  </div>
+          {hubspot.summaryOfBenefits && hubspot.summaryOfBenefits.length > 0 && (
+            <>
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary">
+                    Summary of Benefits ({hubspot.summaryOfBenefits.length})
+                  </h4>
+                  {hubspot.summaryOfBenefits[0]?.pdfDocumentUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-cakewalk-border text-cakewalk-primary hover:bg-cakewalk-alice-200 bg-transparent transition-colors duration-300"
+                      onClick={() => window.open(hubspot.summaryOfBenefits[0].pdfDocumentUrl, '_blank')}
+                    >
+                      <FileText className="w-4 h-4 mr-1" />
+                      View PDF
+                    </Button>
+                  )}
                 </div>
-              ))}
-            </div>
-          </div>
+
+                {hubspot.summaryOfBenefits.map((sob: any, index: number) => (
+                  <div key={sob.id} className="space-y-3 mb-4">
+                    <div className="flex justify-between">
+                      <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Amount to Draft:</span>
+                      <span className="text-cakewalk-body-xs font-semibold text-cakewalk-text-primary">
+                        ${sob.amountToDraft.toLocaleString()}
+                      </span>
+                    </div>
+                    {sob.feeAmount && (
+                      <div className="flex justify-between">
+                        <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Fee Amount:</span>
+                        <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                          ${sob.feeAmount.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <Separator className="bg-cakewalk-border" />
+
+              {/* Policies */}
+              <div>
+                {hubspot.summaryOfBenefits.some((sob: any) => sob.policies && sob.policies.length > 0) && (
+                  <>
+                    <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                      Associated Policies ({hubspot.summaryOfBenefits.reduce((total: number, sob: any) => total + (sob.policies?.length || 0), 0)})
+                    </h4>
+                    <div className="space-y-2">
+                      {hubspot.summaryOfBenefits.map((sob: any) => 
+                        sob.policies?.map((policy: any) => (
+                          <div
+                            key={policy.id}
+                            className="flex items-center justify-between p-3 bg-cakewalk-alice-200 rounded-xl transition-colors duration-300"
+                          >
+                            <div>
+                              <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                                {policy.coverageType}
+                              </p>
+                              <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
+                                {policy.policyNumber}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-cakewalk-body-xs font-semibold text-cakewalk-text-primary">
+                                ${policy.premiumAmount.toLocaleString()}
+                              </p>
+                              {getStatusBadge(policy.status)}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -200,79 +219,109 @@ export function DataPanels({ data }: DataPanelsProps) {
 
           <Separator className="bg-cakewalk-border" />
 
-          {/* Funding Source */}
-          <div>
-            <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">Funding Source</h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Account Type:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary capitalize">
-                  {dwolla.fundingSource.accountType}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Account Number:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                  {dwolla.fundingSource.accountNumber}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Routing Number:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                  {dwolla.fundingSource.routingNumber}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Verification:</span>
-                {getStatusBadge(dwolla.fundingSource.verificationStatus)}
+          {/* Funding Sources */}
+          {dwolla.fundingSources && dwolla.fundingSources.length > 0 && (
+            <div>
+              <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                Funding Sources ({dwolla.fundingSources.length})
+              </h4>
+              <div className="space-y-3">
+                {dwolla.fundingSources.map((source: any, index: number) => (
+                  <div key={source.id || index} className="p-3 bg-cakewalk-alice-200 rounded-xl">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Account Type:</span>
+                        <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary capitalize">
+                          {source.bankAccountType || source.type || 'Unknown'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Account:</span>
+                        <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                          {source.accountNumberMasked || source.name || 'Not available'}
+                        </span>
+                      </div>
+                      {source.routingNumber && (
+                        <div className="flex justify-between">
+                          <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Routing Number:</span>
+                          <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                            {source.routingNumber}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Status:</span>
+                        {getStatusBadge(source.status)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
 
           <Separator className="bg-cakewalk-border" />
 
           {/* Transfer History */}
-          <div>
-            <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">Recent Transfers</h4>
-            <div className="space-y-2">
-              {dwolla.transfers.map((transfer: any) => (
-                <div
-                  key={transfer.id}
-                  className="flex items-center justify-between p-3 bg-cakewalk-alice-200 rounded-xl transition-colors duration-300"
-                >
-                  <div>
-                    <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">{transfer.amount}</p>
-                    <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
-                      {transfer.date} • {transfer.type}
-                    </p>
+          {dwolla.transfers && dwolla.transfers.length > 0 && (
+            <div>
+              <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                Recent Transfers ({dwolla.transfers.length})
+              </h4>
+              <div className="space-y-2">
+                {dwolla.transfers.map((transfer: any) => (
+                  <div
+                    key={transfer.id}
+                    className="flex items-center justify-between p-3 bg-cakewalk-alice-200 rounded-xl transition-colors duration-300"
+                  >
+                    <div>
+                      <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                        {transfer.amount || 'No amount'}
+                      </p>
+                      <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
+                        {transfer.date || transfer.created || 'Unknown date'} • {transfer.type || 'Transfer'}
+                      </p>
+                    </div>
+                    {getStatusBadge(transfer.status)}
                   </div>
-                  {getStatusBadge(transfer.status)}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          <Separator className="bg-cakewalk-border" />
+          {dwolla.transfers && dwolla.transfers.length > 0 && (
+            <Separator className="bg-cakewalk-border" />
+          )}
 
           {/* Notifications */}
-          <div>
-            <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
-              Recent Notifications ({dwolla.notifications.length})
-            </h4>
-            <div className="space-y-2">
-              {dwolla.notifications.map((notification: any) => (
-                <div
-                  key={notification.id}
-                  className="p-3 bg-cakewalk-alice-200 rounded-xl transition-colors duration-300"
-                >
-                  <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">{notification.message}</p>
-                  <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
-                    {notification.date} • {notification.type}
-                  </p>
+          {dwolla.notificationCount !== undefined && (
+            <div>
+              <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                Recent Notifications ({dwolla.notificationCount})
+              </h4>
+              {dwolla.notificationCount === 0 ? (
+                <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">No recent notifications</p>
+              ) : (
+                <div className="space-y-2">
+                  {dwolla.notifications?.map((notification: any) => (
+                    <div
+                      key={notification.id}
+                      className="p-3 bg-cakewalk-alice-200 rounded-xl transition-colors duration-300"
+                    >
+                      <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                        {notification.message || 'No message'}
+                      </p>
+                      <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
+                        {notification.date || notification.created || 'Unknown date'} • {notification.type || 'Notification'}
+                      </p>
+                    </div>
+                  )) || (
+                    <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">Notifications available but not loaded</p>
+                  )}
                 </div>
-              ))}
+              )}
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -392,7 +392,7 @@ export class HubSpotClient {
     sobId: string
   ): Promise<HubSpotObject<HubSpotPolicy["properties"]>[]> {
     // Get associations
-    const associations = await this.getAssociations("summary_of_benefits", sobId, "policies")
+    const associations = await this.getAssociations("2-45680577", sobId, "2-45586773")
 
     if (!associations.results.length) {
       return []
@@ -401,7 +401,7 @@ export class HubSpotClient {
     // Batch read all associated policies
     const policyIds = associations.results.map((a) => a.id)
     const response = await this.batchReadObjects<HubSpotPolicy["properties"]>(
-      "policies",
+      "2-45586773",
       policyIds,
       [
         "policy_number",
@@ -423,7 +423,7 @@ export class HubSpotClient {
     objectId: string
   ): Promise<HubSpotObject<HubSpotMonthlyInvoice["properties"]>[]> {
     try {
-      const associations = await this.getAssociations(objectType, objectId, "monthly_invoices")
+      const associations = await this.getAssociations(objectType, objectId, "2-47684489")
 
       if (!associations.results.length) {
         return []
@@ -431,7 +431,7 @@ export class HubSpotClient {
 
       const invoiceIds = associations.results.map((a) => a.id)
       const response = await this.batchReadObjects<HubSpotMonthlyInvoice["properties"]>(
-        "monthly_invoices",
+        "2-47684489",
         invoiceIds,
         ["invoice_number", "invoice_date", "total_amount", "status"]
       )
