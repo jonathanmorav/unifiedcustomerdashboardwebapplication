@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react"
 import type { SearchType } from "@/lib/search/unified-search"
+import { SearchHistory } from "@/lib/search/search-history-client"
 
 interface SearchResult {
   searchTerm?: string
@@ -31,6 +32,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   const [result, setResult] = useState<SearchResult | null>(null)
 
   const search = useCallback(async (searchTerm: string, searchType: SearchType = "auto") => {
+    const startTime = Date.now()
     setIsLoading(true)
     setError(null)
 
@@ -56,6 +58,32 @@ export function SearchProvider({ children }: { children: ReactNode }) {
           searchTerm,
         }
         setResult(resultWithSearchTerm)
+        
+        // Add to client-side search history
+        const duration = Date.now() - startTime
+        
+        // Create a UnifiedSearchResult-like object for the client-side history
+        const searchResult = {
+          results: {
+            hubspot: data.data.hubspot ? [data.data.hubspot] : [],
+            dwolla: data.data.dwolla ? [data.data.dwolla] : []
+          },
+          totalResults: (data.data.hubspot ? 1 : 0) + (data.data.dwolla ? 1 : 0),
+          searchTerm,
+          searchType,
+          timestamp: new Date(),
+          duration
+        }
+        
+        SearchHistory.addEntry(
+          searchTerm,
+          searchType,
+          searchResult as any,
+          duration
+        )
+        
+        // Dispatch custom event to notify components
+        window.dispatchEvent(new CustomEvent('searchHistoryUpdated'))
       } else {
         throw new Error("Invalid response format")
       }

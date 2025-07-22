@@ -9,6 +9,7 @@ import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { useSearchContext } from "@/contexts/search-context"
+import type { SearchType } from "@/lib/search/unified-search"
 
 export function SearchSection() {
   const [searchValue, setSearchValue] = useState("")
