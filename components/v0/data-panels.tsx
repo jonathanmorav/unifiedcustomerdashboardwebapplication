@@ -15,6 +15,17 @@ interface DataPanelsProps {
 
 export function DataPanels({ data }: DataPanelsProps) {
   const { hubspot, dwolla } = data
+  
+  // Defensive coding for data structure
+  if (!hubspot || !dwolla) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="text-cakewalk-text-secondary p-6 text-center">
+          <p>No data available</p>
+        </div>
+      </div>
+    )
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
@@ -65,29 +76,57 @@ export function DataPanels({ data }: DataPanelsProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Company Information */}
-          <div>
-            <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">Company Information</h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Company ID:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                  {hubspot.company.id}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Company Name:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                  {hubspot.company.name}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Owner Email:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                  {hubspot.company.ownerEmail}
-                </span>
+          {hubspot.company && (
+            <div>
+              <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">Company Information</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Company ID:</span>
+                  <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                    {hubspot.company.id ? (
+                      <a
+                        href={`https://cockpit.cakewalkinsurance.com/summary-benefits/?companyId=${hubspot.company.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cakewalk-primary hover:text-cakewalk-primary-dark underline transition-colors duration-200"
+                      >
+                        {hubspot.company.id}
+                      </a>
+                    ) : (
+                      'Not available'
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Company Name:</span>
+                  <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                    {hubspot.company.name || 'Not available'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Owner Email:</span>
+                  <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                    {hubspot.company.ownerEmail || 'Not available'}
+                  </span>
+                </div>
+                {hubspot.company.dwollaId && (
+                  <div className="flex justify-between">
+                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Dwolla ID:</span>
+                    <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                      {hubspot.company.dwollaId}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          )}
+          
+          {!hubspot.company && (
+            <div>
+              <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">Company Information</h4>
+              <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">No company data available</p>
+            </div>
+          )}
 
           <Separator className="bg-cakewalk-border" />
 
@@ -187,35 +226,57 @@ export function DataPanels({ data }: DataPanelsProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Customer Information */}
-          <div>
-            <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
-              Customer Information
-            </h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Dwolla ID:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                  {dwolla.customer.id}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Email:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                  {dwolla.customer.email}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Name:</span>
-                <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                  {dwolla.customer.name}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Status:</span>
-                {getStatusBadge(dwolla.customer.status)}
+          {dwolla.customer && (
+            <div>
+              <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                Customer Information
+              </h4>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Dwolla ID:</span>
+                  <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                    {dwolla.customer.id ? (
+                      <a
+                        href={`https://dashboard.dwolla.com/customers/${dwolla.customer.id}/funding-sources`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cakewalk-primary hover:text-cakewalk-primary-dark underline transition-colors duration-200"
+                      >
+                        {dwolla.customer.id}
+                      </a>
+                    ) : (
+                      'Not available'
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Email:</span>
+                  <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                    {dwolla.customer.email || 'Not available'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Name:</span>
+                  <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                    {dwolla.customer.name || 'Not available'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Status:</span>
+                  {getStatusBadge(dwolla.customer.status || 'unknown')}
+                </div>
               </div>
             </div>
-          </div>
+          )}
+          
+          {!dwolla.customer && (
+            <div>
+              <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                Customer Information
+              </h4>
+              <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">No customer data available</p>
+            </div>
+          )}
 
           <Separator className="bg-cakewalk-border" />
 
