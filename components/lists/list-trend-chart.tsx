@@ -26,6 +26,19 @@ interface ListTrendChartProps {
 }
 
 export function ListTrendChart({ listName, data, timeframe }: ListTrendChartProps) {
+  // Handle empty data
+  if (!data || data.length === 0) {
+    return (
+      <Card className="shadow-cakewalk-light border-cakewalk-border">
+        <CardContent className="flex items-center justify-center h-48">
+          <p className="text-cakewalk-body-sm text-cakewalk-text-secondary">
+            No historical data available yet
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   // Calculate trend
   const firstValue = data[0]?.memberCount || 0
   const lastValue = data[data.length - 1]?.memberCount || 0
@@ -35,6 +48,7 @@ export function ListTrendChart({ listName, data, timeframe }: ListTrendChartProp
   // Format data for chart
   const chartData = data.map(item => ({
     ...item,
+    memberCount: item.memberCount || 0,
     displayDate: formatDate(item.date, timeframe === "daily" ? "short" : "medium"),
   }))
 

@@ -182,3 +182,32 @@ enum SearchType {
   DWOLLA_ID
   COMBINED
 }
+
+// HubSpot List tracking models
+model ListSnapshot {
+  id           String   @id @default(cuid())
+  listId       Int
+  listName     String
+  listType     String   // STATIC or DYNAMIC
+  memberCount  Int
+  snapshotDate DateTime @default(now())
+  createdAt    DateTime @default(now())
+  
+  @@unique([listId, snapshotDate])
+  @@index([listId])
+  @@index([snapshotDate])
+}
+
+model ListMetadata {
+  id                String   @id @default(cuid())
+  listId            Int      @unique
+  listName          String
+  listType          String
+  internalName      String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastSnapshotDate  DateTime?
+  isActive          Boolean  @default(true)
+  
+  @@index([listId])
+}

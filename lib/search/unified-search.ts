@@ -118,6 +118,7 @@ export class UnifiedSearchEngine {
       company: any // eslint-disable-line @typescript-eslint/no-explicit-any
       summaryOfBenefits: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
       monthlyInvoices: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
+      activeLists: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
       error?: string
     }
     dwolla?: {
@@ -149,6 +150,7 @@ export class UnifiedSearchEngine {
         company: formatted.company,
         summaryOfBenefits: formatted.summaryOfBenefits,
         monthlyInvoices: formatted.monthlyInvoices,
+        activeLists: formatted.activeLists,
       }
     } else if (result.hubspot.error) {
       display.hubspot = { error: result.hubspot.error }

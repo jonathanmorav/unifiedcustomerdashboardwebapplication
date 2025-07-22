@@ -127,6 +127,44 @@ export const mockSearchResult: UnifiedSearchResult = {
           archived: false,
         },
       ],
+      activeLists: [
+        {
+          listId: 1001,
+          listName: "High-Value Customers",
+          listType: "DYNAMIC" as const,
+          membershipTimestamp: "2025-01-15T10:30:00Z"
+        },
+        {
+          listId: 1002,
+          listName: "Q1 2025 Campaign Recipients",
+          listType: "STATIC" as const,
+          membershipTimestamp: "2025-01-10T14:15:00Z"
+        },
+        {
+          listId: 1003,
+          listName: "Enterprise Accounts",
+          listType: "DYNAMIC" as const,
+          membershipTimestamp: "2025-01-12T09:45:00Z"
+        },
+        {
+          listId: 1004,
+          listName: "Newsletter Subscribers",
+          listType: "DYNAMIC" as const,
+          membershipTimestamp: "2025-01-08T16:20:00Z"
+        },
+        {
+          listId: 1005,
+          listName: "Premium Support Customers",
+          listType: "DYNAMIC" as const,
+          membershipTimestamp: "2025-01-20T11:15:00Z"
+        },
+        {
+          listId: 1006,
+          listName: "Renewal Reminders - Q1",
+          listType: "STATIC" as const,
+          membershipTimestamp: "2025-01-05T08:30:00Z"
+        }
+      ],
     },
   },
   dwolla: {
