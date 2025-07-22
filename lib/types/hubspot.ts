@@ -36,8 +36,8 @@ export type HubSpotCompany = HubSpotObject<{
   hs_object_id: string
   createdate: string
   hs_lastmodifieddate: string
-  owner_email?: string
-  dwolla_id?: string // Custom property to link with Dwolla
+  email___owner?: string
+  dwolla_customer_id?: string // Custom property to link with Dwolla (updated property name)
   [key: string]: string | number | boolean | undefined
 }>
 

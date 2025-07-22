@@ -17,8 +17,8 @@ const envSchema = z.object({
   HUBSPOT_BASE_URL: z.string().url().default("https://api.hubapi.com"),
 
   // Dwolla API
-  DWOLLA_CLIENT_ID: z.string(),
-  DWOLLA_CLIENT_SECRET: z.string(),
+  DWOLLA_KEY: z.string(),
+  DWOLLA_SECRET: z.string(),
   DWOLLA_ENVIRONMENT: z.enum(["sandbox", "production"]).default("sandbox"),
   DWOLLA_BASE_URL: z.string().url(),
 

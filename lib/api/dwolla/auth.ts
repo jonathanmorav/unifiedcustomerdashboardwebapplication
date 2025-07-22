@@ -20,15 +20,15 @@ export class DwollaTokenManager {
   private accessToken: string | null = null
   private tokenExpiryTimestamp: number | null = null
   private refreshPromise: Promise<string> | null = null
-  private clientId: string
-  private clientSecret: string
+  private key: string
+  private secret: string
   private baseUrl: string
   private tokenExpiryBufferMs: number
 
   constructor(config: DwollaTokenManagerConfig = {}) {
     const env = getEnv()
-    this.clientId = env.DWOLLA_CLIENT_ID
-    this.clientSecret = env.DWOLLA_CLIENT_SECRET
+    this.key = env.DWOLLA_KEY
+    this.secret = env.DWOLLA_SECRET
 
     // Use the appropriate auth URL based on environment
     this.baseUrl =
@@ -78,7 +78,7 @@ export class DwollaTokenManager {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString(
+          Authorization: `Basic ${Buffer.from(`${this.key}:${this.secret}`).toString(
             "base64"
           )}`,
         },

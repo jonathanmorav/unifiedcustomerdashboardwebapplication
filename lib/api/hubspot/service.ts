@@ -24,24 +24,31 @@ export class HubSpotService {
    */
   async searchCustomer(params: HubSpotSearchParams): Promise<HubSpotCustomerData | null> {
     try {
+      log.debug(`HubSpotService.searchCustomer called with searchTerm=${params.searchTerm} searchType=${params.searchType}`)
+      
       // Map business_name to name for the API
       const apiSearchType = params.searchType === "business_name" ? "name" : params.searchType
 
       // Search for companies
       const companies = await this.client.searchCompanies(params.searchTerm, apiSearchType)
+      log.debug(`HubSpotService.searchCustomer: found ${companies.length} companies`)
 
       if (!companies.length) {
+        log.debug(`HubSpotService.searchCustomer: No companies found for term ${params.searchTerm}`)
         return null
       }
 
       // Use the first matching company
       const company = companies[0]
+      log.debug(`HubSpotService.searchCustomer: Using first company with ID ${company.id}`)
 
       // Get all related data in parallel
       const [summaryOfBenefits, monthlyInvoices] = await Promise.all([
         this.client.getCompanySummaryOfBenefits(company.id),
         this.client.getMonthlyInvoices("companies", company.id),
       ])
+
+      log.debug(`HubSpotService.searchCustomer: Fetched ${summaryOfBenefits.length} Summary of Benefits, ${monthlyInvoices.length} Monthly Invoices`)
 
       // Get policies for each SOB in parallel
       const policiesPromises = summaryOfBenefits.map((sob) =>
@@ -52,12 +59,17 @@ export class HubSpotService {
       // Flatten all policies into a single array
       const allPolicies = policiesArrays.flat()
 
-      return {
+      log.debug(`HubSpotService.searchCustomer: Total policies fetched: ${allPolicies.length}`)
+
+      const result = {
         company,
         summaryOfBenefits,
         policies: allPolicies,
         monthlyInvoices,
       }
+      
+      log.debug(`HubSpotService.searchCustomer: Returning complete customer data for company ${company.id}`)
+      return result
     } catch (error) {
       log.error("Error searching HubSpot customer", error as Error, {
         searchTerm: params.searchTerm,
@@ -77,7 +89,7 @@ export class HubSpotService {
       const companyObject = await this.client.getObjectById<HubSpotCompany["properties"]>(
         "companies",
         companyId,
-        ["name", "domain", "owner_email", "dwolla_id", "hs_object_id"]
+        ["name", "domain", "email___owner", "dwolla_customer_id", "hs_object_id"]
       )
 
       // Convert to HubSpotCompany format
@@ -170,8 +182,8 @@ export class HubSpotService {
       company: {
         id: data.company?.id || "",
         name: data.company?.properties?.name || "",
-        ownerEmail: data.company?.properties?.owner_email || null,
-        dwollaId: data.company?.properties?.dwolla_id || null,
+        ownerEmail: data.company?.properties?.email___owner || null,
+        dwollaId: data.company?.properties?.dwolla_customer_id || null,
       },
       summaryOfBenefits: data.summaryOfBenefits.map((sob) => ({
         id: sob.id,

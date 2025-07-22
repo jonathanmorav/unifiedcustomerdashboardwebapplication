@@ -46,7 +46,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
   try {
     // Check for demo mode
-    const isDemoMode = process.env.DEMO_MODE === "true" || !process.env.HUBSPOT_ACCESS_TOKEN
+    const isDemoMode = process.env.DEMO_MODE === "true" || !process.env.HUBSPOT_API_KEY
 
     let result
     let displayResult

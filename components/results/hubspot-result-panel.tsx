@@ -53,7 +53,7 @@ export function HubSpotResultPanel({ data, isLoading, error }: HubSpotResultPane
     )
   }
 
-  const { company, summaryOfBenefits, monthlyInvoices } = data
+  const { company, summaryOfBenefits } = data
 
   return (
     <div className="space-y-4">
@@ -175,47 +175,6 @@ export function HubSpotResultPanel({ data, isLoading, error }: HubSpotResultPane
         </ResultCard>
       )}
 
-      {/* Monthly Invoices */}
-      {monthlyInvoices && monthlyInvoices.length > 0 && (
-        <ResultCard title={`Monthly Invoices (${monthlyInvoices.length})`}>
-          <div className="space-y-3">
-            {monthlyInvoices.map(
-              (
-                invoice: any // eslint-disable-line @typescript-eslint/no-explicit-any
-              ) => (
-                <div
-                  key={invoice.id}
-                  className="bg-cakewalk-bg-alice-100 flex items-center justify-between rounded-lg p-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <ReceiptIcon className="text-cakewalk-text-secondary h-5 w-5" />
-                    <div>
-                      <p className="font-medium">{invoice.invoiceNumber}</p>
-                      <p className="text-cakewalk-text-secondary text-sm">
-                        {formatDate(invoice.invoiceDate)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium">{formatCurrency(invoice.totalAmount)}</p>
-                    <Badge
-                      variant={
-                        invoice.status === "paid"
-                          ? "default"
-                          : invoice.status === "pending"
-                            ? "secondary"
-                            : "destructive"
-                      }
-                    >
-                      {invoice.status}
-                    </Badge>
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-        </ResultCard>
-      )}
     </div>
   )
 }

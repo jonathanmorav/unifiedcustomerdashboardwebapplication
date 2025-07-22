@@ -9,8 +9,8 @@ jest.mock("@/lib/auth")
 jest.mock("@/lib/env", () => ({
   getEnv: jest.fn().mockReturnValue({
     HUBSPOT_ACCESS_TOKEN: "test-hubspot-token",
-    DWOLLA_CLIENT_ID: "test-dwolla-id",
-    DWOLLA_CLIENT_SECRET: "test-dwolla-secret",
+      DWOLLA_KEY: "test-dwolla-key",
+  DWOLLA_SECRET: "test-dwolla-secret",
     NEXTAUTH_SECRET: "test-secret",
     DEMO_MODE: "false"
   })

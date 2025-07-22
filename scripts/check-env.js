@@ -77,17 +77,17 @@ const conditionalVars = {
     validator: (val) => val.startsWith('pat-') || val.length > 0,
     example: 'pat-na1-...',
   },
-  DWOLLA_CLIENT_ID: {
+  DWOLLA_KEY: {
     condition: () => process.env.DEMO_MODE !== 'true',
-    description: 'Dwolla Client ID',
+    description: 'Dwolla Key',
     validator: (val) => val.length > 0,
-    example: 'Your Dwolla Client ID',
+    example: 'Your Dwolla Key',
   },
-  DWOLLA_CLIENT_SECRET: {
+  DWOLLA_SECRET: {
     condition: () => process.env.DEMO_MODE !== 'true',
-    description: 'Dwolla Client Secret',
+    description: 'Dwolla Secret',
     validator: (val) => val.length > 0,
-    example: 'Your Dwolla Client Secret',
+    example: 'Your Dwolla Secret',
   },
 };
 

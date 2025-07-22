@@ -212,7 +212,7 @@ export class HubSpotClient {
   async getAssociations(
     fromObjectType: HubSpotObjectType,
     fromObjectId: string,
-    toObjectType: HubSpotObjectType
+    toObjectType: HubSpotObjectType | string
   ): Promise<{ results: Array<{ id: string; type: string }> }> {
     const url = `${this.baseUrl}/crm/v3/objects/${fromObjectType}/${fromObjectId}/associations/${toObjectType}`
 
@@ -224,6 +224,12 @@ export class HubSpotClient {
     searchTerm: string,
     searchType: "email" | "name" | "dwolla_id"
   ): Promise<HubSpotObject<HubSpotCompany["properties"]>[]> {
+    await log.info(`Starting HubSpot company search`, {
+      searchTerm,
+      searchType,
+      operation: 'hubspot_search_companies_start'
+    })
+
     const searchRequest: HubSpotSearchRequest = {
       filterGroups: [
         {
@@ -231,9 +237,9 @@ export class HubSpotClient {
             {
               propertyName:
                 searchType === "email"
-                  ? "owner_email"
+                  ? "email___owner"
                   : searchType === "dwolla_id"
-                    ? "dwolla_id"
+                    ? "dwolla_customer_id"
                     : "name",
               operator: searchType === "name" ? "CONTAINS_TOKEN" : "EQ",
               value: searchTerm,
@@ -241,38 +247,144 @@ export class HubSpotClient {
           ],
         },
       ],
-      properties: ["name", "domain", "owner_email", "dwolla_id", "hs_object_id"],
+      properties: ["name", "domain", "email___owner", "dwolla_customer_id", "hs_object_id"],
       limit: 10,
     }
 
-    const response = await this.searchObjects<HubSpotCompany["properties"]>(
-      "companies",
-      searchRequest
-    )
+    await log.info(`HubSpot search request prepared`, {
+      searchRequest: JSON.stringify(searchRequest, null, 2),
+      url: `${this.baseUrl}/crm/v3/objects/companies/search`,
+      operation: 'hubspot_search_companies_request'
+    })
 
-    return response.results
+    try {
+      const response = await this.searchObjects<HubSpotCompany["properties"]>(
+        "companies",
+        searchRequest
+      )
+
+      await log.info(`HubSpot company search completed`, {
+        resultsCount: response.results.length,
+        totalResults: response.total,
+        hasMore: response.paging?.next?.after ? true : false,
+        operation: 'hubspot_search_companies_success'
+      })
+
+      // Log first result for debugging (without sensitive data)
+      if (response.results.length > 0) {
+        const firstResult = response.results[0]
+        await log.info(`First search result sample`, {
+          id: firstResult.id,
+          properties: {
+            name: firstResult.properties?.name,
+            domain: firstResult.properties?.domain,
+            hasOwnerEmail: !!firstResult.properties?.email___owner,
+            hasDwollaId: !!firstResult.properties?.dwolla_customer_id
+          },
+          operation: 'hubspot_search_companies_sample'
+        })
+      }
+
+      return response.results
+    } catch (error) {
+      await log.error(`HubSpot company search failed`, {
+        searchTerm,
+        searchType,
+        error: error instanceof Error ? error.message : String(error),
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'hubspot_search_companies_error'
+      })
+      throw error
+    }
   }
 
   // Get all Summary of Benefits for a company
   async getCompanySummaryOfBenefits(
     companyId: string
   ): Promise<HubSpotObject<HubSpotSummaryOfBenefits["properties"]>[]> {
-    // First, get the associations
-    const associations = await this.getAssociations("companies", companyId, "summary_of_benefits")
+    await log.info(`Starting Summary of Benefits retrieval`, {
+      companyId,
+      operation: 'hubspot_get_sob_start'
+    })
 
-    if (!associations.results.length) {
-      return []
+    try {
+      // First, get the associations
+      await log.info(`Fetching SOB associations for company`, {
+        companyId,
+        url: `${this.baseUrl}/crm/v3/objects/companies/${companyId}/associations/2-45680577`,
+        operation: 'hubspot_get_sob_associations'
+      })
+
+      const associations = await this.getAssociations("companies", companyId, "2-45680577")
+
+      await log.info(`SOB associations retrieved`, {
+        companyId,
+        associationsCount: associations.results.length,
+        associationIds: associations.results.map(a => a.id),
+        operation: 'hubspot_get_sob_associations_success'
+      })
+
+      if (!associations.results.length) {
+        await log.info(`No SOB associations found for company`, {
+          companyId,
+          operation: 'hubspot_get_sob_no_associations'
+        })
+        return []
+      }
+
+      // Batch read all associated SOBs
+      const sobIds = associations.results.map((a) => a.id)
+      await log.info(`Starting batch read of SOB objects`, {
+        companyId,
+        sobIds,
+        sobCount: sobIds.length,
+        properties: ["amount_to_draft", "fee_amount", "pdf_document_url", "hs_object_id"],
+        url: `${this.baseUrl}/crm/v3/objects/summary_of_benefits/batch/read`,
+        operation: 'hubspot_get_sob_batch_read_start'
+      })
+
+      const response = await this.batchReadObjects<HubSpotSummaryOfBenefits["properties"]>(
+        "2-45680577",
+        sobIds,
+        ["amount_to_draft", "fee_amount", "pdf_document_url", "hs_object_id"]
+      )
+
+      await log.info(`SOB batch read completed`, {
+        companyId,
+        requestedCount: sobIds.length,
+        retrievedCount: response.results.length,
+        hasStatusInfo: !!response.status,
+        operation: 'hubspot_get_sob_batch_read_success'
+      })
+
+      // Log sample of retrieved SOB data (without sensitive info)
+      if (response.results.length > 0) {
+        const firstSob = response.results[0]
+        await log.info(`First SOB sample`, {
+          companyId,
+          sobId: firstSob.id,
+          properties: {
+            hasAmountToDraft: !!firstSob.properties?.amount_to_draft,
+            hasFeeAmount: !!firstSob.properties?.fee_amount,
+            hasPdfUrl: !!firstSob.properties?.pdf_document_url,
+            hasObjectId: !!firstSob.properties?.hs_object_id
+          },
+          operation: 'hubspot_get_sob_sample'
+        })
+      }
+
+      return response.results
+    } catch (error) {
+      await log.error(`SOB retrieval failed`, {
+        companyId,
+        error: error instanceof Error ? error.message : String(error),
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        stack: error instanceof Error ? error.stack : undefined,
+        operation: 'hubspot_get_sob_error'
+      })
+      throw error
     }
-
-    // Batch read all associated SOBs
-    const sobIds = associations.results.map((a) => a.id)
-    const response = await this.batchReadObjects<HubSpotSummaryOfBenefits["properties"]>(
-      "summary_of_benefits",
-      sobIds,
-      ["amount_to_draft", "fee_amount", "pdf_document_url", "hs_object_id"]
-    )
-
-    return response.results
   }
 
   // Get all policies associated with a Summary of Benefits
