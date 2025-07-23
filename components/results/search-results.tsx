@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { HubSpotResultPanel } from "./hubspot-result-panel"
 import { DwollaResultPanel } from "./dwolla-result-panel"
 import { ClarityResultPanel } from "./clarity-result-panel"
@@ -39,7 +40,18 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
     return <EmptyState type="no-results" searchTerm={searchTerm} />
   }
 
-  const showDesktopView = typeof window !== "undefined" && window.innerWidth >= 1024
+  // Use a state to track viewport size for proper hydration
+  const [showDesktopView, setShowDesktopView] = useState(true)
+  
+  useEffect(() => {
+    const checkViewport = () => {
+      setShowDesktopView(window.innerWidth >= 1024)
+    }
+    
+    checkViewport()
+    window.addEventListener('resize', checkViewport)
+    return () => window.removeEventListener('resize', checkViewport)
+  }, [])
 
   // Mobile view - use tabs
   if (!showDesktopView) {
@@ -137,10 +149,11 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
         <Separator />
 
         {/* Clarity Sessions Panel */}
-        <div>
+        <div className="border-2 border-red-500 p-4 rounded-lg">
           <div className="mb-4 flex items-center gap-2">
             <VideoIcon className="text-cakewalk-primary h-5 w-5" />
             <h2 className="text-xl font-semibold">Session Recordings</h2>
+            <span className="text-xs text-red-500">(Debug: Panel is rendering)</span>
           </div>
           <ClarityResultPanel
             sessions={result?.hubspot?.data?.claritySessions}
