@@ -117,6 +117,18 @@ export function DataPanels({ data }: DataPanelsProps) {
                     </span>
                   </div>
                 )}
+                <div className="flex justify-between">
+                  <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Onboarding Status:</span>
+                  <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                    {hubspot.company.onboardingStatus || 'Not available'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Onboarding Step:</span>
+                  <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                    {hubspot.company.onboardingStep || 'Not available'}
+                  </span>
+                </div>
               </div>
             </div>
           )}

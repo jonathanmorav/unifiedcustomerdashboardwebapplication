@@ -68,14 +68,29 @@ export class HubSpotService {
         // First, get contacts associated with the company
         const contacts = await this.client.getAssociations("companies", company.id, "contacts")
         
+        log.info(`Found ${contacts.results?.length || 0} contacts for company ${company.id}`, {
+          companyName: company.properties.name,
+          contactIds: contacts.results?.map(c => c.id) || [],
+          operation: 'hubspot_get_contacts_for_clarity'
+        })
+        
         if (contacts.results && contacts.results.length > 0) {
           // For now, just get engagements for the first contact
           // In production, you might want to aggregate across all contacts
           const primaryContactId = contacts.results[0].id
           const engagements = await this.client.getContactEngagements(primaryContactId)
+          
+          log.info(`Found ${engagements.length} engagements for contact ${primaryContactId}`, {
+            engagementTypes: engagements.map(e => e.type || 'unknown'),
+            operation: 'hubspot_get_engagements'
+          })
+          
           claritySessions = this.client.parseClaritySessionsFromEngagements(engagements)
           
-          log.debug(`HubSpotService.searchCustomer: Found ${claritySessions.length} Clarity sessions`)
+          log.info(`HubSpotService.searchCustomer: Found ${claritySessions.length} Clarity sessions`, {
+            sessionIds: claritySessions.map(s => s.id),
+            operation: 'hubspot_clarity_sessions_parsed'
+          })
         }
       } catch (error) {
         log.warn("Failed to fetch Clarity sessions", {

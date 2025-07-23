@@ -30,7 +30,9 @@ const FIELD_MAPPINGS = {
       'properties.name': 'hubspot.company.name',
       'properties.hs_object_id': 'hubspot.company.id', 
       'properties.owner_email': 'hubspot.company.ownerEmail',
-      'properties.dwolla_customer_id': 'hubspot.company.dwollaId'
+      'properties.dwolla_customer_id': 'hubspot.company.dwollaId',
+      'properties.onboarding_status': 'hubspot.company.onboardingStatus',
+      'properties.onboarding_step': 'hubspot.company.onboardingStep'
     },
     summaryOfBenefits: {
       'properties.amount_to_draft': 'hubspot.summaryOfBenefits.amountToDraft',
@@ -80,6 +82,8 @@ const mockHubSpotData = {
       hs_lastmodifieddate: "2025-01-18T14:45:00Z",
       owner_email: "support@acme.com",
       dwolla_customer_id: "e8b0f3d2-4a89-4c6b-8383-1234567890ab",
+      onboarding_status: "in_progress",
+      onboarding_step: "step_3_verification",
     },
     createdAt: "2024-01-15T10:30:00Z",
     updatedAt: "2025-01-18T14:45:00Z",

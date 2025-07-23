@@ -733,14 +733,30 @@ export class HubSpotClient {
   ): ClaritySession[] {
     const sessions: ClaritySession[] = []
 
+    // Debug logging
+    log.info(`Parsing ${engagements.length} engagements for Clarity sessions`, {
+      engagementTypes: engagements.map(e => e.type),
+      operation: 'parse_clarity_sessions'
+    })
+
     for (const engagement of engagements) {
+      // Log each engagement for debugging
+      log.debug(`Checking engagement ${engagement.id}`, {
+        type: engagement.type,
+        hasMetadata: !!engagement.metadata,
+        metadataKeys: engagement.metadata ? Object.keys(engagement.metadata) : [],
+        properties: engagement.properties,
+        operation: 'check_engagement_for_clarity'
+      })
+
       // Check if this is a Clarity session engagement
       // This depends on how Clarity sessions are stored in HubSpot
       // Common patterns include checking the engagement type or metadata
       if (
         engagement.type === "CLARITY_SESSION" ||
         engagement.metadata?.source === "clarity" ||
-        (engagement.metadata?.title && engagement.metadata.title.includes("Clarity"))
+        (engagement.metadata?.title && engagement.metadata.title.includes("Clarity")) ||
+        (engagement.properties?.hs_body_preview && engagement.properties.hs_body_preview.includes("Clarity"))
       ) {
         // Parse the session data from the engagement
         const session: ClaritySession = {

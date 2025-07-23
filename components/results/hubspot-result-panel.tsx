@@ -55,6 +55,12 @@ export function HubSpotResultPanel({ data, isLoading, error }: HubSpotResultPane
 
   const { company, summaryOfBenefits } = data
 
+  // Debug logging
+  console.log('HubSpot Result Panel - Full data:', data)
+  console.log('HubSpot Result Panel - Company data:', company)
+  console.log('HubSpot Result Panel - onboardingStatus:', company?.onboardingStatus)
+  console.log('HubSpot Result Panel - onboardingStep:', company?.onboardingStep)
+
   return (
     <div className="space-y-4">
       {/* Company Information */}
@@ -91,6 +97,16 @@ export function HubSpotResultPanel({ data, isLoading, error }: HubSpotResultPane
               </div>
             </div>
           )}
+
+          <div className="flex items-start gap-3 border-2 border-red-500 p-2" style={{backgroundColor: 'yellow'}}>
+            <span className="font-medium text-black">{company.onboardingStatus || "[EMPTY]"}</span>
+            <span className="text-cakewalk-text-secondary text-sm">Onboarding Status</span>
+          </div>
+
+          <div className="flex items-start gap-3 border-2 border-blue-500 p-2" style={{backgroundColor: 'lightblue'}}>
+            <span className="font-medium text-black">{company.onboardingStep || "[EMPTY]"}</span>
+            <span className="text-cakewalk-text-secondary text-sm">Onboarding Step</span>
+          </div>
         </div>
       </ResultCard>
 
