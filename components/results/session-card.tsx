@@ -37,7 +37,7 @@ export function SessionCard({ session, defaultExpanded = false }: SessionCardPro
               <span className="font-medium">Microsoft Clarity</span>
             </div>
             <span className="text-cakewalk-text-secondary text-sm">
-              {formatDate(session.timestamp, "MMM d, yyyy 'at' h:mm a zzz")}
+              {formatDate(session.timestamp)}
             </span>
           </div>
 

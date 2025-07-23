@@ -217,24 +217,28 @@ export interface ClaritySession {
   browser?: string
 }
 
-// Engagement types
+// Engagement types - Updated to match HubSpot v3 API response
 export interface HubSpotEngagement {
   id: string
-  type: string // "CALL", "EMAIL", "MEETING", "NOTE", "TASK", "CLARITY_SESSION", etc.
-  createdAt: number
-  updatedAt: number
-  properties: Record<string, any>
-  associations: {
-    contactIds: string[]
-    companyIds: string[]
-    dealIds?: string[]
+  properties: {
+    hs_engagement_type?: string // "CALL", "EMAIL", "MEETING", "NOTE", "TASK", etc.
+    hs_timestamp?: string
+    hs_body_preview?: string
+    hs_body_preview_html?: string
+    hs_body_preview_is_truncated?: boolean
+    hs_activity_type?: string
+    hs_all_accessible_team_ids?: string
+    hs_createdate?: string
+    hs_lastmodifieddate?: string
+    hs_object_id?: string
+    // Custom properties that might contain Clarity data
+    clarity_session_id?: string
+    clarity_recording_url?: string
+    [key: string]: any
   }
-  metadata?: {
-    claritySession?: ClaritySession
-    source?: string
-    title?: string
-    body?: string
-  }
+  createdAt: string
+  updatedAt: string
+  archived?: boolean
 }
 
 // Engagements API response

@@ -675,7 +675,10 @@ export class HubSpotClient {
       const url = `${this.baseUrl}/crm/v3/objects/contacts/${contactId}/associations/engagements`
       
       const response = await this.fetchWithRetry<{
-        results: Array<{ id: string; type: string }>
+        results: Array<{ 
+          id: string
+          type?: string 
+        }>
       }>(url)
 
       if (!response.results || response.results.length === 0) {
@@ -744,40 +747,62 @@ export class HubSpotClient {
 
     // Debug logging
     log.info(`Parsing ${engagements.length} engagements for Clarity sessions`, {
-      engagementTypes: engagements.map(e => e.type),
+      totalEngagements: engagements.length,
       operation: 'parse_clarity_sessions'
     })
+    
+    // Log first engagement structure for debugging
+    if (engagements.length > 0) {
+      log.info("Sample engagement structure", {
+        engagement: JSON.stringify(engagements[0], null, 2),
+        operation: 'sample_engagement_structure'
+      })
+    }
 
     for (const engagement of engagements) {
       // Log each engagement for debugging
-      log.debug(`Checking engagement ${engagement.id}`, {
-        type: engagement.type,
-        hasMetadata: !!engagement.metadata,
-        metadataKeys: engagement.metadata ? Object.keys(engagement.metadata) : [],
-        properties: engagement.properties,
+      log.info(`Checking engagement ${engagement.id}`, {
+        engagementType: engagement.properties?.hs_engagement_type,
+        activityType: engagement.properties?.hs_activity_type,
+        bodyPreview: engagement.properties?.hs_body_preview?.substring(0, 100),
+        allPropertyKeys: Object.keys(engagement.properties || {}),
         operation: 'check_engagement_for_clarity'
       })
 
       // Check if this is a Clarity session engagement
-      // This depends on how Clarity sessions are stored in HubSpot
-      // Common patterns include checking the engagement type or metadata
+      // Updated to check properties field based on v3 API structure
+      const bodyPreview = engagement.properties?.hs_body_preview || ""
+      const bodyPreviewHtml = engagement.properties?.hs_body_preview_html || ""
+      const activityType = engagement.properties?.hs_activity_type || ""
+      const engagementType = engagement.properties?.hs_engagement_type || ""
+      
       if (
-        engagement.type === "CLARITY_SESSION" ||
-        engagement.metadata?.source === "clarity" ||
-        (engagement.metadata?.title && engagement.metadata.title.includes("Clarity")) ||
-        (engagement.properties?.hs_body_preview && engagement.properties.hs_body_preview.includes("Clarity"))
+        // Check for Clarity URL in body
+        bodyPreview.includes("clarity.microsoft.com") ||
+        bodyPreviewHtml.includes("clarity.microsoft.com") ||
+        // Check for Clarity in activity type
+        activityType.toLowerCase().includes("clarity") ||
+        // Check for custom Clarity properties
+        engagement.properties?.clarity_session_id ||
+        engagement.properties?.clarity_recording_url ||
+        // Check engagement type (if Clarity uses a specific type)
+        engagementType === "CLARITY_SESSION" ||
+        // Fallback: check any property value for Clarity URLs
+        Object.values(engagement.properties || {}).some(
+          value => typeof value === 'string' && value.includes("clarity.microsoft.com")
+        )
       ) {
         // Parse the session data from the engagement
         const session: ClaritySession = {
           id: engagement.id,
-          recordingUrl: engagement.metadata?.claritySession?.recordingUrl || 
-                       engagement.properties?.clarity_recording_url ||
-                       this.extractUrlFromBody(engagement.metadata?.body || ""),
-          timestamp: new Date(engagement.createdAt),
-          duration: engagement.metadata?.claritySession?.duration,
+          recordingUrl: engagement.properties?.clarity_recording_url ||
+                       this.extractUrlFromBody(bodyPreview) ||
+                       this.extractUrlFromBody(bodyPreviewHtml),
+          timestamp: new Date(engagement.properties?.hs_timestamp || engagement.createdAt),
+          duration: engagement.properties?.clarity_duration,
           smartEvents: this.parseSmartEvents(engagement),
-          deviceType: engagement.metadata?.claritySession?.deviceType,
-          browser: engagement.metadata?.claritySession?.browser
+          deviceType: engagement.properties?.clarity_device_type,
+          browser: engagement.properties?.clarity_browser
         }
 
         sessions.push(session)
@@ -795,13 +820,19 @@ export class HubSpotClient {
 
   // Helper to parse smart events from engagement
   private parseSmartEvents(engagement: HubSpotEngagement): ClaritySessionEvent[] {
-    if (engagement.metadata?.claritySession?.smartEvents) {
-      return engagement.metadata.claritySession.smartEvents
+    // Check if events are stored in custom properties
+    if (engagement.properties?.clarity_smart_events) {
+      try {
+        // If stored as JSON string
+        return JSON.parse(engagement.properties.clarity_smart_events)
+      } catch {
+        // If not valid JSON, continue to fallback
+      }
     }
 
-    // Fallback: try to parse from engagement body or properties
+    // Fallback: try to parse from engagement body
     const events: ClaritySessionEvent[] = []
-    const body = engagement.metadata?.body || ""
+    const body = engagement.properties?.hs_body_preview || engagement.properties?.hs_body_preview_html || ""
 
     // Look for event patterns in the body
     const eventMatches = body.matchAll(/Event:\s*([^\n]+)\s*Type:\s*([^\n]+)\s*Start Time:\s*([^\n]+)/g)
