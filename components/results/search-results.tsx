@@ -16,6 +16,14 @@ interface SearchResultsProps {
 }
 
 export function SearchResults({ result, isLoading, error, searchTerm }: SearchResultsProps) {
+  // Debug logging
+  if (result) {
+    console.log("SearchResults - Full result:", result)
+    console.log("SearchResults - HubSpot data:", result.hubspot)
+    console.log("SearchResults - HubSpot data.data:", result.hubspot?.data)
+    console.log("SearchResults - Clarity sessions:", result.hubspot?.data?.claritySessions)
+  }
+
   // Initial state - no search performed yet
   if (!result && !isLoading && !error) {
     return <EmptyState type="initial" />

@@ -1,0 +1,21 @@
+
+> unified-customer-dashboard@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.4.1
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.15.13:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 1122ms
+ ✓ Compiled /api/auth/[...nextauth] in 456ms (584 modules)
+ GET /api/auth/session 200 in 837ms
+ ⚠ ./app/api/lists/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/lists/route.ts
+ ○ Compiling /api/lists ...
+ GET /api/lists 401 in 507ms
+[?25h

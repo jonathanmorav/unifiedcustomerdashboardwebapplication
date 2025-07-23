@@ -165,6 +165,53 @@ export const mockSearchResult: UnifiedSearchResult = {
           membershipTimestamp: "2025-01-05T08:30:00Z"
         }
       ],
+      claritySessions: [
+        {
+          id: "clarity_session_001",
+          recordingUrl: "https://clarity.microsoft.com/projects/view/abc123/session/def456",
+          timestamp: new Date("2025-01-22T15:30:00Z"),
+          duration: 180,
+          deviceType: "desktop",
+          browser: "Chrome 120",
+          smartEvents: [
+            {
+              event: "Login",
+              type: "Auto",
+              startTime: "00:41"
+            },
+            {
+              event: "Submit form",
+              type: "Auto", 
+              startTime: "00:41"
+            }
+          ]
+        },
+        {
+          id: "clarity_session_002",
+          recordingUrl: "https://clarity.microsoft.com/projects/view/abc123/session/ghi789",
+          timestamp: new Date("2025-01-21T10:15:00Z"),
+          duration: 420,
+          deviceType: "mobile",
+          browser: "Safari 17",
+          smartEvents: [
+            {
+              event: "Page view",
+              type: "Auto",
+              startTime: "00:05"
+            },
+            {
+              event: "Click button",
+              type: "Manual",
+              startTime: "01:23"
+            },
+            {
+              event: "Form error",
+              type: "Auto",
+              startTime: "02:45"
+            }
+          ]
+        }
+      ],
     },
   },
   dwolla: {
