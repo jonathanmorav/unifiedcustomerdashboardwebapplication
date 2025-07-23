@@ -712,9 +712,18 @@ export class HubSpotClient {
         method: "POST",
         body: JSON.stringify({
           inputs: engagementIds.map(id => ({ id })),
-          properties: ["hs_timestamp", "hs_engagement_type", "hs_body_preview", "hs_activity_type"]
+          properties: ["hs_timestamp", "hs_engagement_type", "hs_body_preview", "hs_activity_type", "hs_all_accessible_team_ids", "hs_body_preview_html", "hs_body_preview_is_truncated"]
         })
       })
+
+      // Log the raw engagement response for debugging
+      if (response.results && response.results.length > 0) {
+        log.info("Raw engagement data from HubSpot", {
+          sampleEngagement: JSON.stringify(response.results[0], null, 2),
+          totalEngagements: response.results.length,
+          operation: 'hubspot_raw_engagements'
+        })
+      }
 
       return response.results || []
     } catch (error) {
