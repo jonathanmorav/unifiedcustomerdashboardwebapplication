@@ -63,8 +63,9 @@ export function DwollaResultPanel({ data, isLoading, error }: DwollaResultPanelP
       case "processed":
         return "default"
       case "pending":
-      case "unverified":
         return "secondary"
+      case "unverified":
+        return "warning"
       case "failed":
       case "suspended":
       case "deactivated":
@@ -106,10 +107,10 @@ export function DwollaResultPanel({ data, isLoading, error }: DwollaResultPanelP
           <div className="flex items-start gap-3">
             <CalendarIcon className="text-cakewalk-text-secondary mt-0.5 h-5 w-5" />
             <div className="flex-1">
-              <p className="text-cakewalk-text-secondary text-sm">Account Details</p>
+              <p className="text-cakewalk-text-secondary text-sm">Customer Type & Status</p>
               <div className="flex items-center gap-2">
-                <Badge variant={getStatusColor(customer.status)}>{customer.status}</Badge>
                 <Badge variant="outline">{customer.type}</Badge>
+                <Badge variant={getStatusColor(customer.status)}>{customer.status}</Badge>
               </div>
               <p className="text-cakewalk-text-secondary mt-1 text-sm">
                 Created: {formatDateTime(customer.created)}

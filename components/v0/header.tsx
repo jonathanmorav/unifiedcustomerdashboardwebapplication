@@ -25,9 +25,9 @@ export function Header() {
             <Image 
               src="/images/cakewalk-logo.png" 
               alt="Cakewalk Benefits" 
-              width={160} 
-              height={40}
-              className="h-8 w-auto"
+              width={200} 
+              height={50}
+              className="h-12 w-auto"
               priority
             />
             <div>
