@@ -211,3 +211,68 @@ model ListMetadata {
   
   @@index([listId])
 }
+
+// ACH Transaction tracking model
+model ACHTransaction {
+  id                String    @id @default(cuid())
+  dwollaId          String    @unique
+  status            String    // pending, processing, completed, failed, cancelled, returned
+  amount            Decimal   @db.Decimal(15,2)
+  currency          String    @default("USD")
+  direction         String    // credit or debit
+  created           DateTime
+  lastUpdated       DateTime  @updatedAt
+  
+  // Source information
+  sourceId          String?
+  sourceName        String?
+  sourceBankName    String?
+  
+  // Destination information
+  destinationId     String?
+  destinationName   String?
+  destinationBankName String?
+  bankLastFour      String?
+  
+  // Transaction identifiers
+  correlationId     String?
+  individualAchId   String?
+  
+  // Customer information
+  customerId        String?
+  customerName      String?
+  customerEmail     String?
+  companyName       String?
+  
+  // Transaction details
+  invoiceNumber     String?
+  transactionType   String?   // invoice, refund, adjustment, etc.
+  description       String?
+  
+  // Financial details
+  fees              Decimal?  @db.Decimal(15,2)
+  netAmount         Decimal?  @db.Decimal(15,2)
+  
+  // Processing information
+  clearingDate      DateTime?
+  processedAt       DateTime?
+  failureReason     String?   @db.Text
+  failureCode       String?
+  returnCode        String?
+  
+  // Metadata
+  metadata          Json?
+  
+  // Audit fields
+  createdAt         DateTime  @default(now())
+  
+  @@index([status])
+  @@index([created])
+  @@index([customerName])
+  @@index([dwollaId])
+  @@index([correlationId])
+  @@index([customerEmail])
+  @@index([companyName])
+  @@index([direction])
+  @@index([amount])
+}

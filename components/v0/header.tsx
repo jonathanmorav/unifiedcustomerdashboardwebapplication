@@ -4,13 +4,16 @@ import { Button } from "./ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import Image from "next/image"
-import { Moon, Sun, LogOut, Settings, User } from "lucide-react"
+import { Moon, Sun, LogOut, Settings, User, LayoutDashboard, Receipt } from "lucide-react"
 import { useTheme } from "next-themes"
 import { signOut, useSession } from "next-auth/react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function Header() {
   const { theme, setTheme } = useTheme()
   const { data: session } = useSession()
+  const pathname = usePathname()
   const isDarkMode = theme === "dark"
 
   const handleLogout = () => {
@@ -34,6 +37,30 @@ export function Header() {
               <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">Customer Support Dashboard</p>
             </div>
           </div>
+          
+          {/* Navigation Links */}
+          <nav className="flex items-center gap-2">
+            <Link href="/dashboard">
+              <Button 
+                variant={pathname === '/dashboard' ? 'default' : 'ghost'}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Button>
+            </Link>
+            <Link href="/billing">
+              <Button 
+                variant={pathname === '/billing' ? 'default' : 'ghost'}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Receipt className="h-4 w-4" />
+                Billing
+              </Button>
+            </Link>
+          </nav>
 
           <div className="flex items-center gap-4">
             <Button

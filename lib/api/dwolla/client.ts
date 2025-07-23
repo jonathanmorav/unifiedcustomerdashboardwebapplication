@@ -469,4 +469,59 @@ export class DwollaClient {
   getRateLimitResetTime(): Date | null {
     return this.rateLimitResetTime ? new Date(this.rateLimitResetTime) : null
   }
+
+  /**
+   * Get all transfers with pagination
+   */
+  async getTransfers(
+    params: {
+      limit?: number
+      offset?: number
+      startDate?: string
+      endDate?: string
+      status?: string
+      correlationId?: string
+    },
+    signal?: AbortSignal
+  ): Promise<DwollaListResponse<DwollaTransfer>> {
+    // Fetch transfers for the master account
+    const accountId = process.env.DWOLLA_MASTER_ACCOUNT_ID;
+    if (!accountId) {
+      throw new DwollaAPIError("DWOLLA_MASTER_ACCOUNT_ID not configured", 500);
+    }
+    
+    // Use account-specific transfers endpoint
+    const url = this.buildUrl(`/accounts/${accountId}/transfers`, {
+      limit: params.limit,
+      offset: params.offset,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      status: params.status,
+      correlationId: params.correlationId,
+    })
+    
+    return this.fetchWithRetry<DwollaListResponse<DwollaTransfer>>(url, {}, 0, signal)
+  }
+
+  /**
+   * Get transfer by ID
+   */
+  async getTransfer(transferId: string, signal?: AbortSignal): Promise<DwollaTransfer> {
+    const url = this.buildUrl(`/transfers/${transferId}`)
+    return this.fetchWithRetry<DwollaTransfer>(url, {}, 0, signal)
+  }
+
+  /**
+   * Get funding source by URL
+   */
+  async getFundingSourceByUrl(url: string, signal?: AbortSignal): Promise<DwollaFundingSource> {
+    return this.fetchWithRetry<DwollaFundingSource>(url, {}, 0, signal)
+  }
+
+  /**
+   * Get customer by URL
+   */
+  async getCustomerByUrl(url: string, signal?: AbortSignal): Promise<DwollaCustomer> {
+    return this.fetchWithRetry<DwollaCustomer>(url, {}, 0, signal)
+  }
 }
