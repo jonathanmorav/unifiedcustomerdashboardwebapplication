@@ -19,10 +19,11 @@ interface SearchResultsProps {
 export function SearchResults({ result, isLoading, error, searchTerm }: SearchResultsProps) {
   // Debug logging
   if (result) {
-    console.log("SearchResults - Full result:", result)
-    console.log("SearchResults - HubSpot data:", result.hubspot)
-    console.log("SearchResults - HubSpot data.data:", result.hubspot?.data)
-    console.log("SearchResults - Clarity sessions:", result.hubspot?.data?.claritySessions)
+    console.log("[SEARCH RESULTS DEBUG] Full result:", result)
+    console.log("[SEARCH RESULTS DEBUG] HubSpot data:", result.hubspot)
+    console.log("[SEARCH RESULTS DEBUG] HubSpot data.data:", result.hubspot?.data)
+    console.log("[SEARCH RESULTS DEBUG] Clarity sessions:", result.hubspot?.data?.claritySessions)
+    console.log("[SEARCH RESULTS DEBUG] Clarity sessions count:", result.hubspot?.data?.claritySessions?.length || 0)
   }
 
   // Initial state - no search performed yet
@@ -46,6 +47,7 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
   useEffect(() => {
     const checkViewport = () => {
       setShowDesktopView(window.innerWidth >= 1024)
+      console.log("[SEARCH RESULTS DEBUG] Viewport check - showDesktopView:", window.innerWidth >= 1024, "Width:", window.innerWidth)
     }
     
     checkViewport()
@@ -149,11 +151,10 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
         <Separator />
 
         {/* Clarity Sessions Panel */}
-        <div className="border-2 border-red-500 p-4 rounded-lg">
+        <div>
           <div className="mb-4 flex items-center gap-2">
             <VideoIcon className="text-cakewalk-primary h-5 w-5" />
             <h2 className="text-xl font-semibold">Session Recordings</h2>
-            <span className="text-xs text-red-500">(Debug: Panel is rendering)</span>
           </div>
           <ClarityResultPanel
             sessions={result?.hubspot?.data?.claritySessions}

@@ -12,6 +12,13 @@ interface ClarityResultPanelProps {
 }
 
 export function ClarityResultPanel({ sessions, isLoading, error }: ClarityResultPanelProps) {
+  console.log("[CLARITY DEBUG] ClarityResultPanel props:", { 
+    sessionsCount: sessions?.length, 
+    sessions, 
+    isLoading, 
+    error 
+  })
+  
   if (isLoading) {
     return (
       <div className="space-y-4">

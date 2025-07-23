@@ -721,6 +721,7 @@ export class HubSpotClient {
 
       // Log the raw engagement response for debugging
       if (response.results && response.results.length > 0) {
+        console.log("[CLARITY DEBUG] Raw engagement from HubSpot:", JSON.stringify(response.results[0], null, 2))
         log.info("Raw engagement data from HubSpot", {
           sampleEngagement: JSON.stringify(response.results[0], null, 2),
           totalEngagements: response.results.length,
@@ -753,6 +754,11 @@ export class HubSpotClient {
     
     // Log first engagement structure for debugging
     if (engagements.length > 0) {
+      console.log("\n[CLARITY DEBUG] First engagement full structure:")
+      console.log(JSON.stringify(engagements[0], null, 2))
+      console.log("\n[CLARITY DEBUG] Engagement properties:")
+      console.log(JSON.stringify(engagements[0].properties, null, 2))
+      
       log.info("Sample engagement structure", {
         engagement: JSON.stringify(engagements[0], null, 2),
         operation: 'sample_engagement_structure'
@@ -765,6 +771,7 @@ export class HubSpotClient {
         engagementType: engagement.properties?.hs_engagement_type,
         activityType: engagement.properties?.hs_activity_type,
         bodyPreview: engagement.properties?.hs_body_preview?.substring(0, 100),
+        bodyPreviewHtml: engagement.properties?.hs_body_preview_html?.substring(0, 100),
         allPropertyKeys: Object.keys(engagement.properties || {}),
         operation: 'check_engagement_for_clarity'
       })
@@ -776,7 +783,8 @@ export class HubSpotClient {
       const activityType = engagement.properties?.hs_activity_type || ""
       const engagementType = engagement.properties?.hs_engagement_type || ""
       
-      if (
+      // More comprehensive Clarity detection
+      const isClarity = (
         // Check for Clarity URL in body
         bodyPreview.includes("clarity.microsoft.com") ||
         bodyPreviewHtml.includes("clarity.microsoft.com") ||
@@ -787,17 +795,57 @@ export class HubSpotClient {
         engagement.properties?.clarity_recording_url ||
         // Check engagement type (if Clarity uses a specific type)
         engagementType === "CLARITY_SESSION" ||
-        // Fallback: check any property value for Clarity URLs
+        // Broader engagement type checks
+        engagementType === "NOTE" || engagementType === "EMAIL" || engagementType === "TASK" ||
+        // Check for common Clarity-related keywords in body
+        bodyPreview.toLowerCase().includes("session recording") ||
+        bodyPreview.toLowerCase().includes("user session") ||
+        bodyPreview.toLowerCase().includes("recording") ||
+        bodyPreviewHtml.toLowerCase().includes("session recording") ||
+        bodyPreviewHtml.toLowerCase().includes("user session") ||
+        bodyPreviewHtml.toLowerCase().includes("recording") ||
+        // Fallback: check any property value for Clarity URLs or keywords
         Object.values(engagement.properties || {}).some(
-          value => typeof value === 'string' && value.includes("clarity.microsoft.com")
+          value => {
+            if (typeof value === 'string') {
+              const lowerValue = value.toLowerCase()
+              return lowerValue.includes("clarity.microsoft.com") ||
+                     lowerValue.includes("session recording") ||
+                     lowerValue.includes("user session")
+            }
+            return false
+          }
         )
-      ) {
+      )
+      
+      // Log detection decision for debugging
+      log.info(`Clarity detection for engagement ${engagement.id}`, {
+        isClarity,
+        hasBodyPreview: !!bodyPreview,
+        hasBodyPreviewHtml: !!bodyPreviewHtml,
+        engagementType,
+        activityType,
+        operation: 'clarity_detection_decision'
+      })
+      
+      if (isClarity) {
+        // Extract recording URL from various sources
+        const recordingUrl = engagement.properties?.clarity_recording_url ||
+                           this.extractUrlFromBody(bodyPreview) ||
+                           this.extractUrlFromBody(bodyPreviewHtml) ||
+                           ""
+        
+        // Debug logging for URL extraction
+        console.log(`[CLARITY DEBUG] URL extraction for engagement ${engagement.id}:`)
+        console.log(`  - clarity_recording_url property:`, engagement.properties?.clarity_recording_url)
+        console.log(`  - bodyPreview URL extraction:`, this.extractUrlFromBody(bodyPreview))
+        console.log(`  - bodyPreviewHtml URL extraction:`, this.extractUrlFromBody(bodyPreviewHtml))
+        console.log(`  - Final recordingUrl:`, recordingUrl)
+        
         // Parse the session data from the engagement
         const session: ClaritySession = {
           id: engagement.id,
-          recordingUrl: engagement.properties?.clarity_recording_url ||
-                       this.extractUrlFromBody(bodyPreview) ||
-                       this.extractUrlFromBody(bodyPreviewHtml),
+          recordingUrl,
           timestamp: new Date(engagement.properties?.hs_timestamp || engagement.createdAt),
           duration: engagement.properties?.clarity_duration,
           smartEvents: this.parseSmartEvents(engagement),
@@ -814,8 +862,33 @@ export class HubSpotClient {
 
   // Helper to extract URL from engagement body
   private extractUrlFromBody(body: string): string {
-    const urlMatch = body.match(/https:\/\/clarity\.microsoft\.com[^\s]*/);
-    return urlMatch ? urlMatch[0] : ""
+    if (!body) return ""
+    
+    // Try multiple URL patterns
+    const patterns = [
+      /https:\/\/clarity\.microsoft\.com[^\s"'<>]*/g,
+      /clarity\.microsoft\.com[^\s"'<>]*/g,
+      /Recording URL:\s*([^\n\r]*)/g
+    ]
+    
+    for (const pattern of patterns) {
+      const matches = body.match(pattern)
+      if (matches && matches.length > 0) {
+        let url = matches[0].trim()
+        // Ensure https:// prefix
+        if (!url.startsWith('http')) {
+          url = 'https://' + url
+        }
+        // Clean up any trailing punctuation or HTML
+        url = url.replace(/[<>"'\s]*$/, '')
+        if (url.includes('clarity.microsoft.com')) {
+          console.log(`[CLARITY DEBUG] URL extracted from body: ${url}`)
+          return url
+        }
+      }
+    }
+    
+    return ""
   }
 
   // Helper to parse smart events from engagement

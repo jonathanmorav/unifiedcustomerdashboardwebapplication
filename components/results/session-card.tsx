@@ -22,6 +22,15 @@ interface SessionCardProps {
 
 export function SessionCard({ session, defaultExpanded = false }: SessionCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
+  
+  // Debug logging for session data
+  console.log(`[CLARITY DEBUG] SessionCard rendering session:`, {
+    id: session.id,
+    recordingUrl: session.recordingUrl,
+    timestamp: session.timestamp,
+    duration: session.duration,
+    smartEvents: session.smartEvents?.length || 0
+  })
 
   return (
     <Card className="overflow-hidden">
@@ -43,16 +52,25 @@ export function SessionCard({ session, defaultExpanded = false }: SessionCardPro
 
           {/* Recording link and expand indicator */}
           <div className="flex items-center justify-between">
-            <a 
-              href={session.recordingUrl} 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-cakewalk-primary hover:underline flex items-center gap-1 text-sm"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Click to view recording
-              <ExternalLinkIcon className="h-3 w-3" />
-            </a>
+            {session.recordingUrl ? (
+              <a 
+                href={session.recordingUrl} 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-cakewalk-primary hover:underline flex items-center gap-1 text-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Click to view recording
+                <ExternalLinkIcon className="h-3 w-3" />
+              </a>
+            ) : (
+              <div className="text-cakewalk-text-secondary text-sm flex items-center gap-1">
+                <span>No recording URL available</span>
+                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                  Debug: Session ID {session.id}
+                </span>
+              </div>
+            )}
             {isExpanded ? (
               <ChevronUpIcon className="text-cakewalk-text-secondary h-5 w-5" />
             ) : (

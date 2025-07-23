@@ -16,6 +16,7 @@ const searchRequestSchema = z.object({
 })
 
 export const POST = withErrorHandler(async (request: NextRequest) => {
+  console.log("[CLARITY DEBUG] Search API called")
   const correlationId = await CorrelationTracking.getCorrelationId()
   
   // Check authentication
