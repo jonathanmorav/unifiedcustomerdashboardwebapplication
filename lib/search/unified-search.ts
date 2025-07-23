@@ -32,6 +32,13 @@ export interface UnifiedSearchResult {
     error?: string
     duration: number
   }
+  sessions?: {
+    success: boolean
+    data?: HubSpotCustomerData["claritySessions"]
+    error?: string
+    duration: number
+    totalCount?: number
+  }
 }
 
 // Search type detection patterns
@@ -146,11 +153,19 @@ export class UnifiedSearchEngine {
     // Add HubSpot data if available
     if (result.hubspot.success && result.hubspot.data) {
       const formatted = this.hubspotService.formatCustomerData(result.hubspot.data)
+      
+      // Debug logging
+      console.log('UnifiedSearch formatForDisplay - Raw HubSpot data:', result.hubspot.data)
+      console.log('UnifiedSearch formatForDisplay - Formatted company:', formatted.company)
+      console.log('UnifiedSearch formatForDisplay - onboardingStatus:', formatted.company.onboardingStatus)
+      console.log('UnifiedSearch formatForDisplay - onboardingStep:', formatted.company.onboardingStep)
+      
       display.hubspot = {
         company: formatted.company,
         summaryOfBenefits: formatted.summaryOfBenefits,
         monthlyInvoices: formatted.monthlyInvoices,
         activeLists: formatted.activeLists,
+        data: result.hubspot.data, // Include raw data for accessing claritySessions
       }
     } else if (result.hubspot.error) {
       display.hubspot = { error: result.hubspot.error }

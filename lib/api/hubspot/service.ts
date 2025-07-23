@@ -62,15 +62,39 @@ export class HubSpotService {
 
       log.debug(`HubSpotService.searchCustomer: Total policies fetched: ${allPolicies.length}`)
 
+      // Get Clarity sessions by searching for contacts associated with the company
+      let claritySessions = []
+      try {
+        // First, get contacts associated with the company
+        const contacts = await this.client.getAssociations("companies", company.id, "contacts")
+        
+        if (contacts.results && contacts.results.length > 0) {
+          // For now, just get engagements for the first contact
+          // In production, you might want to aggregate across all contacts
+          const primaryContactId = contacts.results[0].id
+          const engagements = await this.client.getContactEngagements(primaryContactId)
+          claritySessions = this.client.parseClaritySessionsFromEngagements(engagements)
+          
+          log.debug(`HubSpotService.searchCustomer: Found ${claritySessions.length} Clarity sessions`)
+        }
+      } catch (error) {
+        log.warn("Failed to fetch Clarity sessions", {
+          companyId: company.id,
+          error: error instanceof Error ? error.message : String(error),
+          operation: 'hubspot_fetch_clarity_sessions'
+        })
+      }
+
       const result = {
         company,
         summaryOfBenefits,
         policies: allPolicies,
         monthlyInvoices,
         activeLists: listMemberships.lists,
+        claritySessions,
       }
       
-      log.debug(`HubSpotService.searchCustomer: Returning complete customer data for company ${company.id} with ${listMemberships.total} active lists`)
+      log.debug(`HubSpotService.searchCustomer: Returning complete customer data for company ${company.id} with ${listMemberships.total} active lists and ${claritySessions.length} Clarity sessions`)
       return result
     } catch (error) {
       log.error("Error searching HubSpot customer", error as Error, {
@@ -91,7 +115,7 @@ export class HubSpotService {
       const companyObject = await this.client.getObjectById<HubSpotCompany["properties"]>(
         "companies",
         companyId,
-        ["name", "domain", "email___owner", "dwolla_customer_id", "hs_object_id"]
+        ["name", "domain", "email___owner", "dwolla_customer_id", "onboarding_status", "onboarding_step", "hs_object_id"]
       )
 
       // Convert to HubSpotCompany format
@@ -113,12 +137,31 @@ export class HubSpotService {
       // Flatten all policies into a single array
       const allPolicies = policiesArrays.flat()
 
+      // Get Clarity sessions
+      let claritySessions = []
+      try {
+        const contacts = await this.client.getAssociations("companies", companyId, "contacts")
+        
+        if (contacts.results && contacts.results.length > 0) {
+          const primaryContactId = contacts.results[0].id
+          const engagements = await this.client.getContactEngagements(primaryContactId)
+          claritySessions = this.client.parseClaritySessionsFromEngagements(engagements)
+        }
+      } catch (error) {
+        log.warn("Failed to fetch Clarity sessions", {
+          companyId,
+          error: error instanceof Error ? error.message : String(error),
+          operation: 'hubspot_fetch_clarity_sessions'
+        })
+      }
+
       return {
         company,
         summaryOfBenefits,
         policies: allPolicies,
         monthlyInvoices,
         activeLists: listMemberships.lists,
+        claritySessions,
       }
     } catch (error) {
       log.error("Error getting HubSpot customer data", error as Error, {
@@ -138,6 +181,8 @@ export class HubSpotService {
       name: string
       ownerEmail: string | null
       dwollaId: string | null
+      onboardingStatus: string | null
+      onboardingStep: string | null
     }
     summaryOfBenefits: Array<{
       id: string
@@ -194,6 +239,8 @@ export class HubSpotService {
         name: data.company?.properties?.name || "",
         ownerEmail: data.company?.properties?.email___owner || null,
         dwollaId: data.company?.properties?.dwolla_customer_id || null,
+        onboardingStatus: data.company?.properties?.onboarding_status || null,
+        onboardingStep: data.company?.properties?.onboarding_step || null,
       },
       summaryOfBenefits: data.summaryOfBenefits.map((sob) => ({
         id: sob.id,

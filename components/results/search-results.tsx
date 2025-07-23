@@ -2,10 +2,11 @@
 
 import { HubSpotResultPanel } from "./hubspot-result-panel"
 import { DwollaResultPanel } from "./dwolla-result-panel"
+import { ClarityResultPanel } from "./clarity-result-panel"
 import { EmptyState } from "./empty-state"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BuildingIcon, BanknoteIcon } from "lucide-react"
+import { BuildingIcon, BanknoteIcon, VideoIcon } from "lucide-react"
 
 interface SearchResultsProps {
   result: any // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -46,7 +47,7 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
         </div>
 
         <Tabs defaultValue="hubspot" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="hubspot" className="flex items-center gap-2">
               <BuildingIcon className="h-4 w-4" />
               HubSpot
@@ -54,6 +55,10 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
             <TabsTrigger value="dwolla" className="flex items-center gap-2">
               <BanknoteIcon className="h-4 w-4" />
               Dwolla
+            </TabsTrigger>
+            <TabsTrigger value="sessions" className="flex items-center gap-2">
+              <VideoIcon className="h-4 w-4" />
+              Sessions
             </TabsTrigger>
           </TabsList>
           <TabsContent value="hubspot" className="mt-4">
@@ -70,12 +75,19 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
               error={result?.dwolla?.error}
             />
           </TabsContent>
+          <TabsContent value="sessions" className="mt-4">
+            <ClarityResultPanel
+              sessions={result?.hubspot?.data?.claritySessions}
+              isLoading={isLoading}
+              error={result?.sessions?.error}
+            />
+          </TabsContent>
         </Tabs>
       </div>
     )
   }
 
-  // Desktop view - split panel
+  // Desktop view - vertical stack
   return (
     <div className="w-full">
       {result && (
@@ -85,7 +97,7 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="space-y-6">
         {/* HubSpot Panel */}
         <div>
           <div className="mb-4 flex items-center gap-2">
@@ -99,8 +111,7 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
           />
         </div>
 
-        {/* Divider */}
-        <Separator orientation="vertical" className="hidden h-full lg:block" />
+        <Separator />
 
         {/* Dwolla Panel */}
         <div>
@@ -112,6 +123,21 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
             data={result?.dwolla}
             isLoading={isLoading}
             error={result?.dwolla?.error}
+          />
+        </div>
+
+        <Separator />
+
+        {/* Clarity Sessions Panel */}
+        <div>
+          <div className="mb-4 flex items-center gap-2">
+            <VideoIcon className="text-cakewalk-primary h-5 w-5" />
+            <h2 className="text-xl font-semibold">Session Recordings</h2>
+          </div>
+          <ClarityResultPanel
+            sessions={result?.hubspot?.data?.claritySessions}
+            isLoading={isLoading}
+            error={result?.sessions?.error}
           />
         </div>
       </div>

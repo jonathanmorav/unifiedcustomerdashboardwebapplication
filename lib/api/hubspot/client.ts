@@ -14,6 +14,9 @@ import type {
   HubSpotListMembership,
   HubSpotListsResponse,
   HubSpotListMembershipsResponse,
+  HubSpotEngagement,
+  ClaritySession,
+  ClaritySessionEvent,
 } from "@/lib/types/hubspot"
 import { log } from "@/lib/logger"
 
@@ -251,7 +254,7 @@ export class HubSpotClient {
           ],
         },
       ],
-      properties: ["name", "domain", "email___owner", "dwolla_customer_id", "hs_object_id"],
+      properties: ["name", "domain", "email___owner", "dwolla_customer_id", "onboarding_status", "onboarding_step", "hs_object_id"],
       limit: 10,
     }
 
@@ -660,5 +663,131 @@ export class HubSpotClient {
       })
       return { lists: [], total: 0 }
     }
+  }
+
+  // Get engagements for a contact
+  async getContactEngagements(
+    contactId: string,
+    limit = 100
+  ): Promise<HubSpotEngagement[]> {
+    try {
+      // HubSpot v3 Engagements API endpoint
+      const url = `${this.baseUrl}/crm/v3/objects/contacts/${contactId}/associations/engagements`
+      
+      const response = await this.fetchWithRetry<{
+        results: Array<{ id: string; type: string }>
+      }>(url)
+
+      if (!response.results || response.results.length === 0) {
+        return []
+      }
+
+      // Fetch full engagement details
+      const engagementIds = response.results.map(r => r.id)
+      const engagements = await this.batchReadEngagements(engagementIds)
+
+      return engagements
+    } catch (error) {
+      log.warn("Failed to fetch contact engagements", {
+        contactId,
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'hubspot_get_contact_engagements'
+      })
+      return []
+    }
+  }
+
+  // Batch read engagements
+  private async batchReadEngagements(
+    engagementIds: string[]
+  ): Promise<HubSpotEngagement[]> {
+    if (engagementIds.length === 0) return []
+
+    try {
+      const url = `${this.baseUrl}/crm/v3/objects/engagements/batch/read`
+      
+      const response = await this.fetchWithRetry<{
+        results: HubSpotEngagement[]
+      }>(url, {
+        method: "POST",
+        body: JSON.stringify({
+          inputs: engagementIds.map(id => ({ id })),
+          properties: ["hs_timestamp", "hs_engagement_type", "hs_body_preview", "hs_activity_type"]
+        })
+      })
+
+      return response.results || []
+    } catch (error) {
+      log.error("Failed to batch read engagements", {
+        engagementCount: engagementIds.length,
+        error: error instanceof Error ? error.message : String(error),
+        operation: 'hubspot_batch_read_engagements'
+      })
+      return []
+    }
+  }
+
+  // Parse Clarity sessions from engagements
+  parseClaritySessionsFromEngagements(
+    engagements: HubSpotEngagement[]
+  ): ClaritySession[] {
+    const sessions: ClaritySession[] = []
+
+    for (const engagement of engagements) {
+      // Check if this is a Clarity session engagement
+      // This depends on how Clarity sessions are stored in HubSpot
+      // Common patterns include checking the engagement type or metadata
+      if (
+        engagement.type === "CLARITY_SESSION" ||
+        engagement.metadata?.source === "clarity" ||
+        (engagement.metadata?.title && engagement.metadata.title.includes("Clarity"))
+      ) {
+        // Parse the session data from the engagement
+        const session: ClaritySession = {
+          id: engagement.id,
+          recordingUrl: engagement.metadata?.claritySession?.recordingUrl || 
+                       engagement.properties?.clarity_recording_url ||
+                       this.extractUrlFromBody(engagement.metadata?.body || ""),
+          timestamp: new Date(engagement.createdAt),
+          duration: engagement.metadata?.claritySession?.duration,
+          smartEvents: this.parseSmartEvents(engagement),
+          deviceType: engagement.metadata?.claritySession?.deviceType,
+          browser: engagement.metadata?.claritySession?.browser
+        }
+
+        sessions.push(session)
+      }
+    }
+
+    return sessions
+  }
+
+  // Helper to extract URL from engagement body
+  private extractUrlFromBody(body: string): string {
+    const urlMatch = body.match(/https:\/\/clarity\.microsoft\.com[^\s]*/);
+    return urlMatch ? urlMatch[0] : ""
+  }
+
+  // Helper to parse smart events from engagement
+  private parseSmartEvents(engagement: HubSpotEngagement): ClaritySessionEvent[] {
+    if (engagement.metadata?.claritySession?.smartEvents) {
+      return engagement.metadata.claritySession.smartEvents
+    }
+
+    // Fallback: try to parse from engagement body or properties
+    const events: ClaritySessionEvent[] = []
+    const body = engagement.metadata?.body || ""
+
+    // Look for event patterns in the body
+    const eventMatches = body.matchAll(/Event:\s*([^\n]+)\s*Type:\s*([^\n]+)\s*Start Time:\s*([^\n]+)/g)
+    for (const match of eventMatches) {
+      events.push({
+        event: match[1].trim(),
+        type: match[2].trim(),
+        startTime: match[3].trim()
+      })
+    }
+
+    return events
   }
 }

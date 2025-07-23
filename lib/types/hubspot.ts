@@ -38,6 +38,8 @@ export type HubSpotCompany = HubSpotObject<{
   hs_lastmodifieddate: string
   email___owner?: string
   dwolla_customer_id?: string // Custom property to link with Dwolla (updated property name)
+  onboarding_status?: string // Custom property for onboarding status
+  onboarding_step?: string // Custom property for onboarding step
   [key: string]: string | number | boolean | undefined
 }>
 
@@ -197,6 +199,52 @@ export type HubSpotObjectType =
   | "monthly_invoices"
   | "lists"
 
+// Clarity session types
+export interface ClaritySessionEvent {
+  event: string // "Login", "Submit form", etc.
+  type: string // "Auto", "Manual", etc.
+  startTime: string // "00:41" format
+  timestamp?: number
+}
+
+export interface ClaritySession {
+  id: string
+  recordingUrl: string
+  timestamp: Date
+  duration?: number
+  smartEvents: ClaritySessionEvent[]
+  deviceType?: string
+  browser?: string
+}
+
+// Engagement types
+export interface HubSpotEngagement {
+  id: string
+  type: string // "CALL", "EMAIL", "MEETING", "NOTE", "TASK", "CLARITY_SESSION", etc.
+  createdAt: number
+  updatedAt: number
+  properties: Record<string, any>
+  associations: {
+    contactIds: string[]
+    companyIds: string[]
+    dealIds?: string[]
+  }
+  metadata?: {
+    claritySession?: ClaritySession
+    source?: string
+    title?: string
+    body?: string
+  }
+}
+
+// Engagements API response
+export interface HubSpotEngagementsResponse {
+  results: HubSpotEngagement[]
+  hasMore: boolean
+  offset?: number
+  total?: number
+}
+
 // Consolidated result type for our dashboard
 export interface HubSpotCustomerData {
   company: HubSpotObject<HubSpotCompany["properties"]> | null
@@ -204,4 +252,5 @@ export interface HubSpotCustomerData {
   policies: HubSpotObject<HubSpotPolicy["properties"]>[]
   monthlyInvoices?: HubSpotObject<HubSpotMonthlyInvoice["properties"]>[]
   activeLists?: HubSpotListMembership[]
+  claritySessions?: ClaritySession[]
 }
