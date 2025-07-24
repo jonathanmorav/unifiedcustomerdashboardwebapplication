@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import { WebhookEvent, ReconciliationRun, ReconciliationDiscrepancy } from '@/lib/generated/prisma'
+import type { WebhookEvent, ReconciliationRun, ReconciliationDiscrepancy } from '@prisma/client'
 import { DwollaClient } from '@/lib/api/dwolla/client'
 
 interface ReconciliationConfig {

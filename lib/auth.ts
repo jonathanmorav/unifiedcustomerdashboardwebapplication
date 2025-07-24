@@ -3,7 +3,7 @@ import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/db"
 import { getEnv, isAuthorizedEmail } from "@/lib/env"
-import type { UserRole } from "@/lib/generated/prisma"
+import type { UserRole } from "@prisma/client"
 
 declare module "next-auth" {
   interface Session {
@@ -56,42 +56,75 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
+  debug: process.env.NODE_ENV === "development", // Enable debug in development
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account, profile }) {
+      console.log("[NextAuth] SignIn callback:", {
+        email: user.email,
+        provider: account?.provider,
+        authorized: user.email ? isAuthorizedEmail(user.email) : false
+      })
+      
       // Check if user email is in the authorized list
       if (!user.email || !isAuthorizedEmail(user.email)) {
+        console.error("[NextAuth] Unauthorized email:", user.email)
         return false
       }
+      
+      console.log("[NextAuth] Email authorized, proceeding with sign in")
       return true
     },
+    async redirect({ url, baseUrl }) {
+      console.log("[NextAuth] Redirect callback:", { url, baseUrl })
+      
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl + "/dashboard"
+    },
     async jwt({ token, user, account, trigger }) {
+      console.log("[NextAuth] JWT callback:", {
+        trigger,
+        hasUser: !!user,
+        hasAccount: !!account,
+        userId: user?.id
+      })
+      
       if (account && user) {
         // Initial sign in
         token.id = user.id
         token.role = user.role || "USER"
 
-        // Check MFA status
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { mfaEnabled: true },
-        })
+        try {
+          // Check MFA status
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { mfaEnabled: true },
+          })
 
-        token.mfaEnabled = dbUser?.mfaEnabled || false
-        token.mfaVerified = false // Requires separate verification
+          token.mfaEnabled = dbUser?.mfaEnabled || false
+          token.mfaVerified = false // Requires separate verification
 
-        // Log the sign-in event
-        await prisma.auditLog.create({
-          data: {
-            userId: user.id,
-            action: "USER_LOGIN",
-            resource: "auth",
-            metadata: {
-              provider: account.provider,
-              email: user.email,
-              mfaRequired: token.mfaEnabled,
+          // Log the sign-in event
+          await prisma.auditLog.create({
+            data: {
+              userId: user.id,
+              action: "USER_LOGIN",
+              resource: "auth",
+              metadata: {
+                provider: account.provider,
+                email: user.email,
+                mfaRequired: token.mfaEnabled,
+              },
             },
-          },
-        })
+          })
+          
+          console.log("[NextAuth] JWT token created successfully for user:", user.id)
+        } catch (error) {
+          console.error("[NextAuth] Error in JWT callback:", error)
+          // Continue without audit log - don't block authentication
+        }
       }
 
       // Handle MFA verification updates
@@ -103,12 +136,21 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      if (session.user) {
+      console.log("[NextAuth] Session callback:", {
+        hasSession: !!session,
+        hasToken: !!token,
+        tokenId: token?.id,
+        tokenRole: token?.role
+      })
+      
+      if (session.user && token) {
         session.user.id = token.id
         session.user.role = token.role
         session.user.mfaEnabled = token.mfaEnabled
         session.user.mfaVerified = token.mfaVerified
       }
+      
+      console.log("[NextAuth] Session created:", session.user?.email)
       return session
     },
   },

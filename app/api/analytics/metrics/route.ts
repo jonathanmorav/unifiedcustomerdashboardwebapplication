@@ -11,8 +11,15 @@ export async function GET(request: NextRequest) {
   try {
     await requireAuth(request)
     
-    const engine = getRealtimeAnalyticsEngine()
-    const dashboard = engine.getDashboard()
+    let engine = null
+    let dashboard = null
+    
+    try {
+      engine = getRealtimeAnalyticsEngine()
+      dashboard = engine.getDashboard()
+    } catch (engineError) {
+      log.error('Failed to get realtime engine', engineError as Error)
+    }
     
     // Get additional metrics from database
     const [
@@ -42,14 +49,14 @@ export async function GET(request: NextRequest) {
       }),
       
       // Pending reconciliations
-      prisma.reconciliationDiscrepancy.count({
-        where: { resolved: false }
+      prisma.reconciliationCheck.count({
+        where: { status: 'pending' }
       }),
       
       // Active anomalies
-      prisma.eventAnomaly.count({
+      prisma.webhookAnomaly.count({
         where: { 
-          resolved: false,
+          status: 'active',
           detectedAt: { gte: new Date(Date.now() - 60 * 60 * 1000) } // Last hour
         }
       }),
@@ -72,9 +79,9 @@ export async function GET(request: NextRequest) {
       }
     })
     
-    const totalProcessed = processingMetrics._count + failedCount
+    const totalProcessed = (processingMetrics._count?._all || 0) + failedCount
     const processingRate = totalProcessed > 0 
-      ? ((processingMetrics._count / totalProcessed) * 100).toFixed(1)
+      ? (((processingMetrics._count?._all || 0) / totalProcessed) * 100).toFixed(1)
       : 100
     
     const errorRate = totalProcessed > 0
@@ -99,6 +106,71 @@ export async function GET(request: NextRequest) {
       ? ((completedJourneys / totalJourneys) * 100).toFixed(1)
       : 0
     
+    // Get stuck journeys
+    let stuckJourneys = 0
+    try {
+      stuckJourneys = await prisma.journeyInstance.count({
+        where: { status: 'stuck' }
+      })
+    } catch (e) {
+      log.error('Failed to count stuck journeys', e as Error)
+    }
+    
+    // Get journey duration
+    let avgJourneyDuration = 0
+    try {
+      const journeyDuration = await prisma.journeyInstance.aggregate({
+        where: {
+          status: 'completed',
+          totalDurationMs: { not: null }
+        },
+        _avg: { totalDurationMs: true }
+      })
+      // Convert BigInt to number safely
+      avgJourneyDuration = journeyDuration._avg.totalDurationMs 
+        ? Number(journeyDuration._avg.totalDurationMs) 
+        : 0
+    } catch (e) {
+      log.error('Failed to get journey duration', e as Error)
+    }
+    
+    // Get critical anomalies
+    const criticalAnomalies = await prisma.webhookAnomaly.count({
+      where: { 
+        status: 'active',
+        severity: 'critical'
+      }
+    })
+    
+    // Get event type breakdown
+    const eventTypeBreakdown = await prisma.webhookEvent.groupBy({
+      by: ['eventType'],
+      where: {
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+      },
+      _count: true
+    })
+    
+    const eventsByType: Record<string, number> = {}
+    eventTypeBreakdown.forEach(item => {
+      eventsByType[item.eventType] = item._count
+    })
+    
+    // Get customer and transfer event counts
+    const customerEvents = await prisma.webhookEvent.count({
+      where: {
+        resourceType: 'customer',
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+      }
+    })
+    
+    const transferEvents = await prisma.webhookEvent.count({
+      where: {
+        resourceType: 'transfer',
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+      }
+    })
+
     const metrics = {
       totalEvents,
       eventsPerMinute,
@@ -107,8 +179,16 @@ export async function GET(request: NextRequest) {
       errorRate: parseFloat(errorRate),
       activeJourneys,
       journeySuccessRate: parseFloat(journeySuccessRate),
+      avgJourneyDuration: Math.round(avgJourneyDuration),
+      stuckJourneys,
       pendingReconciliations,
+      discrepancyRate: 0, // Would need reconciliation stats
+      autoResolvedCount: 0, // Would need reconciliation stats
       activeAnomalies,
+      criticalAnomalies,
+      eventsByType,
+      transferVolume: 0, // Would need to calculate from transfer payloads
+      customerEvents,
       
       // From real-time dashboard if available
       ...(dashboard && {
@@ -127,10 +207,16 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     log.error('Failed to get analytics metrics', error as Error)
     
+    // Return a more detailed error in development
+    const errorMessage = process.env.NODE_ENV === 'development' 
+      ? (error as Error).message 
+      : 'Failed to get metrics'
+    
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to get metrics'
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? (error as Error).stack : undefined
       },
       { status: 500 }
     )

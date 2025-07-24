@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import { Prisma } from '@/lib/generated/prisma'
+import type { Prisma } from '@prisma/client'
 
 interface AggregationConfig {
   name: string

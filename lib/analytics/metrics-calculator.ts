@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import { WebhookEvent, EventMetric, Prisma } from '@/lib/generated/prisma'
+import type { WebhookEvent, EventMetric, Prisma } from '@prisma/client'
 
 interface MetricDefinition {
   name: string

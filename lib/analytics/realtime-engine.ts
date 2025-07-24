@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import { WebhookEvent } from '@/lib/generated/prisma'
 import { getMetricsCalculator } from './metrics-calculator'
 import { getAnomalyDetector } from './anomaly-detector'
-import { ProcessingContext } from '@/lib/webhooks/processor'
+import { ProcessingContext } from '@/lib/webhooks/processing-context'
+import type { WebhookEvent } from '@prisma/client'
 
 interface RealtimeMetric {
   name: string

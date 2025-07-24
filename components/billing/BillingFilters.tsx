@@ -165,7 +165,6 @@ export const BillingFilters: React.FC<BillingFiltersProps> = ({
     filters.dateRange.start ? 1 : 0,
     filters.status.length > 0 ? 1 : 0,
     filters.amountRange.min || filters.amountRange.max ? 1 : 0,
-    filters.direction !== "all" ? 1 : 0,
     filters.searchQuery ? 1 : 0,
   ].reduce((a, b) => a + b, 0)
 
@@ -352,22 +351,7 @@ export const BillingFilters: React.FC<BillingFiltersProps> = ({
             </div>
 
             {/* Direction Filter */}
-            <div className="space-y-2">
-              <Label>Direction</Label>
-              <Select
-                value={filters.direction}
-                onValueChange={(value: any) => onFiltersChange({ ...filters, direction: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Transactions</SelectItem>
-                  <SelectItem value="credit">Credits Only</SelectItem>
-                  <SelectItem value="debit">Debits Only</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Direction filter removed - only showing customer payments (credits) */}
 
             {/* Search */}
             <div className="space-y-2 lg:col-span-4">

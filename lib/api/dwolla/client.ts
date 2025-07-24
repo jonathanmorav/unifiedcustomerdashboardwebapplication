@@ -546,4 +546,85 @@ export class DwollaClient {
   async getCustomerByUrl(url: string, signal?: AbortSignal): Promise<DwollaCustomer> {
     return this.fetchWithRetry<DwollaCustomer>(url, {}, 0, signal)
   }
+
+  /**
+   * Get webhook subscriptions
+   */
+  async getWebhookSubscriptions(signal?: AbortSignal): Promise<any[]> {
+    try {
+      const url = this.buildUrl("/webhook-subscriptions")
+      const response = await this.fetchWithRetry<DwollaListResponse<any>>(url, {}, 0, signal)
+      return response._embedded?.["webhook-subscriptions"] || []
+    } catch (error) {
+      log.error('Error fetching webhook subscriptions:', error)
+      return []
+    }
+  }
+
+  /**
+   * Get webhook events
+   */
+  async getWebhookEvents(params: {
+    limit?: number
+    offset?: number
+    startDate?: Date
+    endDate?: Date
+  } = {}, signal?: AbortSignal): Promise<any[]> {
+    try {
+      const url = this.buildUrl("/events", {
+        limit: params.limit || 100,
+        offset: params.offset || 0,
+        startDate: params.startDate?.toISOString(),
+        endDate: params.endDate?.toISOString()
+      })
+      const response = await this.fetchWithRetry<DwollaListResponse<any>>(url, {}, 0, signal)
+      return response._embedded?.events || []
+    } catch (error) {
+      log.error('Error fetching webhook events:', error)
+      return []
+    }
+  }
+
+  /**
+   * Create webhook subscription
+   */
+  async createWebhookSubscription(webhookUrl: string, secret: string, signal?: AbortSignal): Promise<any> {
+    const url = this.buildUrl("/webhook-subscriptions")
+    return this.fetchWithRetry<any>(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/vnd.dwolla.v1.hal+json",
+      },
+      body: JSON.stringify({
+        url: webhookUrl,
+        secret: secret
+      })
+    }, 0, signal)
+  }
+
+  /**
+   * Pause/unpause webhook subscription
+   */
+  async updateWebhookSubscription(subscriptionId: string, paused: boolean, signal?: AbortSignal): Promise<any> {
+    const url = this.buildUrl(`/webhook-subscriptions/${subscriptionId}`)
+    return this.fetchWithRetry<any>(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/vnd.dwolla.v1.hal+json",
+      },
+      body: JSON.stringify({
+        paused: paused
+      })
+    }, 0, signal)
+  }
+
+  /**
+   * Delete webhook subscription
+   */
+  async deleteWebhookSubscription(subscriptionId: string, signal?: AbortSignal): Promise<void> {
+    const url = this.buildUrl(`/webhook-subscriptions/${subscriptionId}`)
+    await this.fetchWithRetry<any>(url, {
+      method: "DELETE"
+    }, 0, signal)
+  }
 }

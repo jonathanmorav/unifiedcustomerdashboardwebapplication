@@ -59,7 +59,38 @@ export function useWebhookAnalytics(options: UseWebhookAnalyticsOptions = {}) {
       }
 
       const data = await response.json()
-      setMetrics(data.metrics)
+      
+      // Map the API response to the expected metrics structure
+      const mappedMetrics: WebhookMetrics = {
+        // Event metrics
+        totalEvents: data.metrics?.totalEvents || 0,
+        eventsPerMinute: data.metrics?.eventsPerMinute || 0,
+        processingRate: data.metrics?.processingRate || 100,
+        avgLatency: data.metrics?.avgLatency || 0,
+        errorRate: data.metrics?.errorRate || 0,
+        
+        // Journey metrics
+        activeJourneys: data.metrics?.activeJourneys || 0,
+        journeySuccessRate: data.metrics?.journeySuccessRate || 100,
+        avgJourneyDuration: data.metrics?.avgJourneyDuration || 0,
+        stuckJourneys: data.metrics?.stuckJourneys || 0,
+        
+        // Reconciliation metrics
+        pendingReconciliations: data.metrics?.pendingReconciliations || 0,
+        discrepancyRate: data.metrics?.discrepancyRate || 0,
+        autoResolvedCount: data.metrics?.autoResolvedCount || 0,
+        
+        // Anomaly metrics
+        activeAnomalies: data.metrics?.activeAnomalies || 0,
+        criticalAnomalies: data.metrics?.criticalAnomalies || 0,
+        
+        // Volume metrics by type
+        eventsByType: data.metrics?.eventsByType || {},
+        transferVolume: data.metrics?.transferVolume || 0,
+        customerEvents: data.metrics?.customerEvents || 0
+      }
+      
+      setMetrics(mappedMetrics)
       setLastUpdated(new Date())
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")

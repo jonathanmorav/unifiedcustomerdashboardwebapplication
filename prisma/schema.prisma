@@ -1,9 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -11,22 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// NextAuth Models
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -43,37 +37,32 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  role          UserRole  @default(USER)
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // MFA fields
-  mfaEnabled      Boolean   @default(false)
-  mfaSecret       String?   // Encrypted TOTP secret
-  mfaBackupCodes  String[]  // Encrypted backup codes
-  mfaEnforcedAt   DateTime? // When MFA was enforced
-
-  // Account security
-  failedLoginAttempts Int      @default(0)
+  id                  String          @id @default(cuid())
+  name                String?
+  email               String?         @unique
+  emailVerified       DateTime?
+  image               String?
+  role                UserRole        @default(USER)
+  isActive            Boolean         @default(true)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  mfaEnabled          Boolean         @default(false)
+  mfaSecret           String?
+  mfaBackupCodes      String[]
+  mfaEnforcedAt       DateTime?
+  failedLoginAttempts Int             @default(0)
   lockedUntil         DateTime?
   lastLoginAt         DateTime?
   lastLoginIp         String?
   passwordChangedAt   DateTime?
-  passwordHash        String?   // For users with password auth
-
-  accounts       Account[]
-  sessions       Session[]
-  searchHistory  SearchHistory[]
-  auditLogs      AuditLog[]
-  mfaRecovery    MFARecovery[]
-  loginAttempts  LoginAttempt[]
-  savedSearches  SavedSearch[]
+  passwordHash        String?
+  accounts            Account[]
+  auditLogs           AuditLog[]
+  loginAttempts       LoginAttempt[]
+  mfaRecovery         MFARecovery[]
+  savedSearches       SavedSearch[]
+  searchHistory       SearchHistory[]
+  sessions            Session[]
 }
 
 model VerificationToken {
@@ -84,16 +73,14 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Application Models
 model SearchHistory {
-  id         String       @id @default(cuid())
+  id         String     @id @default(cuid())
   userId     String
   searchType SearchType
   query      Json
   results    Json?
-  createdAt  DateTime     @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
 }
@@ -108,66 +95,412 @@ model AuditLog {
   ipAddress  String?
   userAgent  String?
   createdAt  DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user       User?    @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
   @@index([resource, resourceId])
 }
 
-// MFA Recovery model for tracking recovery attempts
 model MFARecovery {
-  id         String   @id @default(cuid())
-  userId     String
-  code       String   // Recovery code used
-  usedAt     DateTime @default(now())
-  ipAddress  String?
-  userAgent  String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  code      String
+  usedAt    DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
-// Login attempt tracking
 model LoginAttempt {
-  id         String   @id @default(cuid())
-  userId     String?
-  email      String
-  success    Boolean
-  ipAddress  String?
-  userAgent  String?
-  reason     String?  // Failure reason
-  createdAt  DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  success   Boolean
+  ipAddress String?
+  userAgent String?
+  reason    String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([email, createdAt])
   @@index([userId, createdAt])
 }
 
-// Saved searches for advanced search functionality
 model SavedSearch {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   userId       String
   name         String
   description  String?
-  searchParams Json     // Stores the complete search parameters
-  useCount     Int      @default(0)
+  searchParams Json
+  useCount     Int       @default(0)
   lastUsed     DateTime?
-  isTemplate   Boolean  @default(false) // System-provided templates
-  isPublic     Boolean  @default(false) // Shared with team
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  isTemplate   Boolean   @default(false)
+  isPublic     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  @@unique([userId, name])
   @@index([userId, createdAt])
   @@index([isTemplate, isPublic])
-  @@unique([userId, name])
 }
 
-// Enums
+model ListSnapshot {
+  id           String   @id @default(cuid())
+  listId       Int
+  listName     String
+  listType     String
+  memberCount  Int
+  snapshotDate DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  @@unique([listId, snapshotDate])
+  @@index([listId])
+  @@index([snapshotDate])
+}
+
+model ListMetadata {
+  id               String    @id @default(cuid())
+  listId           Int       @unique
+  listName         String
+  listType         String
+  internalName     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastSnapshotDate DateTime?
+  isActive         Boolean   @default(true)
+
+  @@index([listId])
+}
+
+model ACHTransaction {
+  id                  String    @id @default(cuid())
+  dwollaId            String    @unique
+  status              String
+  amount              Decimal   @db.Decimal(15, 2)
+  currency            String    @default("USD")
+  direction           String
+  created             DateTime
+  lastUpdated         DateTime  @updatedAt
+  sourceId            String?
+  sourceName          String?
+  sourceBankName      String?
+  destinationId       String?
+  destinationName     String?
+  destinationBankName String?
+  bankLastFour        String?
+  correlationId       String?
+  individualAchId     String?
+  customerId          String?
+  customerName        String?
+  customerEmail       String?
+  companyName         String?
+  invoiceNumber       String?
+  transactionType     String?
+  description         String?
+  fees                Decimal?  @db.Decimal(15, 2)
+  netAmount           Decimal?  @db.Decimal(15, 2)
+  clearingDate        DateTime?
+  processedAt         DateTime?
+  failureReason       String?
+  failureCode         String?
+  returnCode          String?
+  metadata            Json?
+  createdAt           DateTime  @default(now())
+  failureDetails      Json?     @default("{}")
+  lastWebhookAt       DateTime?
+  webhookEvents       Json?     @default("[]")
+
+  @@index([status])
+  @@index([created])
+  @@index([customerName])
+  @@index([dwollaId])
+  @@index([correlationId])
+  @@index([customerEmail])
+  @@index([companyName])
+  @@index([direction])
+  @@index([amount])
+  @@index([failureCode])
+  @@index([returnCode])
+  @@index([lastWebhookAt])
+}
+
+model WebhookEvent {
+  id                   String                 @id @default(cuid())
+  provider             String                 @default("dwolla")
+  eventId              String                 @unique
+  eventType            String
+  resourceId           String?
+  resourceType         String?
+  resourceUri          String?
+  topic                String
+  eventTimestamp       DateTime
+  receivedAt           DateTime               @default(now())
+  processedAt          DateTime?
+  headers              Json                   @default("{}")
+  payload              Json
+  payloadSize          Int                    @default(0)
+  signature            String?
+  signatureValid       Boolean                @default(false)
+  verificationMethod   String?
+  sourceIp             String?
+  processingState      WebhookEventState      @default(received)
+  processingAttempts   Int                    @default(0)
+  lastProcessingError  String?
+  processingDurationMs Int?
+  isDuplicate          Boolean                @default(false)
+  originalEventId      String?
+  duplicateCount       Int                    @default(0)
+  eventSequence        BigInt?
+  isOutOfOrder         Boolean                @default(false)
+  expectedSequence     BigInt?
+  source               String                 @default("webhook")
+  recoveryMetadata     Json?
+  schemaVersion        String?
+  validationStatus     ValidationStatus       @default(valid)
+  validationErrors     Json?
+  quarantined          Boolean                @default(false)
+  quarantineReason     String?
+  quarantinedAt        DateTime?
+  quarantineReviewedAt DateTime?
+  quarantineReviewedBy String?
+  partitionKey         String
+  ttl                  Int?
+  archived             Boolean                @default(false)
+  archivedAt           DateTime?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  journeyStarts        JourneyInstance[]      @relation("StartEvent")
+  journeySteps         JourneyStep[]
+  relations            WebhookEventRelation[]
+  anomalies            WebhookAnomaly[]       @relation("AnomalyToEvents")
+
+  @@index([eventType])
+  @@index([resourceId])
+  @@index([resourceType])
+  @@index([eventTimestamp])
+  @@index([processingState])
+  @@index([partitionKey])
+  @@index([createdAt])
+}
+
+model WebhookEventRelation {
+  id             String       @id @default(cuid())
+  webhookEventId String
+  relationType   String
+  relationId     String
+  relationTable  String
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  webhookEvent   WebhookEvent @relation(fields: [webhookEventId], references: [id], onDelete: Cascade)
+
+  @@index([webhookEventId])
+  @@index([relationId])
+  @@index([relationType])
+}
+
+model EventJourneyDefinition {
+  id          String             @id @default(cuid())
+  name        String
+  description String?
+  category    String
+  config      Json
+  thresholds  Json?
+  version     Int                @default(1)
+  active      Boolean            @default(true)
+  tags        String[]
+  createdBy   String
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  analytics   JourneyAnalytics[]
+  instances   JourneyInstance[]
+
+  @@index([category])
+  @@index([active])
+}
+
+model JourneyInstance {
+  id                      String                 @id @default(cuid())
+  definitionId            String
+  definitionVersion       Int
+  resourceId              String
+  resourceType            String
+  resourceMetadata        Json?
+  status                  JourneyStatus          @default(active)
+  currentStepIndex        Int                    @default(0)
+  completedSteps          String[]
+  skippedSteps            String[]
+  startEventId            String
+  startTime               DateTime
+  endEventId              String?
+  endTime                 DateTime?
+  lastEventTime           DateTime
+  totalDurationMs         BigInt?
+  businessDurationMs      BigInt?
+  progressPercentage      Int                    @default(0)
+  estimatedCompletionTime DateTime?
+  confidenceScore         Int?
+  riskScore               Int?
+  riskFactors             String[]
+  isOutlier               Boolean                @default(false)
+  outlierReasons          String[]
+  context                 Json?
+  tags                    String[]
+  notes                   String?
+  partitionKey            String
+  version                 Int                    @default(1)
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  definition              EventJourneyDefinition @relation(fields: [definitionId], references: [id])
+  startEvent              WebhookEvent           @relation("StartEvent", fields: [startEventId], references: [id])
+  steps                   JourneyStep[]
+
+  @@index([definitionId])
+  @@index([resourceId])
+  @@index([status])
+  @@index([startTime])
+  @@index([partitionKey])
+}
+
+model JourneyStep {
+  id                     String          @id @default(cuid())
+  journeyInstanceId      String
+  sequence               Int
+  stepName               String
+  eventId                String
+  eventType              String
+  timestamp              DateTime
+  durationFromStartMs    BigInt
+  durationFromPreviousMs BigInt?
+  expected               Boolean         @default(true)
+  onTime                 Boolean         @default(true)
+  retryCount             Int             @default(0)
+  eventMetadata          Json?
+  createdAt              DateTime        @default(now())
+  event                  WebhookEvent    @relation(fields: [eventId], references: [id])
+  journeyInstance        JourneyInstance @relation(fields: [journeyInstanceId], references: [id], onDelete: Cascade)
+
+  @@index([journeyInstanceId])
+  @@index([eventId])
+}
+
+model RealTimeMetrics {
+  id          String   @id @default(cuid())
+  timestamp   DateTime
+  window      String
+  volume      Json
+  performance Json
+  journeys    Json
+  health      Json
+  resources   Json
+  createdAt   DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([window])
+}
+
+model JourneyAnalytics {
+  id           String                 @id @default(cuid())
+  definitionId String
+  period       DateTime
+  periodType   String
+  metrics      Json
+  segments     Json?
+  outliers     Json?
+  predictions  Json?
+  createdAt    DateTime               @default(now())
+  definition   EventJourneyDefinition @relation(fields: [definitionId], references: [id])
+
+  @@index([definitionId])
+  @@index([period])
+  @@index([periodType])
+}
+
+model AlertRule {
+  id              String          @id @default(cuid())
+  name            String
+  description     String?
+  category        String
+  enabled         Boolean         @default(true)
+  priority        String
+  condition       Json
+  actions         Json
+  suppression     Json
+  tags            String[]
+  owner           String
+  runbook         String?
+  documentation   String?
+  createdBy       String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  lastTriggeredAt DateTime?
+  triggerCount    Int             @default(0)
+  instances       AlertInstance[]
+
+  @@index([category])
+  @@index([enabled])
+}
+
+model AlertInstance {
+  id                String      @id @default(cuid())
+  ruleId            String
+  ruleName          String
+  status            AlertStatus @default(active)
+  severity          String
+  triggeredAt       DateTime
+  acknowledgedAt    DateTime?
+  investigatingAt   DateTime?
+  resolvedAt        DateTime?
+  duration          BigInt?
+  triggerContext    Json
+  actionsTaken      Json?
+  escalationLevel   Int         @default(0)
+  resolution        Json?
+  parentAlertId     String?
+  childAlertIds     String[]
+  relatedIncidentId String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  rule              AlertRule   @relation(fields: [ruleId], references: [id])
+
+  @@index([ruleId])
+  @@index([status])
+  @@index([triggeredAt])
+}
+
+model SystemHealth {
+  id            String   @id @default(cuid())
+  timestamp     DateTime
+  components    Json
+  overallStatus String
+  activeIssues  Json?
+  metrics       Json
+  capacity      Json
+  createdAt     DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([overallStatus])
+}
+
+model ReconciliationJob {
+  id          String    @id @default(cuid())
+  type        String
+  config      Json
+  status      String    @default("pending")
+  startedAt   DateTime?
+  completedAt DateTime?
+  results     Json?
+  errors      Json?
+  createdBy   String
+  createdAt   DateTime  @default(now())
+
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
 enum UserRole {
   USER
   ADMIN
@@ -183,111 +516,6 @@ enum SearchType {
   COMBINED
 }
 
-// HubSpot List tracking models
-model ListSnapshot {
-  id           String   @id @default(cuid())
-  listId       Int
-  listName     String
-  listType     String   // STATIC or DYNAMIC
-  memberCount  Int
-  snapshotDate DateTime @default(now())
-  createdAt    DateTime @default(now())
-  
-  @@unique([listId, snapshotDate])
-  @@index([listId])
-  @@index([snapshotDate])
-}
-
-model ListMetadata {
-  id                String   @id @default(cuid())
-  listId            Int      @unique
-  listName          String
-  listType          String
-  internalName      String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  lastSnapshotDate  DateTime?
-  isActive          Boolean  @default(true)
-  
-  @@index([listId])
-}
-
-// ACH Transaction tracking model
-model ACHTransaction {
-  id                String    @id @default(cuid())
-  dwollaId          String    @unique
-  status            String    // pending, processing, processed, failed, cancelled, returned
-  amount            Decimal   @db.Decimal(15,2)
-  currency          String    @default("USD")
-  direction         String    // credit or debit
-  created           DateTime
-  lastUpdated       DateTime  @updatedAt
-  
-  // Source information
-  sourceId          String?
-  sourceName        String?
-  sourceBankName    String?
-  
-  // Destination information
-  destinationId     String?
-  destinationName   String?
-  destinationBankName String?
-  bankLastFour      String?
-  
-  // Transaction identifiers
-  correlationId     String?
-  individualAchId   String?
-  
-  // Customer information
-  customerId        String?
-  customerName      String?
-  customerEmail     String?
-  companyName       String?
-  
-  // Transaction details
-  invoiceNumber     String?
-  transactionType   String?   // invoice, refund, adjustment, etc.
-  description       String?
-  
-  // Financial details
-  fees              Decimal?  @db.Decimal(15,2)
-  netAmount         Decimal?  @db.Decimal(15,2)
-  
-  // Processing information
-  clearingDate      DateTime?
-  processedAt       DateTime?
-  failureReason     String?   @db.Text
-  failureCode       String?
-  returnCode        String?
-  
-  // Webhook tracking
-  failureDetails    Json?     @default("{}")
-  webhookEvents     Json?     @default("[]")
-  lastWebhookAt     DateTime?
-  
-  // Metadata
-  metadata          Json?
-  
-  // Audit fields
-  createdAt         DateTime  @default(now())
-  
-  @@index([status])
-  @@index([created])
-  @@index([customerName])
-  @@index([dwollaId])
-  @@index([correlationId])
-  @@index([customerEmail])
-  @@index([companyName])
-  @@index([direction])
-  @@index([amount])
-  @@index([failureCode])
-  @@index([returnCode])
-  @@index([lastWebhookAt])
-}
-
-// ============= WEBHOOK ANALYTICS SYSTEM =============
-
-// Webhook event processing states
 enum WebhookEventState {
   received
   queued
@@ -297,14 +525,12 @@ enum WebhookEventState {
   quarantined
 }
 
-// Validation status for events
 enum ValidationStatus {
   valid
   invalid
   warning
 }
 
-// Journey lifecycle status
 enum JourneyStatus {
   active
   completed
@@ -314,7 +540,6 @@ enum JourneyStatus {
   rolled_back
 }
 
-// Alert status tracking
 enum AlertStatus {
   active
   acknowledged
@@ -323,331 +548,119 @@ enum AlertStatus {
   suppressed
 }
 
-// Main webhook event storage
-model WebhookEvent {
+// Missing model for reconciliation checks
+model ReconciliationCheck {
   id                String              @id @default(cuid())
-  provider          String              @default("dwolla")
-  eventId           String              @unique
-  eventType         String
-  resourceId        String?
-  resourceType      String?
-  resourceUri       String?
-  topic             String
-  
-  // Timing
-  eventTimestamp    DateTime
-  receivedAt        DateTime            @default(now())
-  processedAt       DateTime?
-  
-  // Content
-  headers           Json                @default("{}")
-  payload           Json
-  payloadSize       Int                 @default(0)
-  
-  // Verification
-  signature         String?
-  signatureValid    Boolean             @default(false)
-  verificationMethod String?
-  sourceIp          String?
-  
-  // Processing
-  processingState   WebhookEventState   @default(received)
-  processingAttempts Int                @default(0)
-  lastProcessingError String?           @db.Text
-  processingDurationMs Int?
-  
-  // Deduplication
-  isDuplicate       Boolean             @default(false)
-  originalEventId   String?
-  duplicateCount    Int                 @default(0)
-  
-  // Ordering
-  eventSequence     BigInt?
-  isOutOfOrder      Boolean             @default(false)
-  expectedSequence  BigInt?
-  
-  // Recovery
-  source            String              @default("webhook")
-  recoveryMetadata  Json?
-  
-  // Validation
-  schemaVersion     String?
-  validationStatus  ValidationStatus    @default(valid)
-  validationErrors  Json?
-  
-  // Quarantine
-  quarantined       Boolean             @default(false)
-  quarantineReason  String?
-  quarantinedAt     DateTime?
-  quarantineReviewedAt DateTime?
-  quarantineReviewedBy String?
-  
-  // System
-  partitionKey      String
-  ttl               Int?
-  archived          Boolean             @default(false)
-  archivedAt        DateTime?
-  
-  // Timestamps
+  checkType         String
+  status            ReconciliationStatus @default(pending)
+  recordCount       Int
+  discrepancyCount  Int                 @default(0)
+  startTime         DateTime            @default(now())
+  endTime           DateTime?
+  metadata          Json?
+  resolvedBy        String?             // 'system' or user ID
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   
-  // Relations
-  relations         WebhookEventRelation[]
-  journeyStarts     JourneyInstance[]    @relation("StartEvent")
-  journeySteps      JourneyStep[]
+  discrepancies     ReconciliationDiscrepancy[]
   
+  @@index([status])
+  @@index([checkType])
+  @@index([createdAt])
+}
+
+model ReconciliationDiscrepancy {
+  id            String   @id @default(cuid())
+  checkId       String
+  resourceId    String
+  resourceType  String
+  field         String
+  dwollaValue   String?
+  localValue    String?
+  resolved      Boolean  @default(false)
+  resolvedAt    DateTime?
+  resolvedBy    String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  
+  check         ReconciliationCheck @relation(fields: [checkId], references: [id])
+  
+  @@index([checkId])
+  @@index([resolved])
+}
+
+enum ReconciliationStatus {
+  pending
+  in_progress
+  completed
+  failed
+  resolved
+}
+
+// Missing model for webhook anomalies
+model WebhookAnomaly {
+  id                  String              @id @default(cuid())
+  anomalyType         String
+  severity            AnomalySeverity
+  status              AnomalyStatus       @default(active)
+  description         String
+  detectedAt          DateTime            @default(now())
+  resolvedAt          DateTime?
+  confidence          Float               @default(0.5)
+  affectedEventCount  Int                 @default(0)
+  metadata            Json?
+  
+  affectedEvents      WebhookEvent[]      @relation("AnomalyToEvents")
+  
+  @@index([status])
+  @@index([severity])
+  @@index([detectedAt])
+}
+
+enum AnomalySeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum AnomalyStatus {
+  active
+  investigating
+  resolved
+  false_positive
+}
+
+// Missing model for event metrics
+model EventMetric {
+  id            String   @id @default(cuid())
+  metricName    String
+  eventType     String?
+  resourceType  String?
+  value         Float
+  timestamp     DateTime
+  aggregation   String   // 'sum', 'avg', 'count', 'max', 'min'
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  
+  @@index([metricName, timestamp])
   @@index([eventType])
-  @@index([resourceId])
-  @@index([resourceType])
-  @@index([eventTimestamp])
-  @@index([processingState])
-  @@index([partitionKey])
-  @@index([createdAt])
+  @@index([timestamp])
 }
 
-// Event relationships to business entities
-model WebhookEventRelation {
-  id              String        @id @default(cuid())
-  webhookEventId  String
-  relationType    String
-  relationId      String
-  relationTable   String
-  metadata        Json?
-  createdAt       DateTime      @default(now())
+// Missing model for event anomalies (specific anomaly detections)
+model EventAnomaly {
+  id            String   @id @default(cuid())
+  eventId       String
+  anomalyType   String
+  severity      String
+  confidence    Float
+  detectedAt    DateTime @default(now())
+  resolved      Boolean  @default(false)
+  resolvedAt    DateTime?
+  metadata      Json?
   
-  webhookEvent    WebhookEvent  @relation(fields: [webhookEventId], references: [id], onDelete: Cascade)
-  
-  @@index([webhookEventId])
-  @@index([relationId])
-  @@index([relationType])
-}
-
-// Journey definitions (configured journeys)
-model EventJourneyDefinition {
-  id              String              @id @default(cuid())
-  name            String
-  description     String?
-  category        String
-  config          Json
-  thresholds      Json?
-  version         Int                 @default(1)
-  active          Boolean             @default(true)
-  tags            String[]
-  createdBy       String
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  
-  instances       JourneyInstance[]
-  analytics       JourneyAnalytics[]
-  
-  @@index([category])
-  @@index([active])
-}
-
-// Journey instances (actual journey occurrences)
-model JourneyInstance {
-  id                    String                  @id @default(cuid())
-  definitionId          String
-  definitionVersion     Int
-  resourceId            String
-  resourceType          String
-  resourceMetadata      Json?
-  
-  // State
-  status                JourneyStatus           @default(active)
-  currentStepIndex      Int                     @default(0)
-  completedSteps        String[]
-  skippedSteps          String[]
-  
-  // Timing
-  startEventId          String
-  startTime             DateTime
-  endEventId            String?
-  endTime               DateTime?
-  lastEventTime         DateTime
-  totalDurationMs       BigInt?
-  businessDurationMs    BigInt?
-  
-  // Progress
-  progressPercentage    Int                     @default(0)
-  estimatedCompletionTime DateTime?
-  confidenceScore       Int?
-  
-  // Risk
-  riskScore             Int?
-  riskFactors           String[]
-  isOutlier             Boolean                 @default(false)
-  outlierReasons        String[]
-  
-  // Metadata
-  context               Json?
-  tags                  String[]
-  notes                 String?                 @db.Text
-  
-  // System
-  partitionKey          String
-  version               Int                     @default(1)
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
-  
-  // Relations
-  definition            EventJourneyDefinition  @relation(fields: [definitionId], references: [id])
-  startEvent            WebhookEvent            @relation("StartEvent", fields: [startEventId], references: [id])
-  steps                 JourneyStep[]
-  
-  @@index([definitionId])
-  @@index([resourceId])
-  @@index([status])
-  @@index([startTime])
-  @@index([partitionKey])
-}
-
-// Individual steps in a journey
-model JourneyStep {
-  id                    String            @id @default(cuid())
-  journeyInstanceId     String
-  sequence              Int
-  stepName              String
-  eventId               String
-  eventType             String
-  timestamp             DateTime
-  durationFromStartMs   BigInt
-  durationFromPreviousMs BigInt?
-  expected              Boolean           @default(true)
-  onTime                Boolean           @default(true)
-  retryCount            Int               @default(0)
-  eventMetadata         Json?
-  createdAt             DateTime          @default(now())
-  
-  // Relations
-  journeyInstance       JourneyInstance   @relation(fields: [journeyInstanceId], references: [id], onDelete: Cascade)
-  event                 WebhookEvent      @relation(fields: [eventId], references: [id])
-  
-  @@index([journeyInstanceId])
   @@index([eventId])
-}
-
-// Real-time metrics storage
-model RealTimeMetrics {
-  id              String      @id @default(cuid())
-  timestamp       DateTime
-  window          String
-  volume          Json
-  performance     Json
-  journeys        Json
-  health          Json
-  resources       Json
-  createdAt       DateTime    @default(now())
-  
-  @@index([timestamp])
-  @@index([window])
-}
-
-// Journey analytics aggregations
-model JourneyAnalytics {
-  id              String                  @id @default(cuid())
-  definitionId    String
-  period          DateTime
-  periodType      String
-  metrics         Json
-  segments        Json?
-  outliers        Json?
-  predictions     Json?
-  createdAt       DateTime                @default(now())
-  
-  definition      EventJourneyDefinition  @relation(fields: [definitionId], references: [id])
-  
-  @@index([definitionId])
-  @@index([period])
-  @@index([periodType])
-}
-
-// Alert rule definitions
-model AlertRule {
-  id              String            @id @default(cuid())
-  name            String
-  description     String?
-  category        String
-  enabled         Boolean           @default(true)
-  priority        String
-  condition       Json
-  actions         Json
-  suppression     Json
-  tags            String[]
-  owner           String
-  runbook         String?           @db.Text
-  documentation   String?           @db.Text
-  createdBy       String
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  lastTriggeredAt DateTime?
-  triggerCount    Int               @default(0)
-  
-  instances       AlertInstance[]
-  
-  @@index([category])
-  @@index([enabled])
-}
-
-// Alert instances (triggered alerts)
-model AlertInstance {
-  id                String        @id @default(cuid())
-  ruleId            String
-  ruleName          String
-  status            AlertStatus   @default(active)
-  severity          String
-  triggeredAt       DateTime
-  acknowledgedAt    DateTime?
-  investigatingAt   DateTime?
-  resolvedAt        DateTime?
-  duration          BigInt?
-  triggerContext    Json
-  actionsTaken      Json?
-  escalationLevel   Int           @default(0)
-  resolution        Json?
-  parentAlertId     String?
-  childAlertIds     String[]
-  relatedIncidentId String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  
-  rule              AlertRule     @relation(fields: [ruleId], references: [id])
-  
-  @@index([ruleId])
-  @@index([status])
-  @@index([triggeredAt])
-}
-
-// System health tracking
-model SystemHealth {
-  id              String      @id @default(cuid())
-  timestamp       DateTime
-  components      Json
-  overallStatus   String
-  activeIssues    Json?
-  metrics         Json
-  capacity        Json
-  createdAt       DateTime    @default(now())
-  
-  @@index([timestamp])
-  @@index([overallStatus])
-}
-
-// Reconciliation job tracking
-model ReconciliationJob {
-  id              String      @id @default(cuid())
-  type            String
-  config          Json
-  status          String      @default("pending")
-  startedAt       DateTime?
-  completedAt     DateTime?
-  results         Json?
-  errors          Json?
-  createdBy       String
-  createdAt       DateTime    @default(now())
-  
-  @@index([type])
-  @@index([status])
-  @@index([createdAt])
+  @@index([resolved])
+  @@index([detectedAt])
 }

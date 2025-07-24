@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import { EventMetric, EventAnomaly } from '@/lib/generated/prisma'
+import type { EventMetric, EventAnomaly } from '@prisma/client'
 
 interface AnomalyRule {
   metricName: string

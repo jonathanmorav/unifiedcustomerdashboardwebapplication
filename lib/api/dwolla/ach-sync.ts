@@ -38,19 +38,10 @@ export class ACHTransactionSync {
         !process.env.DWOLLA_MASTER_ACCOUNT_ID
 
       if (isDemoMode) {
-        console.log("Using demo mode for ACH sync (Dwolla credentials not fully configured)")
-        // Generate mock transactions for demo mode
-        const mockTransactions = await this.generateMockTransactions(options)
-
-        for (const transaction of mockTransactions) {
-          try {
-            await this.saveTransaction(transaction)
-            results.synced++
-          } catch (error) {
-            results.failed++
-            results.errors.push(`Failed to save transaction ${transaction.id}: ${error}`)
-          }
-        }
+        console.log("Demo mode detected - skipping sync to prevent test data")
+        console.log("To sync real data, ensure all Dwolla credentials are properly configured")
+        results.errors.push("Skipped sync - Demo mode active. Configure Dwolla credentials to sync real data.")
+        return results
       } else {
         try {
           // Try to fetch real transfers from Dwolla API
@@ -77,23 +68,10 @@ export class ACHTransactionSync {
             `Synced ${results.synced} customer transfers (skipped ${skippedCount} bank transfers)`
           )
         } catch (apiError) {
-          // If Dwolla API fails, fall back to demo mode
-          console.warn("Dwolla API failed, falling back to demo mode:", apiError)
-          const mockTransactions = await this.generateMockTransactions(options)
-
-          console.log(`Generated ${mockTransactions.length} demo transactions`)
-          for (const transaction of mockTransactions) {
-            try {
-              await this.saveTransaction(transaction)
-              results.synced++
-            } catch (error) {
-              results.failed++
-              results.errors.push(`Failed to save transaction ${transaction.id}: ${error}`)
-            }
-          }
-
-          // Add note that we used demo mode
-          results.errors.push("Note: Used demo mode due to Dwolla API error")
+          // If Dwolla API fails, report the error but don't generate test data
+          console.error("Dwolla API failed:", apiError)
+          results.errors.push(`Dwolla API error: ${apiError}`)
+          throw apiError
         }
       }
 
@@ -107,56 +85,76 @@ export class ACHTransactionSync {
 
   /**
    * Fetch all transfers from Dwolla API with pagination
+   * If no limit is specified, fetches ALL available transfers
    */
   private async fetchAllTransfers(options: ACHSyncOptions): Promise<any[]> {
     const allTransfers: any[] = []
-    const offset = options.offset || 0
-    const limit = Math.min(options.limit || 100, 200) // Dwolla max is 200
+    let currentOffset = options.offset || 0
+    const pageSize = 200 // Dwolla max per page
+    const maxLimit = options.limit || Infinity // If no limit, fetch all
 
     try {
       // Build search parameters
       const searchParams: Record<string, any> = {
-        limit,
-        offset,
+        limit: pageSize,
+        offset: currentOffset,
       }
 
       if (options.startDate) {
-        searchParams.startDate = options.startDate.toISOString()
+        // Dwolla expects YYYY-MM-DD format
+        searchParams.startDate = options.startDate.toISOString().split('T')[0]
       }
 
       if (options.endDate) {
-        searchParams.endDate = options.endDate.toISOString()
+        // Dwolla expects YYYY-MM-DD format
+        searchParams.endDate = options.endDate.toISOString().split('T')[0]
       }
 
       // Keep fetching until we have all transfers or reach our limit
-      while (true) {
+      let pageCount = 0
+      while (allTransfers.length < maxLimit) {
+        console.log(`Fetching page ${pageCount + 1} (offset: ${searchParams.offset})...`)
         const response = await this.client.getTransfers(searchParams)
 
         const transfers = response._embedded?.transfers || []
 
         if (transfers.length === 0) {
+          console.log("No more transfers found")
           break
         }
 
         // Enrich transfer data
+        let enrichedCount = 0
         for (const transfer of transfers) {
           const enrichedTransfer = await this.enrichTransferData(transfer)
           // Only include customer-initiated transfers (skip null returns)
           if (enrichedTransfer !== null) {
             allTransfers.push(enrichedTransfer)
+            enrichedCount++
 
-            if (options.limit && allTransfers.length >= options.limit) {
-              return allTransfers.slice(0, options.limit)
+            if (allTransfers.length >= maxLimit) {
+              console.log(`Reached limit of ${maxLimit} transfers`)
+              return allTransfers.slice(0, maxLimit)
             }
           }
         }
+        
+        console.log(`Page ${pageCount + 1}: Found ${enrichedCount} customer transfers out of ${transfers.length} total`)
 
         // Check if there's a next page
         if (!response._links?.next) {
+          console.log("No more pages available")
           break
         }
 
-        searchParams.offset += limit
+        searchParams.offset += pageSize
+        pageCount++
+        
+        // Add a small delay to avoid rate limiting
+        if (pageCount % 10 === 0) {
+          console.log("Pausing briefly to avoid rate limits...")
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
       }
 
       return allTransfers
@@ -168,6 +166,7 @@ export class ACHTransactionSync {
 
   /**
    * Enrich transfer data with customer and funding source information
+   * Returns null for transfers that are not customer-initiated (i.e., Cakewalk-initiated transfers)
    */
   private async enrichTransferData(transfer: DwollaTransfer): Promise<any> {
     try {
@@ -181,6 +180,13 @@ export class ACHTransactionSync {
       // Check if source is a customer (customer-initiated debit)
       const sourceUrl = transfer._links.source.href
       const destUrl = transfer._links.destination.href
+      
+      // IMPORTANT: Only process customer-initiated transfers (customer is the source)
+      // Skip transfers where Cakewalk is the source (credits to customers)
+      if (sourceUrl.includes(ourAccountId)) {
+        // This is a Cakewalk-initiated transfer, skip it
+        return null
+      }
 
       if (sourceUrl.includes("/customers/")) {
         // Customer is the source (ACH debit from customer)
@@ -542,7 +548,8 @@ export class ACHTransactionSync {
   private async generateMockTransactions(options: ACHSyncOptions): Promise<any[]> {
     const count = options.limit || 50
     const statuses = ["pending", "processing", "completed", "failed", "cancelled", "returned"]
-    const directions = ["credit", "debit"]
+    // Only generate customer-initiated transfers (credits to Cakewalk)
+    const directions = ["credit"]
     const companies = [
       "Acme Corp",
       "TechStart Inc",

@@ -61,13 +61,23 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: any = {}
+    
+    // IMPORTANT: Only show customer-initiated transfers (credits to Cakewalk)
+    // This filters out transfers where Cakewalk sends money to customers
+    where.direction = "credit"
 
     if (validatedQuery.status && validatedQuery.status !== "all") {
       where.status = validatedQuery.status
     }
 
-    if (validatedQuery.direction && validatedQuery.direction !== "all") {
-      where.direction = validatedQuery.direction
+    // Override direction filter to always be "credit" for customer-initiated transfers
+    // Even if user tries to filter by "debit", we only show credits
+    if (validatedQuery.direction && validatedQuery.direction === "credit") {
+      // Already set to credit above
+    } else if (validatedQuery.direction && validatedQuery.direction === "debit") {
+      // User is trying to see debits, but we don't show those
+      // Return empty result set
+      where.direction = "never_match"
     }
 
     if (validatedQuery.startDate || validatedQuery.endDate) {

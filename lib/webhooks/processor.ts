@@ -1,27 +1,11 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import { WebhookEvent, Prisma } from '@/lib/generated/prisma'
+import type { WebhookEvent, Prisma } from '@prisma/client'
 import { getJourneyTracker } from './journey-tracker'
 import { getRealtimeAnalyticsEngine } from '@/lib/analytics/realtime-engine'
+import { ProcessingContext } from './processing-context'
 
-// Processing context for passing data between stages
-export class ProcessingContext {
-  private data = new Map<string, any>()
-  
-  constructor(public event: WebhookEvent) {}
-  
-  set(key: string, value: any): void {
-    this.data.set(key, value)
-  }
-  
-  get<T>(key: string): T | undefined {
-    return this.data.get(key) as T
-  }
-  
-  has(key: string): boolean {
-    return this.data.has(key)
-  }
-}
+export { ProcessingContext }
 
 // Base processor interface
 export interface EventProcessor {

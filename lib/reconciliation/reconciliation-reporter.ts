@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import { ReconciliationRun, ReconciliationDiscrepancy } from '@/lib/generated/prisma'
+import type { ReconciliationRun, ReconciliationDiscrepancy } from '@prisma/client'
 
 interface ReconciliationReport {
   summary: {

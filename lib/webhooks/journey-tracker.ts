@@ -1,12 +1,12 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import { 
+import type { 
   WebhookEvent, 
   JourneyInstance, 
   EventJourneyDefinition,
   JourneyStatus,
   Prisma
-} from '@/lib/generated/prisma'
+} from '@prisma/client'
 import { ProcessingContext } from './processor'
 import { JourneyConfig, findApplicableJourneys } from './journey-definitions'
 

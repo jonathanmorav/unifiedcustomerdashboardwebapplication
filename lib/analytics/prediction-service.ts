@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import { EventAggregate, JourneyInstance } from '@/lib/generated/prisma'
+import type { EventAggregate, JourneyInstance } from '@prisma/client'
 
 interface PredictionModel {
   name: string

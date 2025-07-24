@@ -59,7 +59,7 @@ interface JourneyData {
     type: string
     resourceId: string
     resourceType: string
-    status: "active" | "stuck" | "at_risk"
+    status: "active" | "stuck"
     progress: number
     currentStep: string
     startTime: Date
@@ -111,8 +111,6 @@ export const JourneyAnalytics: React.FC = () => {
         return "text-cakewalk-success"
       case "stuck":
         return "text-cakewalk-error"
-      case "at_risk":
-        return "text-cakewalk-warning"
       default:
         return "text-cakewalk-text-secondary"
     }
@@ -124,8 +122,6 @@ export const JourneyAnalytics: React.FC = () => {
         return "success"
       case "stuck":
         return "destructive"
-      case "at_risk":
-        return "warning"
       default:
         return "secondary"
     }
@@ -207,7 +203,7 @@ export const JourneyAnalytics: React.FC = () => {
         type: "Transfer Process",
         resourceId: "trans-456",
         resourceType: "transfer",
-        status: "at_risk",
+        status: "stuck",
         progress: 40,
         currentStep: "Processing",
         startTime: new Date(Date.now() - 3600000),
@@ -274,7 +270,6 @@ export const JourneyAnalytics: React.FC = () => {
             <SelectItem value="all">All statuses</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="stuck">Stuck</SelectItem>
-            <SelectItem value="at_risk">At Risk</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import { WebhookEvent } from '@/lib/generated/prisma'
+import type { WebhookEvent } from '@prisma/client'
 import { getReconciliationEngine } from './reconciliation-engine'
 
 interface BatchConfig {

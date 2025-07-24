@@ -1,4 +1,4 @@
-import { EventJourneyDefinition } from '@/lib/generated/prisma'
+import type { EventJourneyDefinition } from '@prisma/client'
 
 export interface JourneyStepDefinition {
   name: string

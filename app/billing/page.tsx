@@ -215,10 +215,10 @@ export default function BillingPage() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-cakewalk-text-primary">
-              ACH Transaction Tracking
+              Customer ACH Payments
             </h1>
             <p className="mt-1 text-gray-600 dark:text-gray-400">
-              Real-time monitoring of ACH draft executions
+              Monitoring customer-initiated ACH payments to Cakewalk Benefits
             </p>
           </div>
           <div className="flex gap-2">

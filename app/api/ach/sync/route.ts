@@ -38,10 +38,15 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json()
-    const { limit = 100, startDate, endDate, customerId } = body
+    const { limit = 100, startDate, endDate, customerId, syncAll = false } = body
 
-    // Validate dates
-    const syncOptions: any = { limit }
+    // Validate dates and options
+    const syncOptions: any = { }
+    
+    // If syncAll is true, don't set a limit to fetch all transactions
+    if (!syncAll) {
+      syncOptions.limit = limit
+    }
 
     if (startDate) {
       syncOptions.startDate = new Date(startDate)
