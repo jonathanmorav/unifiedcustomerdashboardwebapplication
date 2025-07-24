@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
 import { WebhookEvent, Prisma } from '@/lib/generated/prisma'
+import { getJourneyTracker } from './journey-tracker'
+import { getRealtimeAnalyticsEngine } from '@/lib/analytics/realtime-engine'
 
 // Processing context for passing data between stages
 export class ProcessingContext {
@@ -202,6 +204,8 @@ class CustomerEventProcessor implements EventProcessor {
 // Main event processing pipeline
 export class EventProcessingPipeline {
   private processors: EventProcessor[] = []
+  private journeyTracker = getJourneyTracker()
+  private analyticsEngine = getRealtimeAnalyticsEngine()
   
   constructor() {
     // Register processors
@@ -305,18 +309,28 @@ export class EventProcessingPipeline {
   }
   
   private async updateJourneys(event: WebhookEvent, context: ProcessingContext): Promise<void> {
-    // Placeholder - will be implemented in journey tracker
-    log.debug('Journey update placeholder', { eventId: event.id })
+    try {
+      await this.journeyTracker.processEvent(event, context)
+    } catch (error) {
+      log.error('Journey tracking failed', error as Error, {
+        eventId: event.id
+      })
+    }
   }
   
   private async updateAnalytics(event: WebhookEvent, context: ProcessingContext): Promise<void> {
-    // Placeholder - will be implemented in analytics engine
-    log.debug('Analytics update placeholder', { eventId: event.id })
+    try {
+      await this.analyticsEngine.processEvent(event, context)
+    } catch (error) {
+      log.error('Analytics update failed', error as Error, {
+        eventId: event.id
+      })
+    }
   }
   
   private async evaluateAlerts(event: WebhookEvent, context: ProcessingContext): Promise<void> {
-    // Placeholder - will be implemented in alert engine
-    log.debug('Alert evaluation placeholder', { eventId: event.id })
+    // Alert evaluation is handled within the analytics engine
+    // This method is kept for future expansion (e.g., business rule alerts)
   }
   
   private async handleProcessingError(event: WebhookEvent | null, error: Error): Promise<void> {
