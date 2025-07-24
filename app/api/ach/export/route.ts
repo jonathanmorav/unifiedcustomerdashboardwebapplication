@@ -222,12 +222,12 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid query parameters", details: error.errors },
+        { error: "Invalid query parameters", details: error.format() },
         { status: 400 }
       )
     }
 
-    logger.error("Error exporting ACH transactions", { error })
+    logger.error("Error exporting ACH transactions", error as Error)
     return NextResponse.json({ error: "Failed to export transactions" }, { status: 500 })
   }
 }

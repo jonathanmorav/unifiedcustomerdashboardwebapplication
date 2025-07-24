@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { db } from "@/lib/db"
+import { prisma } from "@/lib/db"
 
 // POST: Track usage of a saved search
 export async function POST(request: NextRequest) {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update the saved search usage stats
-    const savedSearch = await db.savedSearch.update({
+    const savedSearch = await prisma.savedSearch.update({
       where: { id },
       data: {
         useCount: { increment: 1 },
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Log the usage
-    await db.auditLog.create({
+    await prisma.auditLog.create({
       data: {
         userId: session.user.id,
         action: "SAVED_SEARCH_USED",

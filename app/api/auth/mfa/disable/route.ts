@@ -12,6 +12,8 @@ const disableRateLimitConfig = {
   name: "mfa-disable",
   windowMs: 24 * 60 * 60 * 1000, // 24 hours
   max: 3, // Only 3 attempts per day
+  standardHeaders: true,
+  legacyHeaders: false,
 }
 
 // POST - Disable MFA (requires admin or self with verification)

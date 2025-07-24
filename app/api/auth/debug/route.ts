@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       signInPage: `${process.env.NEXTAUTH_URL}/auth/signin`,
       errorPage: `${process.env.NEXTAUTH_URL}/auth/error`
     },
-    issues: []
+    issues: [] as string[]
   }
 
   // Check for common issues

@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(error.toClientResponse(), { status: error.statusCode })
     }
 
-    logger.error("Error syncing ACH transactions", { error })
+    logger.error("Error syncing ACH transactions", error as Error)
     return NextResponse.json({ error: "Failed to sync transactions" }, { status: 500 })
   }
 }

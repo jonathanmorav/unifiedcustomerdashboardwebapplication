@@ -10,7 +10,7 @@ export async function GET() {
   try {
     const result = await HealthCheckService.checkLiveness()
     return NextResponse.json(result, { status: 200 })
-  } catch (error) {
+  } catch (_error) {
     // If we can't even perform a basic liveness check, the service is dead
     return NextResponse.json(
       {

@@ -10,12 +10,12 @@ import { log } from '@/lib/logger'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { discrepancyId: string } }
+  { params }: { params: Promise<{ discrepancyId: string }> }
 ) {
   try {
     await requireAuth(request)
     
-    const { discrepancyId } = params
+    const { discrepancyId } = await params
     const body = await request.json()
     const { resolution } = body
     

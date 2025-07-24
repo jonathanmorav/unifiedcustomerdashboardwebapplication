@@ -189,7 +189,7 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error("Failed to fetch failure analytics:", error)
-    log.error("Failed to fetch failure analytics", { error })
+    log.error("Failed to fetch failure analytics", error as Error)
     
     // Return more detailed error for debugging
     const errorMessage = error instanceof Error ? error.message : "Unknown error"

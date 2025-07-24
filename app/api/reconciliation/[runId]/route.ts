@@ -10,12 +10,12 @@ import { log } from '@/lib/logger'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { runId: string } }
+  { params }: { params: Promise<{ runId: string }> }
 ) {
   try {
     await requireAuth(request)
     
-    const { runId } = params
+    const { runId } = await params
     const isExport = request.nextUrl.pathname.endsWith('/export')
     
     const reporter = getReconciliationReporter()

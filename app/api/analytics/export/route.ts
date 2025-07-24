@@ -103,7 +103,7 @@ async function exportEventData(startDate: Date, endDate: Date) {
 async function exportJourneyData(startDate: Date, endDate: Date) {
   const journeys = await prisma.journeyInstance.findMany({
     where: {
-      startTime: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate }
     },
     include: {
       definition: true,
@@ -129,48 +129,29 @@ async function exportJourneyData(startDate: Date, endDate: Date) {
 }
 
 async function exportReconciliationData(startDate: Date, endDate: Date) {
-  const runs = await prisma.reconciliationRun.findMany({
+  const runs = await prisma.reconciliationJob.findMany({
     where: {
-      startTime: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate }
     },
-    include: {
-      discrepancies: true
-    },
-    orderBy: { startTime: 'desc' }
+    orderBy: { createdAt: 'desc' }
   })
   
   const flatData: any[] = []
   
   for (const run of runs) {
-    const metrics = run.metrics as any
+    const results = run.results as any
     
     // Add run summary
     flatData.push({
       type: 'run_summary',
       runId: run.id,
-      startTime: run.startTime,
-      endTime: run.endTime,
+      startTime: run.startedAt,
+      endTime: run.completedAt,
       status: run.status,
-      totalChecks: metrics?.totalChecks || 0,
-      discrepanciesFound: metrics?.discrepanciesFound || 0,
-      discrepanciesResolved: metrics?.discrepanciesResolved || 0
+      jobType: run.type,
+      totalChecks: results?.totalChecks || 0,
+      errors: run.errors ? JSON.stringify(run.errors) : null
     })
-    
-    // Add discrepancies
-    for (const discrepancy of run.discrepancies) {
-      flatData.push({
-        type: 'discrepancy',
-        runId: run.id,
-        discrepancyId: discrepancy.id,
-        resourceType: discrepancy.resourceType,
-        resourceId: discrepancy.resourceId,
-        checkName: discrepancy.checkName,
-        severity: discrepancy.severity,
-        resolved: discrepancy.resolved,
-        detectedAt: discrepancy.detectedAt,
-        resolvedAt: discrepancy.resolvedAt
-      })
-    }
   }
   
   return flatData
@@ -197,16 +178,16 @@ async function exportOverviewData(startDate: Date, endDate: Date) {
     prisma.journeyInstance.groupBy({
       by: ['status'],
       where: {
-        startTime: { gte: startDate, lte: endDate }
+        createdAt: { gte: startDate, lte: endDate }
       },
       _count: true,
       _avg: { totalDurationMs: true }
     }),
     
     // Reconciliation statistics
-    prisma.reconciliationRun.aggregate({
+    prisma.reconciliationJob.aggregate({
       where: {
-        startTime: { gte: startDate, lte: endDate }
+        createdAt: { gte: startDate, lte: endDate }
       },
       _count: true
     }),

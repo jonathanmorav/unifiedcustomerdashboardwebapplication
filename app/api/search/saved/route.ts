@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { db } from "@/lib/db"
+import { prisma } from "@/lib/db"
 import { z } from "zod"
 import { defaultSearchTemplates } from "@/lib/search/search-templates"
 import { log } from "@/lib/logger"
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch saved searches
-    const savedSearches = await db.savedSearch.findMany({
+    const savedSearches = await prisma.savedSearch.findMany({
       where: {
         OR: conditions,
       },
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     const { name, description, searchParams, isPublic } = validation.data
 
     // Check if user already has a saved search with this name
-    const existing = await db.savedSearch.findUnique({
+    const existing = await prisma.savedSearch.findUnique({
       where: {
         userId_name: {
           userId: session.user.id,
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the saved search
-    const savedSearch = await db.savedSearch.create({
+    const savedSearch = await prisma.savedSearch.create({
       data: {
         userId: session.user.id,
         name,
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Log the action
-    await db.auditLog.create({
+    await prisma.auditLog.create({
       data: {
         userId: session.user.id,
         action: "SAVED_SEARCH_CREATED",
@@ -177,7 +177,7 @@ export async function PATCH(request: NextRequest) {
     const { name, description, isPublic } = body
 
     // Fetch the saved search
-    const savedSearch = await db.savedSearch.findUnique({
+    const savedSearch = await prisma.savedSearch.findUnique({
       where: { id },
     })
 
@@ -196,7 +196,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Update the saved search
-    const updated = await db.savedSearch.update({
+    const updated = await prisma.savedSearch.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
@@ -206,7 +206,7 @@ export async function PATCH(request: NextRequest) {
     })
 
     // Log the action
-    await db.auditLog.create({
+    await prisma.auditLog.create({
       data: {
         userId: session.user.id,
         action: "SAVED_SEARCH_UPDATED",
@@ -247,7 +247,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Fetch the saved search
-    const savedSearch = await db.savedSearch.findUnique({
+    const savedSearch = await prisma.savedSearch.findUnique({
       where: { id },
     })
 
@@ -266,12 +266,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the saved search
-    await db.savedSearch.delete({
+    await prisma.savedSearch.delete({
       where: { id },
     })
 
     // Log the action
-    await db.auditLog.create({
+    await prisma.auditLog.create({
       data: {
         userId: session.user.id,
         action: "SAVED_SEARCH_DELETED",

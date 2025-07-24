@@ -79,14 +79,14 @@ export async function GET(request: NextRequest) {
       }
     })
     
-    const totalProcessed = (processingMetrics._count?._all || 0) + failedCount
+    const totalProcessed = (processingMetrics._count || 0) + failedCount
     const processingRate = totalProcessed > 0 
-      ? (((processingMetrics._count?._all || 0) / totalProcessed) * 100).toFixed(1)
-      : 100
+      ? (((processingMetrics._count || 0) / totalProcessed) * 100).toFixed(1)
+      : "100"
     
     const errorRate = totalProcessed > 0
       ? ((failedCount / totalProcessed) * 100).toFixed(1)
-      : 0
+      : "0"
       
     // Calculate journey success rate
     const completedJourneys = await prisma.journeyInstance.count({
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
     
     const journeySuccessRate = totalJourneys > 0
       ? ((completedJourneys / totalJourneys) * 100).toFixed(1)
-      : 0
+      : "0"
     
     // Get stuck journeys
     let stuckJourneys = 0

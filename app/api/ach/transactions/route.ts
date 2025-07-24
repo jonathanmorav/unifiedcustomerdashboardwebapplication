@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid query parameters", details: error.errors },
+        { error: "Invalid query parameters", details: error.format() },
         { status: 400 }
       )
     }
@@ -200,7 +200,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(error.toClientResponse(), { status: error.statusCode })
     }
 
-    logger.error("Error fetching ACH transactions", { error })
+    logger.error("Error fetching ACH transactions", error as Error)
     return NextResponse.json({ error: "Failed to fetch transactions" }, { status: 500 })
   }
 }

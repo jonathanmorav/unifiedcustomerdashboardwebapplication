@@ -183,6 +183,11 @@ export async function GET(request: NextRequest) {
         by: ['eventType'],
         where: { eventTimestamp: { gte: oneDayAgo } },
         _count: true,
+        orderBy: {
+          _count: {
+            eventType: 'desc'
+          }
+        },
         take: 10
       })
       

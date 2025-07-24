@@ -12,6 +12,8 @@ const backupCodesRateLimitConfig = {
   name: "mfa-backup-codes",
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 3, // Only 3 regenerations per hour
+  standardHeaders: true,
+  legacyHeaders: false,
 }
 
 // POST - Regenerate backup codes
@@ -21,8 +23,9 @@ const regenerateSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  let session: any;
   try {
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
 
     if (!session?.user?.id || !session?.user?.email) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
@@ -141,7 +144,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET - Get backup codes status (not the codes themselves)
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
