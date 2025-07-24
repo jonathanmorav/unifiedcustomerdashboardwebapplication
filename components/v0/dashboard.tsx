@@ -16,13 +16,13 @@ const mockData = {
       id: "CMP-12345",
       name: "Acme Corporation",
       ownerEmail: "john.smith@acmecorp.com",
-      dwollaId: "12345678-1234-5678-9012-123456789012"
+      dwollaId: "12345678-1234-5678-9012-123456789012",
     },
     summaryOfBenefits: [
       {
         id: "SOB-001",
-        amountToDraft: 12450.00,
-        feeAmount: 125.00,
+        amountToDraft: 12450.0,
+        feeAmount: 125.0,
         totalPolicies: 2,
         pdfDocumentUrl: "https://example.com/sob-001.pdf",
         policies: [
@@ -31,50 +31,50 @@ const mockData = {
             policyNumber: "POL-2025-001",
             policyHolderName: "John Smith",
             coverageType: "Health Insurance",
-            premiumAmount: 8500.00,
+            premiumAmount: 8500.0,
             effectiveDate: "2025-01-01",
             expirationDate: "2025-12-31",
-            status: "active"
+            status: "active",
           },
           {
             id: "POL-002",
-            policyNumber: "POL-2025-002", 
+            policyNumber: "POL-2025-002",
             policyHolderName: "John Smith",
             coverageType: "Dental Coverage",
-            premiumAmount: 2200.00,
+            premiumAmount: 2200.0,
             effectiveDate: "2025-01-01",
             expirationDate: "2025-12-31",
-            status: "active"
-          }
-        ]
-      }
+            status: "active",
+          },
+        ],
+      },
     ],
     activeLists: [
       {
         listId: 1001,
         listName: "High-Value Customers",
         listType: "DYNAMIC",
-        membershipTimestamp: "2025-01-15T10:30:00Z"
+        membershipTimestamp: "2025-01-15T10:30:00Z",
       },
       {
         listId: 1002,
         listName: "Q1 2025 Campaign Recipients",
         listType: "STATIC",
-        membershipTimestamp: "2025-01-10T14:15:00Z"
+        membershipTimestamp: "2025-01-10T14:15:00Z",
       },
       {
         listId: 1003,
         listName: "Enterprise Accounts",
         listType: "DYNAMIC",
-        membershipTimestamp: "2025-01-12T09:45:00Z"
+        membershipTimestamp: "2025-01-12T09:45:00Z",
       },
       {
         listId: 1004,
         listName: "Newsletter Subscribers",
         listType: "DYNAMIC",
-        membershipTimestamp: "2025-01-08T16:20:00Z"
-      }
-    ]
+        membershipTimestamp: "2025-01-08T16:20:00Z",
+      },
+    ],
   },
   dwolla: {
     customer: {
@@ -92,7 +92,7 @@ const mockData = {
         accountNumberMasked: "****4567",
         routingNumber: "123456789",
         status: "verified",
-      }
+      },
     ],
     transfers: [
       {
@@ -149,18 +149,18 @@ export function Dashboard() {
   return (
     <main className="min-h-screen bg-cakewalk-alice-100 transition-colors duration-300">
       <Header />
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="container mx-auto max-w-7xl px-4 py-6">
         <div className="space-y-6">
           <SearchSection />
-          
+
           <Tabs defaultValue="customer" className="w-full">
-            <TabsList className="grid grid-cols-2 max-w-md mx-auto mb-6">
+            <TabsList className="mx-auto mb-6 grid max-w-md grid-cols-2">
               <TabsTrigger value="customer">Customer Data</TabsTrigger>
               <TabsTrigger value="lists">List Analytics</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="customer" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
                 <div className="lg:col-span-3">
                   <DataPanels data={displayData} />
                 </div>
@@ -169,7 +169,7 @@ export function Dashboard() {
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="lists" className="space-y-6">
               <ListAnalyticsDashboard />
             </TabsContent>
