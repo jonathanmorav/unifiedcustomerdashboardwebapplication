@@ -1,5 +1,5 @@
-import { log } from '@/lib/logger'
-import { CorrelationTracking } from '@/lib/security/correlation'
+import { log } from "@/lib/logger"
+import { CorrelationTracking } from "@/lib/security/correlation"
 
 export interface EmailOptions {
   to: string | string[]
@@ -23,14 +23,16 @@ export interface EmailProvider {
 
 // Mock provider for development - replace with actual provider (SendGrid, SES, etc.)
 class MockEmailProvider implements EmailProvider {
-  async send(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    await log.info('Mock email sent', {
+  async send(
+    options: EmailOptions
+  ): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    await log.info("Mock email sent", {
       to: options.to,
       subject: options.subject,
       correlationId: options.correlationId,
-      operation: 'email_send_mock',
+      operation: "email_send_mock",
     })
-    
+
     return {
       success: true,
       messageId: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -40,8 +42,10 @@ class MockEmailProvider implements EmailProvider {
 
 export class EmailService {
   private static provider: EmailProvider = new MockEmailProvider()
-  private static readonly FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || 'noreply@unified-dashboard.com'
-  private static readonly REPLY_TO_ADDRESS = process.env.EMAIL_REPLY_TO || 'support@unified-dashboard.com'
+  private static readonly FROM_ADDRESS =
+    process.env.EMAIL_FROM_ADDRESS || "noreply@unified-dashboard.com"
+  private static readonly REPLY_TO_ADDRESS =
+    process.env.EMAIL_REPLY_TO || "support@unified-dashboard.com"
 
   /**
    * Set the email provider (for testing or switching providers)
@@ -55,8 +59,8 @@ export class EmailService {
    */
   private static async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
     try {
-      const correlationId = options.correlationId || await CorrelationTracking.getCorrelationId()
-      
+      const correlationId = options.correlationId || (await CorrelationTracking.getCorrelationId())
+
       const result = await this.provider.send({
         ...options,
         from: options.from || this.FROM_ADDRESS,
@@ -65,33 +69,33 @@ export class EmailService {
       })
 
       if (result.success) {
-        await log.info('Email sent successfully', {
+        await log.info("Email sent successfully", {
           to: options.to,
           subject: options.subject,
           messageId: result.messageId,
           correlationId,
-          operation: 'email_send_success',
+          operation: "email_send_success",
         })
       } else {
-        await log.error('Email send failed', {
+        await log.error("Email send failed", {
           to: options.to,
           subject: options.subject,
           error: result.error,
           correlationId,
-          operation: 'email_send_failed',
+          operation: "email_send_failed",
         })
       }
 
       return result
     } catch (error) {
-      await log.error('Email service error', {
+      await log.error("Email service error", {
         to: options.to,
         subject: options.subject,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
         correlationId: options.correlationId,
-        operation: 'email_service_error',
+        operation: "email_service_error",
       })
-      return { success: false, error: 'Failed to send email' }
+      return { success: false, error: "Failed to send email" }
     }
   }
 
@@ -104,7 +108,7 @@ export class EmailService {
     ipAddress?: string
   ): Promise<{ success: boolean; error?: string }> {
     const template = this.getAccountLockoutTemplate(email, lockedUntil, ipAddress)
-    
+
     return this.send({
       to: email,
       subject: template.subject,
@@ -118,11 +122,11 @@ export class EmailService {
    */
   static async sendSecurityAlert(
     email: string,
-    alertType: 'new_device' | 'suspicious_activity' | 'password_changed' | 'mfa_disabled',
+    alertType: "new_device" | "suspicious_activity" | "password_changed" | "mfa_disabled",
     details: Record<string, any>
   ): Promise<{ success: boolean; error?: string }> {
     const template = this.getSecurityAlertTemplate(email, alertType, details)
-    
+
     return this.send({
       to: email,
       subject: template.subject,
@@ -139,7 +143,7 @@ export class EmailService {
     remainingCodes: number
   ): Promise<{ success: boolean; error?: string }> {
     const template = this.getBackupCodesWarningTemplate(email, remainingCodes)
-    
+
     return this.send({
       to: email,
       subject: template.subject,
@@ -156,19 +160,19 @@ export class EmailService {
     event: string,
     details: Record<string, any>
   ): Promise<{ success: boolean; error?: string }> {
-    const securityEmails = (process.env.SECURITY_TEAM_EMAILS || '').split(',').filter(Boolean)
-    
+    const securityEmails = (process.env.SECURITY_TEAM_EMAILS || "").split(",").filter(Boolean)
+
     if (securityEmails.length === 0) {
-      await log.warn('No security team emails configured', {
+      await log.warn("No security team emails configured", {
         userId,
         event,
-        operation: 'security_notification_skipped',
+        operation: "security_notification_skipped",
       })
       return { success: true }
     }
 
     const template = this.getSecurityEscalationTemplate(userId, event, details)
-    
+
     return this.send({
       to: securityEmails,
       subject: template.subject,
@@ -185,9 +189,9 @@ export class EmailService {
     ipAddress?: string
   ): EmailTemplate {
     const unlockTime = lockedUntil.toLocaleString()
-    
+
     return {
-      subject: 'Security Alert: Your account has been locked',
+      subject: "Security Alert: Your account has been locked",
       html: `
         <!DOCTYPE html>
         <html>
@@ -204,7 +208,7 @@ export class EmailService {
               <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <p><strong>Account:</strong> ${email}</p>
                 <p><strong>Locked until:</strong> ${unlockTime}</p>
-                ${ipAddress ? `<p><strong>IP Address:</strong> ${ipAddress}</p>` : ''}
+                ${ipAddress ? `<p><strong>IP Address:</strong> ${ipAddress}</p>` : ""}
               </div>
               
               <h3>What to do next:</h3>
@@ -234,7 +238,7 @@ Your account has been temporarily locked due to multiple failed login attempts.
 
 Account: ${email}
 Locked until: ${unlockTime}
-${ipAddress ? `IP Address: ${ipAddress}` : ''}
+${ipAddress ? `IP Address: ${ipAddress}` : ""}
 
 What to do next:
 - Wait until ${unlockTime} to try logging in again
@@ -254,14 +258,14 @@ This is an automated security notification.
     details: Record<string, any>
   ): EmailTemplate {
     const alertTitles: Record<string, string> = {
-      new_device: 'New Device Login Detected',
-      suspicious_activity: 'Suspicious Activity Detected',
-      password_changed: 'Password Changed Successfully',
-      mfa_disabled: 'Two-Factor Authentication Disabled',
+      new_device: "New Device Login Detected",
+      suspicious_activity: "Suspicious Activity Detected",
+      password_changed: "Password Changed Successfully",
+      mfa_disabled: "Two-Factor Authentication Disabled",
     }
 
-    const title = alertTitles[alertType] || 'Security Alert'
-    
+    const title = alertTitles[alertType] || "Security Alert"
+
     return {
       subject: `Security Alert: ${title}`,
       html: `
@@ -280,8 +284,8 @@ This is an automated security notification.
               <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <p><strong>Account:</strong> ${email}</p>
                 <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
-                ${details.ipAddress ? `<p><strong>IP Address:</strong> ${details.ipAddress}</p>` : ''}
-                ${details.userAgent ? `<p><strong>Device:</strong> ${details.userAgent}</p>` : ''}
+                ${details.ipAddress ? `<p><strong>IP Address:</strong> ${details.ipAddress}</p>` : ""}
+                ${details.userAgent ? `<p><strong>Device:</strong> ${details.userAgent}</p>` : ""}
               </div>
               
               <p>If this was you, no action is needed. If you don't recognize this activity, please:</p>
@@ -307,8 +311,8 @@ We detected the following activity on your account:
 
 Account: ${email}
 Time: ${new Date().toLocaleString()}
-${details.ipAddress ? `IP Address: ${details.ipAddress}` : ''}
-${details.userAgent ? `Device: ${details.userAgent}` : ''}
+${details.ipAddress ? `IP Address: ${details.ipAddress}` : ""}
+${details.userAgent ? `Device: ${details.userAgent}` : ""}
 
 If this was you, no action is needed. If you don't recognize this activity, please:
 1. Change your password immediately
@@ -325,7 +329,7 @@ This is an automated security notification.
     remainingCodes: number
   ): EmailTemplate {
     return {
-      subject: 'Action Required: Low on Backup Codes',
+      subject: "Action Required: Low on Backup Codes",
       html: `
         <!DOCTYPE html>
         <html>

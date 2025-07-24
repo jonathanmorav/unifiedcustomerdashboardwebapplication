@@ -12,22 +12,22 @@ interface ListMembershipCardProps {
 
 export function ListMembershipCard({ list }: ListMembershipCardProps) {
   const isStatic = list.listType === "STATIC"
-  
+
   return (
-    <Card className="shadow-cakewalk-medium border-cakewalk-border hover:shadow-cakewalk-hover transition-shadow duration-300">
+    <Card className="border-cakewalk-border shadow-cakewalk-medium transition-shadow duration-300 hover:shadow-cakewalk-hover">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             <ListIcon className="h-5 w-5 text-cakewalk-primary" />
-            <h4 className="text-cakewalk-body-md font-cakewalk-semibold text-cakewalk-text-primary line-clamp-1">
+            <h4 className="text-cakewalk-body-md font-cakewalk-semibold line-clamp-1 text-cakewalk-text-primary">
               {list.listName}
             </h4>
           </div>
-          <Badge 
+          <Badge
             variant={isStatic ? "secondary" : "default"}
             className={`${
-              isStatic 
-                ? "bg-cakewalk-text-secondary/10 text-cakewalk-text-secondary" 
+              isStatic
+                ? "bg-cakewalk-text-secondary/10 text-cakewalk-text-secondary"
                 : "bg-cakewalk-success-light text-cakewalk-success-dark"
             } border-0`}
           >
@@ -40,15 +40,15 @@ export function ListMembershipCard({ list }: ListMembershipCardProps) {
           <span className="font-cakewalk-medium">List ID:</span>
           <span className="font-mono">{list.listId}</span>
         </div>
-        
+
         {list.membershipTimestamp && (
           <div className="flex items-center gap-2 text-cakewalk-body-xs text-cakewalk-text-secondary">
             <CalendarIcon className="h-4 w-4" />
             <span>Added: {formatDate(list.membershipTimestamp)}</span>
           </div>
         )}
-        
-        <div className="pt-2 border-t border-cakewalk-border">
+
+        <div className="border-t border-cakewalk-border pt-2">
           <div className="flex items-center justify-between">
             <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
               {isStatic ? "Fixed membership" : "Auto-updating"}

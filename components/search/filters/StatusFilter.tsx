@@ -20,14 +20,14 @@ interface StatusFilterProps {
 export function StatusFilter({ label, value, onChange, options, className }: StatusFilterProps) {
   const toggleOption = (optionValue: string) => {
     if (value.includes(optionValue)) {
-      onChange(value.filter(v => v !== optionValue))
+      onChange(value.filter((v) => v !== optionValue))
     } else {
       onChange([...value, optionValue])
     }
   }
 
   const selectAll = () => {
-    onChange(options.map(opt => opt.value))
+    onChange(options.map((opt) => opt.value))
   }
 
   const clearAll = () => {
@@ -49,7 +49,7 @@ export function StatusFilter({ label, value, onChange, options, className }: Sta
           <button
             type="button"
             onClick={clearAll}
-            className="text-xs text-cakewalk-secondary hover:underline"
+            className="text-cakewalk-secondary text-xs hover:underline"
           >
             Clear
           </button>
@@ -59,7 +59,7 @@ export function StatusFilter({ label, value, onChange, options, className }: Sta
         {options.map((option) => (
           <label
             key={option.value}
-            className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
+            className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
           >
             <div className="relative">
               <input
@@ -70,18 +70,18 @@ export function StatusFilter({ label, value, onChange, options, className }: Sta
               />
               <div
                 className={cn(
-                  "w-4 h-4 rounded border transition-colors",
+                  "h-4 w-4 rounded border transition-colors",
                   value.includes(option.value)
-                    ? "bg-cakewalk-primary border-cakewalk-primary"
-                    : "bg-white border-gray-300"
+                    ? "border-cakewalk-primary bg-cakewalk-primary"
+                    : "border-gray-300 bg-white"
                 )}
               >
                 {value.includes(option.value) && (
-                  <CheckCircle2 className="h-3 w-3 text-white absolute top-0.5 left-0.5" />
+                  <CheckCircle2 className="absolute left-0.5 top-0.5 h-3 w-3 text-white" />
                 )}
               </div>
             </div>
-            <span className="text-sm flex-1">{option.label}</span>
+            <span className="flex-1 text-sm">{option.label}</span>
             {option.count !== undefined && (
               <Badge variant="secondary" className="text-xs">
                 {option.count}

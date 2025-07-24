@@ -5,22 +5,22 @@
  * This creates a basic engagement note with Clarity data
  */
 
-const axios = require('axios')
-const fs = require('fs')
+const axios = require("axios")
+const fs = require("fs")
 
 // Read API key from .env.local manually
 let HUBSPOT_API_KEY
 try {
-  const envContent = fs.readFileSync('.env.local', 'utf8')
+  const envContent = fs.readFileSync(".env.local", "utf8")
   const match = envContent.match(/HUBSPOT_API_KEY="([^"]+)"/)
   HUBSPOT_API_KEY = match ? match[1] : null
 } catch (error) {
-  console.log('Could not read .env.local:', error.message)
+  console.log("Could not read .env.local:", error.message)
 }
-const HUBSPOT_BASE_URL = 'https://api.hubapi.com'
+const HUBSPOT_BASE_URL = "https://api.hubapi.com"
 
 if (!HUBSPOT_API_KEY) {
-  console.error('❌ HUBSPOT_API_KEY not found in environment variables')
+  console.error("❌ HUBSPOT_API_KEY not found in environment variables")
   process.exit(1)
 }
 
@@ -30,21 +30,25 @@ async function findExistingContact() {
     const searchResponse = await axios.post(
       `${HUBSPOT_BASE_URL}/crm/v3/objects/contacts/search`,
       {
-        filterGroups: [{
-          filters: [{
-            propertyName: 'email',
-            operator: 'EQ',
-            value: 'john.eliason@fbfs.com' // Use existing contact
-          }]
-        }],
-        properties: ['email', 'firstname', 'lastname'],
-        limit: 1
+        filterGroups: [
+          {
+            filters: [
+              {
+                propertyName: "email",
+                operator: "EQ",
+                value: "john.eliason@fbfs.com", // Use existing contact
+              },
+            ],
+          },
+        ],
+        properties: ["email", "firstname", "lastname"],
+        limit: 1,
       },
       {
         headers: {
-          'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${HUBSPOT_API_KEY}`,
+          "Content-Type": "application/json",
+        },
       }
     )
 
@@ -53,10 +57,10 @@ async function findExistingContact() {
       return searchResponse.data.results[0]
     }
 
-    console.log('❌ Contact not found')
+    console.log("❌ Contact not found")
     return null
   } catch (error) {
-    console.error('❌ Error finding contact:', error.response?.data || error.message)
+    console.error("❌ Error finding contact:", error.response?.data || error.message)
     return null
   }
 }
@@ -65,7 +69,7 @@ async function addTestClarityNote(contactId) {
   try {
     const engagementData = {
       properties: {
-        hs_engagement_type: 'NOTE',
+        hs_engagement_type: "NOTE",
         hs_body_preview: `Microsoft Clarity Session Recording
 
 Session ID: test_session_001
@@ -89,77 +93,84 @@ Browser: Chrome 120</p>
 - Event: Submit form, Type: Auto, Start Time: 01:15<br>
 - Event: Page navigation, Type: Auto, Start Time: 02:30</p>`,
         hs_timestamp: Date.now(),
-        hs_activity_type: 'Clarity Session Recording',
-        clarity_session_id: 'test_session_001',
-        clarity_recording_url: 'https://clarity.microsoft.com/projects/view/test123/session/abc456',
+        hs_activity_type: "Clarity Session Recording",
+        clarity_session_id: "test_session_001",
+        clarity_recording_url: "https://clarity.microsoft.com/projects/view/test123/session/abc456",
         clarity_duration: 300,
-        clarity_device_type: 'desktop',
-        clarity_browser: 'Chrome 120',
+        clarity_device_type: "desktop",
+        clarity_browser: "Chrome 120",
         clarity_smart_events: JSON.stringify([
-          { event: 'Login', type: 'Auto', startTime: '00:30' },
-          { event: 'Submit form', type: 'Auto', startTime: '01:15' },
-          { event: 'Page navigation', type: 'Auto', startTime: '02:30' }
-        ])
+          { event: "Login", type: "Auto", startTime: "00:30" },
+          { event: "Submit form", type: "Auto", startTime: "01:15" },
+          { event: "Page navigation", type: "Auto", startTime: "02:30" },
+        ]),
       },
-      associations: [{
-        to: { id: contactId },
-        types: [{
-          associationCategory: 'HUBSPOT_DEFINED',
-          associationTypeId: 202 // Contact to Engagement
-        }]
-      }]
+      associations: [
+        {
+          to: { id: contactId },
+          types: [
+            {
+              associationCategory: "HUBSPOT_DEFINED",
+              associationTypeId: 202, // Contact to Engagement
+            },
+          ],
+        },
+      ],
     }
 
-    console.log('🚀 Creating test Clarity engagement...')
+    console.log("🚀 Creating test Clarity engagement...")
     const response = await axios.post(
       `${HUBSPOT_BASE_URL}/crm/v3/objects/engagements`,
       engagementData,
       {
         headers: {
-          'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${HUBSPOT_API_KEY}`,
+          "Content-Type": "application/json",
+        },
       }
     )
 
-    console.log('✅ Test Clarity engagement created successfully!')
-    console.log('📋 Engagement ID:', response.data.id)
+    console.log("✅ Test Clarity engagement created successfully!")
+    console.log("📋 Engagement ID:", response.data.id)
     return response.data
   } catch (error) {
-    console.error('❌ Error creating engagement:', error.response?.status, error.response?.data || error.message)
-    
+    console.error(
+      "❌ Error creating engagement:",
+      error.response?.status,
+      error.response?.data || error.message
+    )
+
     if (error.response?.status === 403) {
-      console.log('\n💡 Tip: The HubSpot API key may not have the required scopes.')
-      console.log('   This is expected in some environments.')
-      console.log('   You can still test the UI with existing data.')
+      console.log("\n💡 Tip: The HubSpot API key may not have the required scopes.")
+      console.log("   This is expected in some environments.")
+      console.log("   You can still test the UI with existing data.")
     }
-    
+
     return null
   }
 }
 
 async function main() {
-  console.log('🔍 Testing Clarity session display...')
-  
+  console.log("🔍 Testing Clarity session display...")
+
   try {
     // Find existing contact
     const contact = await findExistingContact()
-    
+
     if (!contact) {
-      console.log('❌ Cannot proceed without a contact to associate the engagement to')
+      console.log("❌ Cannot proceed without a contact to associate the engagement to")
       return
     }
-    
+
     // Try to add test engagement
     await addTestClarityNote(contact.id)
-    
-    console.log('\n🎯 Now you can:')
-    console.log('1. Search for: john.eliason@fbfs.com')
-    console.log('2. Check the Session Recordings section')
-    console.log('3. Look at browser console for [CLARITY DEBUG] logs')
-    
+
+    console.log("\n🎯 Now you can:")
+    console.log("1. Search for: john.eliason@fbfs.com")
+    console.log("2. Check the Session Recordings section")
+    console.log("3. Look at browser console for [CLARITY DEBUG] logs")
   } catch (error) {
-    console.error('❌ Script failed:', error.message)
+    console.error("❌ Script failed:", error.message)
   }
 }
 

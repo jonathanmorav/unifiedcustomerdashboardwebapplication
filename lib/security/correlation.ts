@@ -1,11 +1,11 @@
-import { headers } from 'next/headers'
+import { headers } from "next/headers"
 
 /**
  * Correlation ID utilities for distributed tracing
  */
 export class CorrelationTracking {
-  static readonly CORRELATION_HEADER = 'X-Correlation-ID'
-  static readonly REQUEST_ID_HEADER = 'X-Request-ID'
+  static readonly CORRELATION_HEADER = "X-Correlation-ID"
+  static readonly REQUEST_ID_HEADER = "X-Request-ID"
 
   /**
    * Get correlation ID from current request context
@@ -34,20 +34,18 @@ export class CorrelationTracking {
   /**
    * Add correlation headers to outgoing requests
    */
-  static async addCorrelationHeaders(
-    requestHeaders: HeadersInit = {}
-  ): Promise<HeadersInit> {
+  static async addCorrelationHeaders(requestHeaders: HeadersInit = {}): Promise<HeadersInit> {
     const correlationId = await this.getCorrelationId()
     const requestId = await this.getRequestId()
 
     const headers = new Headers(requestHeaders)
-    
+
     if (correlationId) {
       headers.set(this.CORRELATION_HEADER, correlationId)
     }
-    
+
     if (requestId) {
-      headers.set('X-Parent-Request-ID', requestId)
+      headers.set("X-Parent-Request-ID", requestId)
     }
 
     return headers
@@ -59,7 +57,7 @@ export class CorrelationTracking {
   static createTracedFetch() {
     return async (url: string, options?: RequestInit): Promise<Response> => {
       const tracedHeaders = await this.addCorrelationHeaders(options?.headers)
-      
+
       return fetch(url, {
         ...options,
         headers: tracedHeaders,
@@ -70,11 +68,7 @@ export class CorrelationTracking {
   /**
    * Log with correlation context
    */
-  static async log(
-    level: 'info' | 'warn' | 'error',
-    message: string,
-    data?: any
-  ) {
+  static async log(level: "info" | "warn" | "error", message: string, data?: any) {
     const correlationId = await this.getCorrelationId()
     const requestId = await this.getRequestId()
 
@@ -101,17 +95,17 @@ export function createTracedApiClient(baseURL: string) {
     async get(path: string, options?: RequestInit) {
       return tracedFetch(`${baseURL}${path}`, {
         ...options,
-        method: 'GET',
+        method: "GET",
       })
     },
 
     async post(path: string, data?: any, options?: RequestInit) {
       return tracedFetch(`${baseURL}${path}`, {
         ...options,
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(data),
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...options?.headers,
         },
       })
@@ -120,10 +114,10 @@ export function createTracedApiClient(baseURL: string) {
     async put(path: string, data?: any, options?: RequestInit) {
       return tracedFetch(`${baseURL}${path}`, {
         ...options,
-        method: 'PUT',
+        method: "PUT",
         body: JSON.stringify(data),
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...options?.headers,
         },
       })
@@ -132,7 +126,7 @@ export function createTracedApiClient(baseURL: string) {
     async delete(path: string, options?: RequestInit) {
       return tracedFetch(`${baseURL}${path}`, {
         ...options,
-        method: 'DELETE',
+        method: "DELETE",
       })
     },
   }

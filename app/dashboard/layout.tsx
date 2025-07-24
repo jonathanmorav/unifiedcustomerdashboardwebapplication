@@ -10,9 +10,5 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     redirect("/auth/signin")
   }
 
-  return (
-    <>
-      {children}
-    </>
-  )
+  return <>{children}</>
 }

@@ -77,16 +77,18 @@ export function UnifiedSearchSection({ onSearch, isLoading, onExport }: UnifiedS
   }
 
   return (
-    <Card className="shadow-cakewalk-medium border-cakewalk-border">
+    <Card className="border-cakewalk-border shadow-cakewalk-medium">
       <CardHeader>
-        <CardTitle className="text-cakewalk-h3 text-cakewalk-text-primary">Customer Search</CardTitle>
+        <CardTitle className="text-cakewalk-h3 text-cakewalk-text-primary">
+          Customer Search
+        </CardTitle>
         <CardDescription className="text-cakewalk-body-xs text-cakewalk-text-secondary">
           Search for customer data across HubSpot and Dwolla systems
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={searchType} onValueChange={setSearchType} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="mb-6 grid w-full grid-cols-4">
             <TabsTrigger value="email" className="text-cakewalk-body-xs">
               Email
             </TabsTrigger>
@@ -103,7 +105,10 @@ export function UnifiedSearchSection({ onSearch, isLoading, onExport }: UnifiedS
 
           <TabsContent value="email" className="space-y-4">
             <div>
-              <Label htmlFor="email" className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+              <Label
+                htmlFor="email"
+                className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary"
+              >
                 Email Address
               </Label>
               <Input
@@ -113,7 +118,7 @@ export function UnifiedSearchSection({ onSearch, isLoading, onExport }: UnifiedS
                 value={searchValues.email}
                 onChange={(e) => setSearchValues((prev) => ({ ...prev, email: e.target.value }))}
                 onKeyPress={handleKeyPress}
-                className="mt-2 h-11 border-cakewalk-border rounded-xl"
+                className="mt-2 h-11 rounded-xl border-cakewalk-border"
               />
             </div>
           </TabsContent>
@@ -121,29 +126,39 @@ export function UnifiedSearchSection({ onSearch, isLoading, onExport }: UnifiedS
           <TabsContent value="name" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="firstName" className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                <Label
+                  htmlFor="firstName"
+                  className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary"
+                >
                   First Name
                 </Label>
                 <Input
                   id="firstName"
                   placeholder="John"
                   value={searchValues.firstName}
-                  onChange={(e) => setSearchValues((prev) => ({ ...prev, firstName: e.target.value }))}
+                  onChange={(e) =>
+                    setSearchValues((prev) => ({ ...prev, firstName: e.target.value }))
+                  }
                   onKeyPress={handleKeyPress}
-                  className="mt-2 h-11 border-cakewalk-border rounded-xl"
+                  className="mt-2 h-11 rounded-xl border-cakewalk-border"
                 />
               </div>
               <div>
-                <Label htmlFor="lastName" className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                <Label
+                  htmlFor="lastName"
+                  className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary"
+                >
                   Last Name
                 </Label>
                 <Input
                   id="lastName"
                   placeholder="Doe"
                   value={searchValues.lastName}
-                  onChange={(e) => setSearchValues((prev) => ({ ...prev, lastName: e.target.value }))}
+                  onChange={(e) =>
+                    setSearchValues((prev) => ({ ...prev, lastName: e.target.value }))
+                  }
                   onKeyPress={handleKeyPress}
-                  className="mt-2 h-11 border-cakewalk-border rounded-xl"
+                  className="mt-2 h-11 rounded-xl border-cakewalk-border"
                 />
               </div>
             </div>
@@ -151,23 +166,31 @@ export function UnifiedSearchSection({ onSearch, isLoading, onExport }: UnifiedS
 
           <TabsContent value="business_name" className="space-y-4">
             <div>
-              <Label htmlFor="businessName" className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+              <Label
+                htmlFor="businessName"
+                className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary"
+              >
                 Business Name
               </Label>
               <Input
                 id="businessName"
                 placeholder="Acme Corporation"
                 value={searchValues.businessName}
-                onChange={(e) => setSearchValues((prev) => ({ ...prev, businessName: e.target.value }))}
+                onChange={(e) =>
+                  setSearchValues((prev) => ({ ...prev, businessName: e.target.value }))
+                }
                 onKeyPress={handleKeyPress}
-                className="mt-2 h-11 border-cakewalk-border rounded-xl"
+                className="mt-2 h-11 rounded-xl border-cakewalk-border"
               />
             </div>
           </TabsContent>
 
           <TabsContent value="dwolla_id" className="space-y-4">
             <div>
-              <Label htmlFor="dwollaId" className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+              <Label
+                htmlFor="dwollaId"
+                className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary"
+              >
                 Dwolla Customer ID
               </Label>
               <Input
@@ -176,26 +199,26 @@ export function UnifiedSearchSection({ onSearch, isLoading, onExport }: UnifiedS
                 value={searchValues.dwollaId}
                 onChange={(e) => setSearchValues((prev) => ({ ...prev, dwollaId: e.target.value }))}
                 onKeyPress={handleKeyPress}
-                className="mt-2 h-11 border-cakewalk-border rounded-xl"
+                className="mt-2 h-11 rounded-xl border-cakewalk-border"
               />
             </div>
           </TabsContent>
         </Tabs>
 
-        <div className="flex gap-3 mt-6">
+        <div className="mt-6 flex gap-3">
           <Button
             onClick={handleSearch}
             disabled={isSearchDisabled() || isLoading}
-            className="bg-cakewalk-primary hover:bg-cakewalk-primary-royal text-white font-semibold px-6 py-2.5 rounded-xl transition-all duration-200 hover:shadow-cakewalk-hover"
+            className="rounded-xl bg-cakewalk-primary px-6 py-2.5 font-semibold text-white transition-all duration-200 hover:bg-cakewalk-primary-royal hover:shadow-cakewalk-hover"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Searching...
               </>
             ) : (
               <>
-                <Search className="w-4 h-4 mr-2" />
+                <Search className="mr-2 h-4 w-4" />
                 Search Customer
               </>
             )}
@@ -206,9 +229,9 @@ export function UnifiedSearchSection({ onSearch, isLoading, onExport }: UnifiedS
               variant="outline"
               onClick={onExport}
               disabled={isLoading}
-              className="border-cakewalk-border text-cakewalk-text-primary hover:bg-cakewalk-alice-200 px-6 py-2.5 rounded-xl bg-transparent"
+              className="rounded-xl border-cakewalk-border bg-transparent px-6 py-2.5 text-cakewalk-text-primary hover:bg-cakewalk-alice-200"
             >
-              <Download className="w-4 h-4 mr-2" />
+              <Download className="mr-2 h-4 w-4" />
               Export PDF
             </Button>
           )}

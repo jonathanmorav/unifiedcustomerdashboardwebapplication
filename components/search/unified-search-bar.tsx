@@ -62,7 +62,7 @@ export function UnifiedSearchBar({
   return (
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
       <div className="relative">
-        <SearchIcon className="text-cakewalk-text-secondary absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+        <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cakewalk-text-secondary" />
         <Input
           ref={inputRef}
           type="text"
@@ -71,10 +71,10 @@ export function UnifiedSearchBar({
           onFocus={() => value && suggestions.length > 0 && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
           placeholder="Search by email, name, business name, or Dwolla ID..."
-          className="h-12 pr-24 pl-10 text-base"
+          className="h-12 pl-10 pr-24 text-base"
           disabled={isLoading}
         />
-        <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
+        <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
           {value && (
             <Button
               type="button"

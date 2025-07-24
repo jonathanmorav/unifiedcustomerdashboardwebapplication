@@ -10,15 +10,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-cakewalk-primary hover:bg-cakewalk-primary-royal text-white hover:shadow-cakewalk-hover",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-cakewalk-primary text-white hover:bg-cakewalk-primary-royal hover:shadow-cakewalk-hover",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
           "border border-cakewalk-border bg-transparent text-cakewalk-text-primary hover:bg-cakewalk-alice-200",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost:
-          "hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

@@ -10,23 +10,23 @@ jest.mock("@/lib/db", () => ({
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
-      update: jest.fn()
+      update: jest.fn(),
     },
     session: {
-      deleteMany: jest.fn()
-    }
-  }
+      deleteMany: jest.fn(),
+    },
+  },
 }))
 
 jest.mock("@/lib/security/audit", () => ({
-  createAuditLog: jest.fn()
+  createAuditLog: jest.fn(),
 }))
 
 jest.mock("@/lib/env", () => ({
   getEnv: jest.fn().mockReturnValue({
     ALLOWED_EMAILS: "test@example.com,admin@example.com",
-    NEXTAUTH_SECRET: "test-secret"
-  })
+    NEXTAUTH_SECRET: "test-secret",
+  }),
 }))
 
 describe("NextAuth Configuration", () => {
@@ -39,7 +39,7 @@ describe("NextAuth Configuration", () => {
     const mockUser: User = {
       id: "1",
       email: "test@example.com",
-      name: "Test User"
+      name: "Test User",
     }
 
     it("should allow whitelisted email to sign in", async () => {
@@ -48,7 +48,7 @@ describe("NextAuth Configuration", () => {
         account: null,
         profile: undefined,
         email: undefined,
-        credentials: undefined
+        credentials: undefined,
       })
 
       expect(result).toBe(true)
@@ -57,7 +57,7 @@ describe("NextAuth Configuration", () => {
     it("should deny non-whitelisted email", async () => {
       const nonWhitelistedUser: User = {
         ...mockUser,
-        email: "notallowed@example.com"
+        email: "notallowed@example.com",
       }
 
       const result = await authOptions.callbacks?.signIn?.({
@@ -65,7 +65,7 @@ describe("NextAuth Configuration", () => {
         account: null,
         profile: undefined,
         email: undefined,
-        credentials: undefined
+        credentials: undefined,
       })
 
       expect(result).toBe(false)
@@ -74,7 +74,7 @@ describe("NextAuth Configuration", () => {
     it("should deny users without email", async () => {
       const userWithoutEmail: User = {
         ...mockUser,
-        email: null
+        email: null,
       }
 
       const result = await authOptions.callbacks?.signIn?.({
@@ -82,7 +82,7 @@ describe("NextAuth Configuration", () => {
         account: null,
         profile: undefined,
         email: undefined,
-        credentials: undefined
+        credentials: undefined,
       })
 
       expect(result).toBe(false)
@@ -90,10 +90,10 @@ describe("NextAuth Configuration", () => {
 
     it("should handle wildcard domain whitelist", async () => {
       process.env.ALLOWED_EMAILS = "*@company.com"
-      
+
       const companyUser: User = {
         ...mockUser,
-        email: "anyone@company.com"
+        email: "anyone@company.com",
       }
 
       const result = await authOptions.callbacks?.signIn?.({
@@ -101,7 +101,7 @@ describe("NextAuth Configuration", () => {
         account: null,
         profile: undefined,
         email: undefined,
-        credentials: undefined
+        credentials: undefined,
       })
 
       expect(result).toBe(true)
@@ -114,21 +114,21 @@ describe("NextAuth Configuration", () => {
       email: "test@example.com",
       name: "Test User",
       picture: "https://example.com/pic.jpg",
-      role: "SUPPORT"
+      role: "SUPPORT",
     }
 
     const mockSession = {
       expires: new Date().toISOString(),
       user: {
-        email: "test@example.com"
-      }
+        email: "test@example.com",
+      },
     }
 
     it("should populate session with token data", async () => {
       const result = await authOptions.callbacks?.session?.({
         session: mockSession as any,
         token: mockToken,
-        user: {} as AdapterUser
+        user: {} as AdapterUser,
       })
 
       expect(result.user).toEqual({
@@ -136,7 +136,7 @@ describe("NextAuth Configuration", () => {
         email: "test@example.com",
         name: "Test User",
         image: "https://example.com/pic.jpg",
-        role: "SUPPORT"
+        role: "SUPPORT",
       })
     })
 
@@ -146,7 +146,7 @@ describe("NextAuth Configuration", () => {
       const result = await authOptions.callbacks?.session?.({
         session: mockSession as any,
         token: incompleteToken,
-        user: {} as AdapterUser
+        user: {} as AdapterUser,
       })
 
       expect(result.user.id).toBe("1")
@@ -157,14 +157,14 @@ describe("NextAuth Configuration", () => {
   describe("callbacks.jwt", () => {
     const mockToken = {
       sub: "1",
-      email: "test@example.com"
+      email: "test@example.com",
     }
 
     it("should add user role on first sign in", async () => {
       const mockUser = {
         id: "1",
         email: "test@example.com",
-        role: "ADMIN"
+        role: "ADMIN",
       }
 
       ;(prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(mockUser)
@@ -174,13 +174,13 @@ describe("NextAuth Configuration", () => {
         user: mockUser as any,
         account: null,
         profile: undefined,
-        isNewUser: false
+        isNewUser: false,
       })
 
       expect(result.role).toBe("ADMIN")
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: "test@example.com" },
-        select: { role: true }
+        select: { role: true },
       })
     })
 
@@ -188,7 +188,7 @@ describe("NextAuth Configuration", () => {
       const existingToken = {
         ...mockToken,
         role: "SUPPORT",
-        customField: "value"
+        customField: "value",
       }
 
       const result = await authOptions.callbacks?.jwt?.({
@@ -196,20 +196,18 @@ describe("NextAuth Configuration", () => {
         user: null as any,
         account: null,
         profile: undefined,
-        isNewUser: false
+        isNewUser: false,
       })
 
       expect(result).toEqual(existingToken)
     })
 
     it("should handle database errors gracefully", async () => {
-      ;(prisma.user.findUnique as jest.Mock).mockRejectedValueOnce(
-        new Error("Database error")
-      )
+      ;(prisma.user.findUnique as jest.Mock).mockRejectedValueOnce(new Error("Database error"))
 
       const mockUser = {
         id: "1",
-        email: "test@example.com"
+        email: "test@example.com",
       }
 
       const result = await authOptions.callbacks?.jwt?.({
@@ -217,7 +215,7 @@ describe("NextAuth Configuration", () => {
         user: mockUser as any,
         account: null,
         profile: undefined,
-        isNewUser: false
+        isNewUser: false,
       })
 
       expect(result.role).toBe("SUPPORT") // Default role
@@ -228,14 +226,14 @@ describe("NextAuth Configuration", () => {
     it("should create audit log on sign in", async () => {
       const mockUser = {
         id: "1",
-        email: "test@example.com"
+        email: "test@example.com",
       }
 
       await authOptions.events?.signIn?.({
         user: mockUser as any,
         account: null,
         profile: undefined,
-        isNewUser: false
+        isNewUser: false,
       })
 
       expect(createAuditLog).toHaveBeenCalledWith({
@@ -243,8 +241,8 @@ describe("NextAuth Configuration", () => {
         action: "SIGN_IN",
         metadata: {
           email: "test@example.com",
-          timestamp: expect.any(String)
-        }
+          timestamp: expect.any(String),
+        },
       })
     })
 
@@ -252,11 +250,11 @@ describe("NextAuth Configuration", () => {
       const mockSession = {
         sessionToken: "token-123",
         userId: "1",
-        expires: new Date()
+        expires: new Date(),
       }
 
       await authOptions.events?.signOut?.({
-        session: mockSession as any
+        session: mockSession as any,
       })
 
       expect(createAuditLog).toHaveBeenCalledWith({
@@ -264,14 +262,14 @@ describe("NextAuth Configuration", () => {
         action: "SIGN_OUT",
         metadata: {
           sessionToken: "token-123",
-          timestamp: expect.any(String)
-        }
+          timestamp: expect.any(String),
+        },
       })
     })
 
     it("should handle sign out without session gracefully", async () => {
       await authOptions.events?.signOut?.({
-        session: null as any
+        session: null as any,
       })
 
       expect(createAuditLog).not.toHaveBeenCalled()

@@ -5,13 +5,15 @@ import { AuthScreen } from "@/components/v0/auth-screen"
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-cakewalk-alice-100 flex items-center justify-center p-4">
-        <div className="animate-pulse">
-          <div className="w-96 h-96 bg-white rounded-xl shadow-lg"></div>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-cakewalk-alice-100 dark:bg-gray-900 p-4">
+          <div className="animate-pulse">
+            <div className="h-96 w-96 rounded-xl bg-white dark:bg-gray-800 shadow-lg"></div>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <AuthScreen />
     </Suspense>
   )

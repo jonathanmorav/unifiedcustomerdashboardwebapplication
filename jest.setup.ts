@@ -1,13 +1,14 @@
 // Learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom'
-import { TextEncoder, TextDecoder } from 'util'
+import "@testing-library/jest-dom"
+import { TextEncoder, TextDecoder } from "util"
 
 // Polyfill for Node.js environment
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder as any
 
 // Polyfill setImmediate for winston
-global.setImmediate = global.setImmediate || ((fn: any, ...args: any[]) => setTimeout(fn, 0, ...args))
+global.setImmediate =
+  global.setImmediate || ((fn: any, ...args: any[]) => setTimeout(fn, 0, ...args))
 
 // Mock Next.js Request/Response objects
 global.Request = class Request {
@@ -15,27 +16,27 @@ global.Request = class Request {
   method: string
   headers: Headers
   body: any
-  
+
   constructor(input: string | Request, init?: RequestInit) {
-    if (typeof input === 'string') {
+    if (typeof input === "string") {
       this.url = input
     } else {
       this.url = input.url
     }
-    this.method = init?.method || 'GET'
+    this.method = init?.method || "GET"
     this.headers = new Headers(init?.headers)
     this.body = init?.body
   }
-  
+
   async json() {
-    if (typeof this.body === 'string') {
+    if (typeof this.body === "string") {
       return JSON.parse(this.body)
     }
     return this.body
   }
-  
+
   async text() {
-    return this.body?.toString() || ''
+    return this.body?.toString() || ""
   }
 } as any
 
@@ -44,31 +45,31 @@ global.Response = class Response {
   status: number
   statusText: string
   headers: Headers
-  
+
   constructor(body?: any, init?: ResponseInit) {
     this.body = body
     this.status = init?.status || 200
-    this.statusText = init?.statusText || 'OK'
+    this.statusText = init?.statusText || "OK"
     this.headers = new Headers(init?.headers)
   }
-  
+
   async json() {
-    if (typeof this.body === 'string') {
+    if (typeof this.body === "string") {
       return JSON.parse(this.body)
     }
     return this.body
   }
-  
+
   async text() {
-    return this.body?.toString() || ''
+    return this.body?.toString() || ""
   }
-  
+
   static json(data: any, init?: ResponseInit) {
     return new Response(JSON.stringify(data), {
       ...init,
       headers: {
         ...init?.headers,
-        'content-type': 'application/json',
+        "content-type": "application/json",
       },
     })
   }
@@ -76,7 +77,7 @@ global.Response = class Response {
 
 global.Headers = class Headers {
   private headers: Map<string, string> = new Map()
-  
+
   constructor(init?: HeadersInit) {
     if (init) {
       if (Array.isArray(init)) {
@@ -88,47 +89,47 @@ global.Headers = class Headers {
       }
     }
   }
-  
+
   get(name: string) {
     return this.headers.get(name.toLowerCase())
   }
-  
+
   set(name: string, value: string) {
     this.headers.set(name.toLowerCase(), value)
   }
-  
+
   has(name: string) {
     return this.headers.has(name.toLowerCase())
   }
-  
+
   forEach(callback: (value: string, key: string) => void) {
     this.headers.forEach(callback)
   }
 } as any
 
 // Mock environment variables for all tests
-process.env.NEXTAUTH_URL = 'http://localhost:3000'
-process.env.NEXTAUTH_SECRET = 'test-secret-for-testing-only'
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
-process.env.ALLOWED_EMAILS = 'test@example.com,admin@example.com'
-process.env.HUBSPOT_ACCESS_TOKEN = 'test-hubspot-token'
-process.env.HUBSPOT_BASE_URL = 'https://api.hubapi.com'
-process.env.DWOLLA_KEY = 'test-dwolla-key'
-process.env.DWOLLA_SECRET = 'test-dwolla-secret'
-process.env.DWOLLA_ENVIRONMENT = 'sandbox'
-process.env.DWOLLA_BASE_URL = 'https://api-sandbox.dwolla.com'
-process.env.NODE_ENV = 'test'
+process.env.NEXTAUTH_URL = "http://localhost:3000"
+process.env.NEXTAUTH_SECRET = "test-secret-for-testing-only"
+process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test"
+process.env.ALLOWED_EMAILS = "test@example.com,admin@example.com"
+process.env.HUBSPOT_ACCESS_TOKEN = "test-hubspot-token"
+process.env.HUBSPOT_BASE_URL = "https://api.hubapi.com"
+process.env.DWOLLA_KEY = "test-dwolla-key"
+process.env.DWOLLA_SECRET = "test-dwolla-secret"
+process.env.DWOLLA_ENVIRONMENT = "sandbox"
+process.env.DWOLLA_BASE_URL = "https://api-sandbox.dwolla.com"
+process.env.NODE_ENV = "test"
 
 // Mock crypto for CSRF token generation
-Object.defineProperty(global, 'crypto', {
+Object.defineProperty(global, "crypto", {
   value: {
-    randomBytes: (size: number) => Buffer.alloc(size, 'test'),
+    randomBytes: (size: number) => Buffer.alloc(size, "test"),
     createHmac: () => ({
       update: () => ({
-        digest: () => 'test-hmac'
-      })
-    })
-  }
+        digest: () => "test-hmac",
+      }),
+    }),
+  },
 })
 
 // Mock ResizeObserver for responsive components
@@ -150,9 +151,9 @@ global.IntersectionObserver = class IntersectionObserver {
 Element.prototype.scrollIntoView = jest.fn()
 
 // Mock window.matchMedia for theme tests
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -165,23 +166,23 @@ Object.defineProperty(window, 'matchMedia', {
 })
 
 // Mock Next.js router
-jest.mock('next/navigation', () => ({
+jest.mock("next/navigation", () => ({
   useRouter() {
     return {
       push: jest.fn(),
       replace: jest.fn(),
       prefetch: jest.fn(),
       back: jest.fn(),
-      pathname: '/',
+      pathname: "/",
       query: {},
-      asPath: '/',
+      asPath: "/",
     }
   },
   useSearchParams() {
     return new URLSearchParams()
   },
   usePathname() {
-    return '/'
+    return "/"
   },
   useParams() {
     return {}
@@ -189,10 +190,10 @@ jest.mock('next/navigation', () => ({
 }))
 
 // Mock NextAuth
-jest.mock('next-auth/react', () => ({
+jest.mock("next-auth/react", () => ({
   useSession: jest.fn(() => ({
     data: null,
-    status: 'unauthenticated',
+    status: "unauthenticated",
   })),
   signIn: jest.fn(),
   signOut: jest.fn(),
@@ -200,7 +201,7 @@ jest.mock('next-auth/react', () => ({
 }))
 
 // Mock Prisma client
-jest.mock('@/lib/db', () => ({
+jest.mock("@/lib/db", () => ({
   prisma: {
     user: {
       findUnique: jest.fn(),
@@ -265,9 +266,8 @@ beforeAll(() => {
   console.error = (...args: any[]) => {
     // Still show actual errors but filter out React warnings
     if (
-      typeof args[0] === 'string' &&
-      (args[0].includes('Warning: ReactDOM.render') ||
-       args[0].includes('Warning: useLayoutEffect'))
+      typeof args[0] === "string" &&
+      (args[0].includes("Warning: ReactDOM.render") || args[0].includes("Warning: useLayoutEffect"))
     ) {
       return
     }

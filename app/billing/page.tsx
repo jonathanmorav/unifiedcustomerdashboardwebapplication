@@ -12,7 +12,9 @@ import { TransactionTable } from "@/components/billing/TransactionTable"
 import { BillingFilters, type BillingFilterValues } from "@/components/billing/BillingFilters"
 import { useACHTransactions } from "@/hooks/use-ach-transactions"
 import { TransactionDetailModal } from "@/components/billing/TransactionDetailModal"
+import { FailureAnalytics } from "@/components/billing/FailureAnalytics"
 import { Pagination } from "@/components/ui/pagination"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function BillingPage() {
   const { data: session, status } = useSession()
@@ -212,7 +214,7 @@ export default function BillingPage() {
         {/* Page Title and Actions */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-cakewalk-text-primary">
               ACH Transaction Tracking
             </h1>
             <p className="mt-1 text-gray-600 dark:text-gray-400">
@@ -270,19 +272,27 @@ export default function BillingPage() {
         {/* Metrics Dashboard */}
         <BillingMetrics metrics={metrics} isLoading={isLoading} compactView={true} />
 
-        {/* Filters Section */}
-        <div className="mt-6">
-          <BillingFilters
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            onClearFilters={handleClearFilters}
-            isCollapsed={isFilterCollapsed}
-            onToggleCollapse={() => setIsFilterCollapsed(!isFilterCollapsed)}
-          />
-        </div>
+        {/* Tabs for Transactions and Analytics */}
+        <Tabs defaultValue="transactions" className="mt-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="analytics">Failure Analytics</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="transactions">
+            {/* Filters Section */}
+            <div className="mt-6">
+              <BillingFilters
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                onClearFilters={handleClearFilters}
+                isCollapsed={isFilterCollapsed}
+                onToggleCollapse={() => setIsFilterCollapsed(!isFilterCollapsed)}
+              />
+            </div>
 
-        {/* Transactions Table */}
-        <Card className="mt-6 shadow-cakewalk-medium">
+            {/* Transactions Table */}
+            <Card className="mt-6 shadow-cakewalk-medium">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>
@@ -336,6 +346,23 @@ export default function BillingPage() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+          
+          <TabsContent value="analytics">
+            <div className="mt-6">
+              <FailureAnalytics 
+                dateRange={
+                  filters.dateRange.start && filters.dateRange.end
+                    ? {
+                        from: new Date(filters.dateRange.start),
+                        to: new Date(filters.dateRange.end)
+                      }
+                    : undefined
+                }
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Transaction Detail Modal */}
         <TransactionDetailModal

@@ -36,19 +36,19 @@ export function DwollaResultPanel({ data, isLoading, error }: DwollaResultPanelP
 
   if (error) {
     return (
-      <div className="bg-cakewalk-error/5 border-cakewalk-error/20 rounded-lg border p-6">
-        <div className="text-cakewalk-error flex items-center gap-2">
+      <div className="rounded-lg border border-cakewalk-error/20 bg-cakewalk-error/5 p-6">
+        <div className="flex items-center gap-2 text-cakewalk-error">
           <AlertCircleIcon className="h-5 w-5" />
           <p className="font-medium">Dwolla Error</p>
         </div>
-        <p className="text-cakewalk-text-secondary mt-2 text-sm">{error}</p>
+        <p className="mt-2 text-sm text-cakewalk-text-secondary">{error}</p>
       </div>
     )
   }
 
   if (!data) {
     return (
-      <div className="text-cakewalk-text-secondary py-12 text-center">
+      <div className="py-12 text-center text-cakewalk-text-secondary">
         <BanknoteIcon className="mx-auto mb-4 h-12 w-12 opacity-50" />
         <p>No Dwolla data found</p>
       </div>
@@ -84,12 +84,12 @@ export function DwollaResultPanel({ data, isLoading, error }: DwollaResultPanelP
       >
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <UserIcon className="text-cakewalk-text-secondary mt-0.5 h-5 w-5" />
+            <UserIcon className="mt-0.5 h-5 w-5 text-cakewalk-text-secondary" />
             <div className="flex-1">
-              <p className="text-cakewalk-text-secondary text-sm">Name</p>
+              <p className="text-sm text-cakewalk-text-secondary">Name</p>
               <p className="font-medium">{customer.name}</p>
               {customer.businessName && (
-                <p className="text-cakewalk-text-secondary text-sm">
+                <p className="text-sm text-cakewalk-text-secondary">
                   Business: {customer.businessName}
                 </p>
               )}
@@ -97,30 +97,30 @@ export function DwollaResultPanel({ data, isLoading, error }: DwollaResultPanelP
           </div>
 
           <div className="flex items-start gap-3">
-            <MailIcon className="text-cakewalk-text-secondary mt-0.5 h-5 w-5" />
+            <MailIcon className="mt-0.5 h-5 w-5 text-cakewalk-text-secondary" />
             <div className="flex-1">
-              <p className="text-cakewalk-text-secondary text-sm">Email</p>
+              <p className="text-sm text-cakewalk-text-secondary">Email</p>
               <p className="font-medium">{customer.email}</p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <CalendarIcon className="text-cakewalk-text-secondary mt-0.5 h-5 w-5" />
+            <CalendarIcon className="mt-0.5 h-5 w-5 text-cakewalk-text-secondary" />
             <div className="flex-1">
-              <p className="text-cakewalk-text-secondary text-sm">Customer Type & Status</p>
+              <p className="text-sm text-cakewalk-text-secondary">Customer Type & Status</p>
               <div className="flex items-center gap-2">
                 <Badge variant="outline">{customer.type}</Badge>
                 <Badge variant={getStatusColor(customer.status)}>{customer.status}</Badge>
               </div>
-              <p className="text-cakewalk-text-secondary mt-1 text-sm">
+              <p className="mt-1 text-sm text-cakewalk-text-secondary">
                 Created: {formatDateTime(customer.created)}
               </p>
             </div>
           </div>
 
           {notificationCount > 0 && (
-            <div className="bg-cakewalk-warning/10 flex items-center gap-2 rounded-lg p-3">
-              <BellIcon className="text-cakewalk-warning h-5 w-5" />
+            <div className="flex items-center gap-2 rounded-lg bg-cakewalk-warning/10 p-3">
+              <BellIcon className="h-5 w-5 text-cakewalk-warning" />
               <p className="text-sm">
                 {notificationCount} notification{notificationCount === 1 ? "" : "s"}
               </p>
@@ -140,10 +140,10 @@ export function DwollaResultPanel({ data, isLoading, error }: DwollaResultPanelP
                 <div key={source.id} className="rounded-lg border p-4">
                   <div className="mb-2 flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <CreditCardIcon className="text-cakewalk-text-secondary h-5 w-5" />
+                      <CreditCardIcon className="h-5 w-5 text-cakewalk-text-secondary" />
                       <div>
                         <p className="font-medium">{source.name}</p>
-                        <p className="text-cakewalk-text-secondary text-sm capitalize">
+                        <p className="text-sm capitalize text-cakewalk-text-secondary">
                           {source.type} {source.bankAccountType && `• ${source.bankAccountType}`}
                         </p>
                       </div>
@@ -164,7 +164,7 @@ export function DwollaResultPanel({ data, isLoading, error }: DwollaResultPanelP
                   </div>
 
                   {source.accountNumberMasked && (
-                    <div className="text-cakewalk-text-secondary text-sm">
+                    <div className="text-sm text-cakewalk-text-secondary">
                       Account: {source.accountNumberMasked}
                       {source.routingNumber && ` • Routing: ${source.routingNumber}`}
                     </div>
@@ -187,12 +187,12 @@ export function DwollaResultPanel({ data, isLoading, error }: DwollaResultPanelP
                 <div key={transfer.id} className="rounded-lg border p-4">
                   <div className="mb-2 flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <ArrowRightIcon className="text-cakewalk-text-secondary h-5 w-5" />
+                      <ArrowRightIcon className="h-5 w-5 text-cakewalk-text-secondary" />
                       <div>
                         <p className="text-lg font-medium">
                           {formatCurrency(transfer.amount, transfer.currency)}
                         </p>
-                        <p className="text-cakewalk-text-secondary text-sm">
+                        <p className="text-sm text-cakewalk-text-secondary">
                           {formatRelativeTime(transfer.created)}
                         </p>
                       </div>

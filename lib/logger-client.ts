@@ -3,18 +3,18 @@
  * Does not use any Node.js-specific modules
  */
 
-export type LogLevel = 'error' | 'warn' | 'info' | 'debug'
+export type LogLevel = "error" | "warn" | "info" | "debug"
 
 export interface LogContext {
   [key: string]: any
 }
 
 class ClientLogger {
-  private isDevelopment = process.env.NODE_ENV === 'development'
+  private isDevelopment = process.env.NODE_ENV === "development"
 
   private formatMessage(level: string, message: string, context?: LogContext): string {
     const timestamp = new Date().toISOString()
-    const contextStr = context ? ` ${JSON.stringify(context)}` : ''
+    const contextStr = context ? ` ${JSON.stringify(context)}` : ""
     return `[${timestamp}] [${level.toUpperCase()}] ${message}${contextStr}`
   }
 
@@ -27,28 +27,28 @@ class ClientLogger {
         errorStack: error.stack,
       }),
     }
-    console.error(this.formatMessage('error', message, errorContext))
-    
+    console.error(this.formatMessage("error", message, errorContext))
+
     // In production, you could send errors to a monitoring service
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+    if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
       // Example: Send to error monitoring service
       // window.errorReporter?.log(message, errorContext)
     }
   }
 
   warn(message: string, context?: LogContext) {
-    console.warn(this.formatMessage('warn', message, context))
+    console.warn(this.formatMessage("warn", message, context))
   }
 
   info(message: string, context?: LogContext) {
     if (this.isDevelopment) {
-      console.info(this.formatMessage('info', message, context))
+      console.info(this.formatMessage("info", message, context))
     }
   }
 
   debug(message: string, context?: LogContext) {
     if (this.isDevelopment) {
-      console.debug(this.formatMessage('debug', message, context))
+      console.debug(this.formatMessage("debug", message, context))
     }
   }
 }

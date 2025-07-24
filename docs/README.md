@@ -80,6 +80,7 @@ grep -r "MFA\|2FA" docs/
 ## 📞 Contact
 
 For documentation questions or improvements:
+
 - Create an issue in the repository
 - Tag with `documentation` label
 - Include specific section references

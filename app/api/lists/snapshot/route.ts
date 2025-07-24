@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     await log.info("Starting list snapshot collection", {
       userId: session.user.id,
       correlationId,
-      operation: "lists_snapshot_start"
+      operation: "lists_snapshot_start",
     })
 
     // Initialize HubSpot client
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare snapshot data
     const now = new Date()
-    const snapshots = listsResponse.lists.map(list => ({
+    const snapshots = listsResponse.lists.map((list) => ({
       listId: list.listId,
       listName: list.name,
       listType: list.listType,
@@ -41,13 +41,13 @@ export async function POST(request: NextRequest) {
     // Delete today's existing snapshots to avoid duplicates
     const startOfToday = new Date()
     startOfToday.setHours(0, 0, 0, 0)
-    
+
     await prisma.listSnapshot.deleteMany({
       where: {
         snapshotDate: {
-          gte: startOfToday
-        }
-      }
+          gte: startOfToday,
+        },
+      },
     })
 
     // Create new snapshots
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Update metadata with last snapshot date
-    const metadataUpdates = listsResponse.lists.map(list => 
+    const metadataUpdates = listsResponse.lists.map((list) =>
       prisma.listMetadata.upsert({
         where: { listId: list.listId },
         update: {
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
           listName: list.name,
           listType: list.listType,
           lastSnapshotDate: now,
-        }
+        },
       })
     )
 
@@ -80,13 +80,13 @@ export async function POST(request: NextRequest) {
     // Clean up old snapshots (keep 90 days)
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - 90)
-    
+
     const deletedCount = await prisma.listSnapshot.deleteMany({
       where: {
         snapshotDate: {
-          lt: cutoffDate
-        }
-      }
+          lt: cutoffDate,
+        },
+      },
     })
 
     await log.info("List snapshot collection completed", {
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       snapshotsCreated: createdSnapshots.count,
       oldSnapshotsDeleted: deletedCount.count,
       correlationId,
-      operation: "lists_snapshot_success"
+      operation: "lists_snapshot_success",
     })
 
     return NextResponse.json({
@@ -104,21 +104,20 @@ export async function POST(request: NextRequest) {
         listsProcessed: snapshots.length,
         oldSnapshotsDeleted: deletedCount.count,
         snapshotDate: now.toISOString(),
-      }
+      },
     })
-
   } catch (error) {
     await log.error("Error collecting list snapshots", {
       error: error instanceof Error ? error.message : String(error),
       correlationId,
-      operation: "lists_snapshot_error"
+      operation: "lists_snapshot_error",
     })
 
     return NextResponse.json(
       {
         success: false,
         error: "Failed to collect list snapshots",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     )
@@ -138,23 +137,23 @@ export async function GET(request: NextRequest) {
     // Get the most recent snapshot
     const lastSnapshot = await prisma.listSnapshot.findFirst({
       orderBy: {
-        snapshotDate: 'desc'
+        snapshotDate: "desc",
       },
       select: {
         snapshotDate: true,
-      }
+      },
     })
 
     // Get count of lists with snapshots today
     const startOfToday = new Date()
     startOfToday.setHours(0, 0, 0, 0)
-    
+
     const todayCount = await prisma.listSnapshot.count({
       where: {
         snapshotDate: {
-          gte: startOfToday
-        }
-      }
+          gte: startOfToday,
+        },
+      },
     })
 
     return NextResponse.json({
@@ -162,24 +161,23 @@ export async function GET(request: NextRequest) {
       data: {
         lastSnapshotDate: lastSnapshot?.snapshotDate || null,
         snapshotsToday: todayCount,
-        nextSnapshotDue: lastSnapshot ? 
-          new Date(lastSnapshot.snapshotDate.getTime() + 24 * 60 * 60 * 1000) : 
-          new Date()
-      }
+        nextSnapshotDue: lastSnapshot
+          ? new Date(lastSnapshot.snapshotDate.getTime() + 24 * 60 * 60 * 1000)
+          : new Date(),
+      },
     })
-
   } catch (error) {
     await log.error("Error checking snapshot status", {
       error: error instanceof Error ? error.message : String(error),
       correlationId,
-      operation: "lists_snapshot_status_error"
+      operation: "lists_snapshot_status_error",
     })
 
     return NextResponse.json(
       {
         success: false,
         error: "Failed to check snapshot status",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     )

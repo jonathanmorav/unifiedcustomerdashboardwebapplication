@@ -1,7 +1,7 @@
-import bcrypt from 'bcryptjs'
-import { prisma } from '@/lib/db'
-import { log } from '@/lib/logger'
-import { AccountSecurity } from './account-security'
+import bcrypt from "bcryptjs"
+import { prisma } from "@/lib/db"
+import { log } from "@/lib/logger"
+import { AccountSecurity } from "./account-security"
 
 export interface PasswordOptions {
   minLength?: number
@@ -22,13 +22,13 @@ const DEFAULT_PASSWORD_OPTIONS: PasswordOptions = {
 export interface PasswordValidationResult {
   valid: boolean
   errors: string[]
-  strength: 'weak' | 'medium' | 'strong' | 'very-strong'
+  strength: "weak" | "medium" | "strong" | "very-strong"
 }
 
 export class PasswordService {
   private static readonly SALT_ROUNDS = 12
-  private static readonly PASSWORD_PEPPER = process.env.PASSWORD_PEPPER || ''
-  
+  private static readonly PASSWORD_PEPPER = process.env.PASSWORD_PEPPER || ""
+
   /**
    * Hash a password using bcrypt with pepper
    */
@@ -40,10 +40,7 @@ export class PasswordService {
   /**
    * Verify a password against a hash
    */
-  static async verifyPassword(
-    password: string,
-    hash: string
-  ): Promise<boolean> {
+  static async verifyPassword(password: string, hash: string): Promise<boolean> {
     const pepperedPassword = password + this.PASSWORD_PEPPER
     return bcrypt.compare(pepperedPassword, hash)
   }
@@ -70,21 +67,21 @@ export class PasswordService {
       })
 
       if (!user) {
-        return { success: false, error: 'User not found' }
+        return { success: false, error: "User not found" }
       }
 
       if (!user.isActive) {
-        return { success: false, error: 'Account is deactivated' }
+        return { success: false, error: "Account is deactivated" }
       }
 
       // Check if user has a password set (OAuth users might not)
       if (!user.passwordHash) {
-        await log.warn('Password verification attempted for user without password', {
+        await log.warn("Password verification attempted for user without password", {
           userId,
           email: user.email,
-          operation: 'password_verify_no_password',
+          operation: "password_verify_no_password",
         })
-        return { success: false, error: 'No password set for this account' }
+        return { success: false, error: "No password set for this account" }
       }
 
       // Verify the password
@@ -96,26 +93,26 @@ export class PasswordService {
         success: isValid,
         ipAddress,
         userAgent,
-        reason: isValid ? 'Password verification successful' : 'Invalid password',
+        reason: isValid ? "Password verification successful" : "Invalid password",
       })
 
       if (!isValid) {
-        await log.warn('Failed password verification', {
+        await log.warn("Failed password verification", {
           userId,
           email: user.email,
           ipAddress,
-          operation: 'password_verify_failed',
+          operation: "password_verify_failed",
         })
       }
 
       return { success: isValid }
     } catch (error) {
-      await log.error('Password verification error', {
+      await log.error("Password verification error", {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        operation: 'password_verify_error',
+        error: error instanceof Error ? error.message : "Unknown error",
+        operation: "password_verify_error",
       })
-      return { success: false, error: 'Verification failed' }
+      return { success: false, error: "Verification failed" }
     }
   }
 
@@ -136,36 +133,36 @@ export class PasswordService {
 
     // Uppercase check
     if (opts.requireUppercase && !/[A-Z]/.test(password)) {
-      errors.push('Password must contain at least one uppercase letter')
+      errors.push("Password must contain at least one uppercase letter")
     }
 
     // Lowercase check
     if (opts.requireLowercase && !/[a-z]/.test(password)) {
-      errors.push('Password must contain at least one lowercase letter')
+      errors.push("Password must contain at least one lowercase letter")
     }
 
     // Number check
     if (opts.requireNumbers && !/\d/.test(password)) {
-      errors.push('Password must contain at least one number')
+      errors.push("Password must contain at least one number")
     }
 
     // Special character check
     if (opts.requireSpecialChars && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      errors.push('Password must contain at least one special character')
+      errors.push("Password must contain at least one special character")
     }
 
     // Common password check
     if (this.isCommonPassword(password)) {
-      errors.push('Password is too common. Please choose a more unique password')
+      errors.push("Password is too common. Please choose a more unique password")
     }
 
     // Calculate strength
-    let strength: PasswordValidationResult['strength'] = 'weak'
+    let strength: PasswordValidationResult["strength"] = "weak"
     if (errors.length === 0) {
       const score = this.calculatePasswordScore(password)
-      if (score >= 80) strength = 'very-strong'
-      else if (score >= 60) strength = 'strong'
-      else if (score >= 40) strength = 'medium'
+      if (score >= 80) strength = "very-strong"
+      else if (score >= 60) strength = "strong"
+      else if (score >= 40) strength = "medium"
     }
 
     return {
@@ -207,21 +204,21 @@ export class PasswordService {
    */
   private static isCommonPassword(password: string): boolean {
     const commonPasswords = [
-      'password',
-      '123456',
-      'password123',
-      'admin',
-      'letmein',
-      'welcome',
-      'monkey',
-      '1234567890',
-      'qwerty',
-      'abc123',
-      'Password1',
-      'password1',
-      '123456789',
-      'welcome123',
-      'password@123',
+      "password",
+      "123456",
+      "password123",
+      "admin",
+      "letmein",
+      "welcome",
+      "monkey",
+      "1234567890",
+      "qwerty",
+      "abc123",
+      "Password1",
+      "password1",
+      "123456789",
+      "welcome123",
+      "password@123",
     ]
 
     return commonPasswords.includes(password.toLowerCase())
@@ -238,7 +235,7 @@ export class PasswordService {
       // Validate password
       const validation = this.validatePassword(newPassword)
       if (!validation.valid) {
-        return { success: false, error: validation.errors.join('. ') }
+        return { success: false, error: validation.errors.join(". ") }
       }
 
       // Hash new password
@@ -253,29 +250,26 @@ export class PasswordService {
         },
       })
 
-      await log.info('Password updated successfully', {
+      await log.info("Password updated successfully", {
         userId,
-        operation: 'password_update',
+        operation: "password_update",
       })
 
       return { success: true }
     } catch (error) {
-      await log.error('Password update error', {
+      await log.error("Password update error", {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        operation: 'password_update_error',
+        error: error instanceof Error ? error.message : "Unknown error",
+        operation: "password_update_error",
       })
-      return { success: false, error: 'Failed to update password' }
+      return { success: false, error: "Failed to update password" }
     }
   }
 
   /**
    * Check if password needs to be changed (e.g., expired)
    */
-  static async checkPasswordExpiry(
-    userId: string,
-    maxAgeDays: number = 90
-  ): Promise<boolean> {
+  static async checkPasswordExpiry(userId: string, maxAgeDays: number = 90): Promise<boolean> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { passwordChangedAt: true },

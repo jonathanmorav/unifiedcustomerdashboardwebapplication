@@ -25,34 +25,40 @@ export function useSavedSearches() {
     }
   }
 
-  const saveSearch = useCallback(async (search: Omit<SavedSearch, "id" | "userId" | "createdAt" | "updatedAt">) => {
-    try {
-      const response = await fetch("/api/search/saved", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(search),
-      })
+  const saveSearch = useCallback(
+    async (search: Omit<SavedSearch, "id" | "userId" | "createdAt" | "updatedAt">) => {
+      try {
+        const response = await fetch("/api/search/saved", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(search),
+        })
 
-      if (response.ok) {
-        const newSearch = await response.json()
-        setSavedSearches((prev) => [...prev, newSearch])
-        return newSearch
+        if (response.ok) {
+          const newSearch = await response.json()
+          setSavedSearches((prev) => [...prev, newSearch])
+          return newSearch
+        }
+      } catch (error) {
+        toast.error("Failed to save search")
+        throw error
       }
-    } catch (error) {
-      toast.error("Failed to save search")
-      throw error
-    }
-  }, [])
+    },
+    []
+  )
 
-  const loadSavedSearch = useCallback(async (id: string) => {
-    const search = savedSearches.find((s) => s.id === id)
-    if (search) {
-      // Update use count
-      await fetch(`/api/search/saved/${id}/use`, { method: "POST" })
-      return search
-    }
-    return null
-  }, [savedSearches])
+  const loadSavedSearch = useCallback(
+    async (id: string) => {
+      const search = savedSearches.find((s) => s.id === id)
+      if (search) {
+        // Update use count
+        await fetch(`/api/search/saved/${id}/use`, { method: "POST" })
+        return search
+      }
+      return null
+    },
+    [savedSearches]
+  )
 
   const deleteSavedSearch = useCallback(async (id: string) => {
     try {

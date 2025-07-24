@@ -25,7 +25,12 @@ interface SavedSearchesProps {
   onLoad: (search: SavedSearch) => void
   onDelete: (id: string) => void
   onUpdate: (id: string, updates: Partial<SavedSearch>) => void
-  onCreate: (name: string, description: string, params: AdvancedSearchParams, isPublic: boolean) => void
+  onCreate: (
+    name: string,
+    description: string,
+    params: AdvancedSearchParams,
+    isPublic: boolean
+  ) => void
   currentSearchParams?: AdvancedSearchParams
   className?: string
 }
@@ -37,7 +42,7 @@ export function SavedSearches({
   onUpdate,
   onCreate,
   currentSearchParams,
-  className
+  className,
 }: SavedSearchesProps) {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingSearch, setEditingSearch] = useState<SavedSearch | null>(null)
@@ -72,20 +77,20 @@ export function SavedSearches({
   const formatSearchSummary = (search: SavedSearch) => {
     const params = search.searchParams
     const parts = []
-    
+
     if (params.searchTerm) {
       parts.push(`"${params.searchTerm}"`)
     }
-    
+
     if (params.filters) {
       const filterCount = Object.keys(params.filters).filter(
-        key => params.filters![key as keyof typeof params.filters] !== undefined
+        (key) => params.filters![key as keyof typeof params.filters] !== undefined
       ).length
       if (filterCount > 0) {
-        parts.push(`${filterCount} filter${filterCount > 1 ? 's' : ''}`)
+        parts.push(`${filterCount} filter${filterCount > 1 ? "s" : ""}`)
       }
     }
-    
+
     return parts.join(" with ") || "Empty search"
   }
 
@@ -93,7 +98,7 @@ export function SavedSearches({
     // Templates first
     if (a.isTemplate && !b.isTemplate) return -1
     if (!a.isTemplate && b.isTemplate) return 1
-    
+
     // Then by last used
     const aLastUsed = a.lastUsed ? new Date(a.lastUsed).getTime() : 0
     const bLastUsed = b.lastUsed ? new Date(b.lastUsed).getTime() : 0
@@ -102,13 +107,10 @@ export function SavedSearches({
 
   return (
     <div className={className}>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-semibold">Saved Searches</h3>
         {currentSearchParams && (
-          <Button
-            size="sm"
-            onClick={() => setShowCreateDialog(true)}
-          >
+          <Button size="sm" onClick={() => setShowCreateDialog(true)}>
             <Star className="mr-2 h-4 w-4" />
             Save Current
           </Button>
@@ -117,10 +119,10 @@ export function SavedSearches({
 
       {searches.length === 0 ? (
         <Card className="p-8 text-center">
-          <Search className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <Search className="mx-auto mb-4 h-12 w-12 text-gray-400" />
           <p className="text-gray-500">No saved searches yet</p>
           {currentSearchParams && (
-            <p className="text-sm text-gray-400 mt-2">
+            <p className="mt-2 text-sm text-gray-400">
               Save your current search to quickly access it later
             </p>
           )}
@@ -128,14 +130,14 @@ export function SavedSearches({
       ) : (
         <div className="space-y-2">
           {sortedSearches.map((search) => (
-            <Card 
+            <Card
               key={search.id}
-              className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+              className="cursor-pointer p-4 transition-shadow hover:shadow-md"
               onClick={() => onLoad(search)}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="mb-1 flex items-center gap-2">
                     <h4 className="font-medium">{search.name}</h4>
                     {search.isTemplate && (
                       <Badge variant="secondary" className="text-xs">
@@ -149,16 +151,14 @@ export function SavedSearches({
                       </Badge>
                     )}
                   </div>
-                  
+
                   {search.description && (
-                    <p className="text-sm text-gray-600 mb-2">{search.description}</p>
+                    <p className="mb-2 text-sm text-gray-600">{search.description}</p>
                   )}
-                  
-                  <p className="text-sm text-gray-500">
-                    {formatSearchSummary(search)}
-                  </p>
-                  
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+
+                  <p className="text-sm text-gray-500">{formatSearchSummary(search)}</p>
+
+                  <div className="mt-2 flex items-center gap-4 text-xs text-gray-400">
                     {search.lastUsed && (
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
@@ -168,9 +168,9 @@ export function SavedSearches({
                     <span>{search.useCount} uses</span>
                   </div>
                 </div>
-                
+
                 {!search.isTemplate && (
-                  <div className="flex items-center gap-1 ml-4">
+                  <div className="ml-4 flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -207,8 +207,8 @@ export function SavedSearches({
       )}
 
       {/* Create/Edit Dialog */}
-      <Dialog 
-        open={showCreateDialog || !!editingSearch} 
+      <Dialog
+        open={showCreateDialog || !!editingSearch}
         onOpenChange={(open) => {
           if (!open) {
             setShowCreateDialog(false)
@@ -221,14 +221,12 @@ export function SavedSearches({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingSearch ? "Edit Saved Search" : "Save Current Search"}
-            </DialogTitle>
+            <DialogTitle>{editingSearch ? "Edit Saved Search" : "Save Current Search"}</DialogTitle>
             <DialogDescription>
               Give your search a name and description to easily find it later
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
@@ -239,7 +237,7 @@ export function SavedSearches({
                 placeholder="e.g., Unverified customers with pending transfers"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="description">Description (optional)</Label>
               <Textarea
@@ -250,22 +248,16 @@ export function SavedSearches({
                 rows={3}
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label htmlFor="public">Share with team</Label>
-                <p className="text-sm text-gray-500">
-                  Allow other team members to use this search
-                </p>
+                <p className="text-sm text-gray-500">Allow other team members to use this search</p>
               </div>
-              <Switch
-                id="public"
-                checked={newSearchPublic}
-                onCheckedChange={setNewSearchPublic}
-              />
+              <Switch id="public" checked={newSearchPublic} onCheckedChange={setNewSearchPublic} />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button
               variant="outline"
@@ -279,10 +271,7 @@ export function SavedSearches({
             >
               Cancel
             </Button>
-            <Button
-              onClick={editingSearch ? handleUpdate : handleCreate}
-              disabled={!newSearchName}
-            >
+            <Button onClick={editingSearch ? handleUpdate : handleCreate} disabled={!newSearchName}>
               {editingSearch ? "Update" : "Save"}
             </Button>
           </DialogFooter>

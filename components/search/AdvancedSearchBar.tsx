@@ -5,15 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
 import { Badge } from "@/components/ui/badge"
-import { 
-  SearchIcon, 
-  XIcon, 
-  LoaderIcon, 
-  Filter, 
-  SlidersHorizontal,
-  Save,
-  Star
-} from "lucide-react"
+import { SearchIcon, XIcon, LoaderIcon, Filter, SlidersHorizontal, Save, Star } from "lucide-react"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useSearchSuggestions } from "@/hooks/use-search-history"
 import { FilterPanel } from "./filters/FilterPanel"
@@ -33,7 +25,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { AdvancedSearchParams, SearchFilters, SearchType, SavedSearch, SearchTemplate } from "@/lib/types/search"
+import type {
+  AdvancedSearchParams,
+  SearchFilters,
+  SearchType,
+  SavedSearch,
+  SearchTemplate,
+} from "@/lib/types/search"
 
 interface AdvancedSearchBarProps {
   onSearch: (params: AdvancedSearchParams) => void
@@ -106,7 +104,7 @@ export function AdvancedSearchBar({
   const handleApplyFilters = (newFilters: SearchFilters) => {
     setFilters(newFilters)
     setShowFilters(false)
-    
+
     // Re-run search if there's a search term
     if (value.trim()) {
       onSearch({
@@ -154,7 +152,7 @@ export function AdvancedSearchBar({
     <>
       <form onSubmit={handleSubmit} className={`relative ${className}`}>
         <div className="relative">
-          <SearchIcon className="text-cakewalk-text-secondary absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cakewalk-text-secondary" />
           <Input
             ref={inputRef}
             type="text"
@@ -163,29 +161,24 @@ export function AdvancedSearchBar({
             onFocus={() => value && suggestions.length > 0 && setIsOpen(true)}
             onBlur={() => setTimeout(() => setIsOpen(false), 200)}
             placeholder="Search by email, name, business name, or Dwolla ID..."
-            className="h-12 pr-32 pl-10 text-base"
+            className="h-12 pl-10 pr-32 text-base"
             disabled={isLoading}
           />
-          
+
           {/* Filter indicator badges */}
           {activeFilterCount > 0 && (
             <div className="absolute left-10 top-full mt-1 flex gap-1">
               <Badge variant="secondary" className="text-xs">
-                {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
+                {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""} active
               </Badge>
             </div>
           )}
-          
-          <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
+
+          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
             {/* Quick actions menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                >
+                <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <SlidersHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -207,7 +200,7 @@ export function AdvancedSearchBar({
                     <DropdownMenuSeparator />
                   </>
                 )}
-                
+
                 {searchTemplates.length > 0 && (
                   <>
                     <DropdownMenuLabel>Templates</DropdownMenuLabel>
@@ -224,7 +217,7 @@ export function AdvancedSearchBar({
                     <DropdownMenuSeparator />
                   </>
                 )}
-                
+
                 {onSaveSearch && value.trim() && (
                   <DropdownMenuItem onClick={() => setShowSaveDialog(true)}>
                     <Save className="mr-2 h-4 w-4" />
@@ -233,23 +226,23 @@ export function AdvancedSearchBar({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-            
+
             {/* Filter button */}
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="h-8 w-8 p-0 relative"
+              className="relative h-8 w-8 p-0"
             >
               <Filter className="h-4 w-4" />
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-cakewalk-primary text-[10px] text-white">
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-cakewalk-primary text-[10px] text-white">
                   {activeFilterCount}
                 </span>
               )}
             </Button>
-            
+
             {value && (
               <Button
                 type="button"
@@ -261,7 +254,7 @@ export function AdvancedSearchBar({
                 <XIcon className="h-4 w-4" />
               </Button>
             )}
-            
+
             <Button type="submit" size="sm" disabled={!value.trim() || isLoading} className="h-8">
               {isLoading ? <LoaderIcon className="h-4 w-4 animate-spin" /> : "Search"}
             </Button>
@@ -295,9 +288,7 @@ export function AdvancedSearchBar({
         <SheetContent side="right" className="w-full sm:max-w-md">
           <SheetHeader>
             <SheetTitle>Search Filters</SheetTitle>
-            <SheetDescription>
-              Refine your search results with advanced filters
-            </SheetDescription>
+            <SheetDescription>Refine your search results with advanced filters</SheetDescription>
           </SheetHeader>
           <div className="mt-6">
             <FilterPanel

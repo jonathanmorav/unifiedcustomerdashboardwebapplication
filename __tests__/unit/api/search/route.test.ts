@@ -12,13 +12,17 @@ jest.mock("@/lib/search/search-history")
 jest.mock("@/lib/search/mock-data", () => ({
   mockSearchResult: jest.fn().mockResolvedValue({
     hubspot: { data: [], error: null },
-    dwolla: { data: [], error: null }
-  })
+    dwolla: { data: [], error: null },
+  }),
 }))
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>
-const mockGetUnifiedSearchEngine = getUnifiedSearchEngine as jest.MockedFunction<typeof getUnifiedSearchEngine>
-const mockSearchHistoryManager = SearchHistoryManager as jest.MockedClass<typeof SearchHistoryManager>
+const mockGetUnifiedSearchEngine = getUnifiedSearchEngine as jest.MockedFunction<
+  typeof getUnifiedSearchEngine
+>
+const mockSearchHistoryManager = SearchHistoryManager as jest.MockedClass<
+  typeof SearchHistoryManager
+>
 
 describe("POST /api/search", () => {
   let mockSearchEngine: any
@@ -26,19 +30,19 @@ describe("POST /api/search", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     // Setup mock search engine
     mockSearchEngine = {
       search: jest.fn().mockResolvedValue({
         hubspot: { data: [], error: null },
-        dwolla: { data: [], error: null }
-      })
+        dwolla: { data: [], error: null },
+      }),
     }
     mockGetUnifiedSearchEngine.mockReturnValue(mockSearchEngine)
 
     // Setup mock session
     mockGetServerSession.mockResolvedValue({
-      user: { email: "test@example.com", name: "Test User" }
+      user: { email: "test@example.com", name: "Test User" },
     } as any)
 
     // Mock environment variables
@@ -51,7 +55,7 @@ describe("POST /api/search", () => {
 
     mockRequest = new NextRequest("http://localhost:3000/api/search", {
       method: "POST",
-      body: JSON.stringify({ searchTerm: "test@example.com" })
+      body: JSON.stringify({ searchTerm: "test@example.com" }),
     })
 
     const response = await POST(mockRequest)
@@ -64,7 +68,7 @@ describe("POST /api/search", () => {
   it("should return 400 for invalid request body", async () => {
     mockRequest = new NextRequest("http://localhost:3000/api/search", {
       method: "POST",
-      body: JSON.stringify({ searchTerm: "" })
+      body: JSON.stringify({ searchTerm: "" }),
     })
 
     const response = await POST(mockRequest)
@@ -82,29 +86,29 @@ describe("POST /api/search", () => {
           company: { name: "Test Company", id: "123" },
           summaryOfBenefits: [],
           policies: [],
-          monthlyInvoices: []
+          monthlyInvoices: [],
         },
-        error: null
+        error: null,
       },
       dwolla: {
         data: {
           customer: { id: "dwolla-123", email: "test@example.com" },
           fundingSources: [],
           transfers: [],
-          notifications: []
+          notifications: [],
         },
-        error: null
-      }
+        error: null,
+      },
     }
 
     mockSearchEngine.search.mockResolvedValueOnce(mockResults)
 
     mockRequest = new NextRequest("http://localhost:3000/api/search", {
       method: "POST",
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         searchTerm: "test@example.com",
-        searchType: "email"
-      })
+        searchType: "email",
+      }),
     })
 
     const response = await POST(mockRequest)
@@ -114,7 +118,7 @@ describe("POST /api/search", () => {
     expect(data.hubspot).toEqual(mockResults.hubspot)
     expect(data.dwolla).toEqual(mockResults.dwolla)
     expect(mockSearchEngine.search).toHaveBeenCalledWith(
-      "test@example.com", 
+      "test@example.com",
       "email",
       expect.any(AbortSignal)
     )
@@ -125,7 +129,7 @@ describe("POST /api/search", () => {
 
     mockRequest = new NextRequest("http://localhost:3000/api/search", {
       method: "POST",
-      body: JSON.stringify({ searchTerm: "test@example.com" })
+      body: JSON.stringify({ searchTerm: "test@example.com" }),
     })
 
     const response = await POST(mockRequest)
@@ -138,7 +142,7 @@ describe("POST /api/search", () => {
   it("should auto-detect search type when not specified", async () => {
     mockRequest = new NextRequest("http://localhost:3000/api/search", {
       method: "POST",
-      body: JSON.stringify({ searchTerm: "test@example.com" })
+      body: JSON.stringify({ searchTerm: "test@example.com" }),
     })
 
     await POST(mockRequest)
@@ -151,11 +155,11 @@ describe("POST /api/search", () => {
   })
 
   it("should save search to history", async () => {
-    const saveSearchSpy = jest.spyOn(mockSearchHistoryManager.prototype, 'saveSearch')
+    const saveSearchSpy = jest.spyOn(mockSearchHistoryManager.prototype, "saveSearch")
 
     mockRequest = new NextRequest("http://localhost:3000/api/search", {
       method: "POST",
-      body: JSON.stringify({ searchTerm: "test@example.com" })
+      body: JSON.stringify({ searchTerm: "test@example.com" }),
     })
 
     await POST(mockRequest)
@@ -164,7 +168,7 @@ describe("POST /api/search", () => {
       searchTerm: "test@example.com",
       searchType: "auto",
       userId: "test@example.com",
-      timestamp: expect.any(Date)
+      timestamp: expect.any(Date),
     })
   })
 
@@ -174,7 +178,7 @@ describe("POST /api/search", () => {
 
     mockRequest = new NextRequest("http://localhost:3000/api/search", {
       method: "POST",
-      body: JSON.stringify({ searchTerm: "demo@example.com" })
+      body: JSON.stringify({ searchTerm: "demo@example.com" }),
     })
 
     await POST(mockRequest)
@@ -185,13 +189,13 @@ describe("POST /api/search", () => {
 
   it("should respect search timeout", async () => {
     // Create a search that takes longer than timeout
-    mockSearchEngine.search.mockImplementation(() => 
-      new Promise((resolve) => setTimeout(resolve, 35000))
+    mockSearchEngine.search.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 35000))
     )
 
     mockRequest = new NextRequest("http://localhost:3000/api/search", {
       method: "POST",
-      body: JSON.stringify({ searchTerm: "test@example.com" })
+      body: JSON.stringify({ searchTerm: "test@example.com" }),
     })
 
     const response = await POST(mockRequest)
@@ -205,9 +209,9 @@ describe("POST /api/search", () => {
 describe("GET /api/search", () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     mockGetServerSession.mockResolvedValue({
-      user: { email: "test@example.com", name: "Test User" }
+      user: { email: "test@example.com", name: "Test User" },
     } as any)
   })
 
@@ -227,19 +231,18 @@ describe("GET /api/search", () => {
       {
         searchTerm: "test@example.com",
         searchType: "email",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       {
         searchTerm: "Test Company",
         searchType: "business_name",
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     ]
 
-    const getHistorySpy = jest.spyOn(
-      mockSearchHistoryManager.prototype, 
-      'getHistory'
-    ).mockResolvedValue(mockHistory)
+    const getHistorySpy = jest
+      .spyOn(mockSearchHistoryManager.prototype, "getHistory")
+      .mockResolvedValue(mockHistory)
 
     const mockRequest = new NextRequest("http://localhost:3000/api/search")
     const response = await GET(mockRequest)
@@ -251,10 +254,9 @@ describe("GET /api/search", () => {
   })
 
   it("should handle errors when fetching history", async () => {
-    jest.spyOn(
-      mockSearchHistoryManager.prototype,
-      'getHistory'
-    ).mockRejectedValueOnce(new Error("Database error"))
+    jest
+      .spyOn(mockSearchHistoryManager.prototype, "getHistory")
+      .mockRejectedValueOnce(new Error("Database error"))
 
     const mockRequest = new NextRequest("http://localhost:3000/api/search")
     const response = await GET(mockRequest)
@@ -265,10 +267,7 @@ describe("GET /api/search", () => {
   })
 
   it("should return empty array when no history exists", async () => {
-    jest.spyOn(
-      mockSearchHistoryManager.prototype,
-      'getHistory'
-    ).mockResolvedValueOnce([])
+    jest.spyOn(mockSearchHistoryManager.prototype, "getHistory").mockResolvedValueOnce([])
 
     const mockRequest = new NextRequest("http://localhost:3000/api/search")
     const response = await GET(mockRequest)

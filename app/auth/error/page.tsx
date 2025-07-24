@@ -19,13 +19,13 @@ function ErrorContent() {
   const message = errorMessages[error || "Default"] || errorMessages.Default
 
   return (
-    <div className="bg-cakewalk-bg-alice-100 flex min-h-screen items-center justify-center">
+    <div className="bg-cakewalk-alice-100 dark:bg-gray-900 flex min-h-screen items-center justify-center transition-colors duration-300">
       <div className="animate-fade-in">
-        <div className="rounded-cakewalk-large shadow-cakewalk-medium p-cakewalk-32 w-full max-w-md bg-white text-center">
+        <div className="rounded-cakewalk-large p-cakewalk-32 w-full max-w-md bg-card text-center shadow-cakewalk-medium">
           <div className="mb-cakewalk-24">
-            <div className="bg-cakewalk-error/10 mb-cakewalk-16 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
+            <div className="mb-cakewalk-16 mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-cakewalk-error/10">
               <svg
-                className="text-cakewalk-error h-8 w-8"
+                className="h-8 w-8 text-cakewalk-error"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -38,10 +38,10 @@ function ErrorContent() {
                 />
               </svg>
             </div>
-            <h1 className="text-cakewalk-h2 text-cakewalk-primary-dark mb-cakewalk-8">
+            <h1 className="mb-cakewalk-8 text-cakewalk-h2 text-cakewalk-primary-dark">
               Authentication Error
             </h1>
-            <p className="text-cakewalk-body-sm text-cakewalk-text-secondary mb-cakewalk-4">
+            <p className="mb-cakewalk-4 text-cakewalk-body-sm text-cakewalk-text-secondary">
               {message}
             </p>
             {error && (
@@ -64,9 +64,9 @@ export default function ErrorPage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-cakewalk-bg-alice-100 flex min-h-screen items-center justify-center">
+        <div className="bg-cakewalk-alice-100 dark:bg-gray-900 flex min-h-screen items-center justify-center transition-colors duration-300">
           <div className="animate-pulse">
-            <div className="rounded-cakewalk-large shadow-cakewalk-medium p-cakewalk-32 h-96 w-full max-w-md bg-white" />
+            <div className="rounded-cakewalk-large p-cakewalk-32 h-96 w-full max-w-md bg-card shadow-cakewalk-medium" />
           </div>
         </div>
       }

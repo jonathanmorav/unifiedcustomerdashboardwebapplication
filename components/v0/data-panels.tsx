@@ -4,7 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import { Separator } from "./ui/separator"
-import { FileText, CreditCard, Building, CheckCircle, Clock, AlertCircle, VideoIcon } from "lucide-react"
+import {
+  FileText,
+  CreditCard,
+  Building,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  VideoIcon,
+} from "lucide-react"
 
 interface DataPanelsProps {
   data: {
@@ -15,12 +23,12 @@ interface DataPanelsProps {
 
 export function DataPanels({ data }: DataPanelsProps) {
   const { hubspot, dwolla } = data
-  
+
   // Defensive coding for data structure
   if (!hubspot || !dwolla) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="text-cakewalk-text-secondary p-6 text-center">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="p-6 text-center text-cakewalk-text-secondary">
           <p>No data available</p>
         </div>
       </div>
@@ -33,8 +41,8 @@ export function DataPanels({ data }: DataPanelsProps) {
       case "verified":
       case "completed":
         return (
-          <Badge className="bg-cakewalk-success-light text-cakewalk-success-dark border-0">
-            <CheckCircle className="w-3 h-3 mr-1" />
+          <Badge className="border-0 bg-cakewalk-success-light text-cakewalk-success-dark">
+            <CheckCircle className="mr-1 h-3 w-3" />
             {status}
           </Badge>
         )
@@ -42,9 +50,9 @@ export function DataPanels({ data }: DataPanelsProps) {
         return (
           <Badge
             variant="secondary"
-            className="bg-yellow-100 text-yellow-800 border-0 dark:bg-yellow-900 dark:text-yellow-200"
+            className="border-0 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
           >
-            <Clock className="w-3 h-3 mr-1" />
+            <Clock className="mr-1 h-3 w-3" />
             {status}
           </Badge>
         )
@@ -52,7 +60,7 @@ export function DataPanels({ data }: DataPanelsProps) {
       case "unverified":
         return (
           <Badge variant="destructive" className="border-0">
-            <AlertCircle className="w-3 h-3 mr-1" />
+            <AlertCircle className="mr-1 h-3 w-3" />
             {status}
           </Badge>
         )
@@ -67,13 +75,15 @@ export function DataPanels({ data }: DataPanelsProps) {
   return (
     <div className="space-y-6">
       {/* HubSpot and Dwolla Panels - Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* HubSpot Panel */}
-        <Card className="shadow-cakewalk-medium border-cakewalk-border transition-colors duration-300">
+        <Card className="border-cakewalk-border shadow-cakewalk-medium transition-colors duration-300">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-2">
-              <Building className="w-5 h-5 text-cakewalk-primary" />
-              <CardTitle className="text-cakewalk-h4 text-cakewalk-text-primary">HubSpot Data</CardTitle>
+              <Building className="h-5 w-5 text-cakewalk-primary" />
+              <CardTitle className="text-cakewalk-h4 text-cakewalk-text-primary">
+                HubSpot Data
+              </CardTitle>
             </div>
             <CardDescription className="text-cakewalk-body-xs text-cakewalk-text-secondary">
               Company information and benefits summary
@@ -83,55 +93,69 @@ export function DataPanels({ data }: DataPanelsProps) {
             {/* Company Information */}
             {hubspot.company && (
               <div>
-                <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">Company Information</h4>
+                <h4 className="mb-3 text-cakewalk-body-sm font-semibold text-cakewalk-text-primary">
+                  Company Information
+                </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Company ID:</span>
+                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      Company ID:
+                    </span>
                     <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
                       {hubspot.company.id ? (
                         <a
                           href={`https://cockpit.cakewalkinsurance.com/summary-benefits/?companyId=${hubspot.company.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-cakewalk-primary hover:text-cakewalk-primary-dark underline transition-colors duration-200"
+                          className="text-cakewalk-primary underline transition-colors duration-200 hover:text-cakewalk-primary-dark"
                         >
                           {hubspot.company.id}
                         </a>
                       ) : (
-                        'Not available'
+                        "Not available"
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Company Name:</span>
+                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      Company Name:
+                    </span>
                     <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                      {hubspot.company.name || 'Not available'}
+                      {hubspot.company.name || "Not available"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Owner Email:</span>
+                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      Owner Email:
+                    </span>
                     <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                      {hubspot.company.ownerEmail || 'Not available'}
+                      {hubspot.company.ownerEmail || "Not available"}
                     </span>
                   </div>
                   {hubspot.company.dwollaId && (
                     <div className="flex justify-between">
-                      <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Dwolla ID:</span>
+                      <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                        Dwolla ID:
+                      </span>
                       <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
                         {hubspot.company.dwollaId}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Onboarding Status:</span>
+                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      Onboarding Status:
+                    </span>
                     <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                      {hubspot.company.onboardingStatus || 'Not available'}
+                      {hubspot.company.onboardingStatus || "Not available"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Onboarding Step:</span>
+                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      Onboarding Step:
+                    </span>
                     <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                      {hubspot.company.onboardingStep || 'Not available'}
+                      {hubspot.company.onboardingStep || "Not available"}
                     </span>
                   </div>
                 </div>
@@ -143,20 +167,24 @@ export function DataPanels({ data }: DataPanelsProps) {
               <>
                 <Separator className="bg-cakewalk-border" />
                 <div>
-                  <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                  <h4 className="mb-3 text-cakewalk-body-sm font-semibold text-cakewalk-text-primary">
                     Summary of Benefits ({hubspot.summaryOfBenefits.length})
                   </h4>
                   {hubspot.summaryOfBenefits.slice(0, 1).map((sob: any) => (
                     <div key={sob.id} className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Amount to Draft:</span>
+                        <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                          Amount to Draft:
+                        </span>
                         <span className="text-cakewalk-body-xs font-semibold text-cakewalk-text-primary">
                           ${sob.amountToDraft.toLocaleString()}
                         </span>
                       </div>
                       {sob.feeAmount && (
                         <div className="flex justify-between">
-                          <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Fee Amount:</span>
+                          <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                            Fee Amount:
+                          </span>
                           <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
                             ${sob.feeAmount.toLocaleString()}
                           </span>
@@ -171,11 +199,13 @@ export function DataPanels({ data }: DataPanelsProps) {
         </Card>
 
         {/* Dwolla Panel */}
-        <Card className="shadow-cakewalk-medium border-cakewalk-border transition-colors duration-300">
+        <Card className="border-cakewalk-border shadow-cakewalk-medium transition-colors duration-300">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-cakewalk-primary" />
-              <CardTitle className="text-cakewalk-h4 text-cakewalk-text-primary">Dwolla Data</CardTitle>
+              <CreditCard className="h-5 w-5 text-cakewalk-primary" />
+              <CardTitle className="text-cakewalk-h4 text-cakewalk-text-primary">
+                Dwolla Data
+              </CardTitle>
             </div>
             <CardDescription className="text-cakewalk-body-xs text-cakewalk-text-secondary">
               Payment information and transfer history
@@ -185,42 +215,50 @@ export function DataPanels({ data }: DataPanelsProps) {
             {/* Customer Information */}
             {dwolla.customer && (
               <div>
-                <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                <h4 className="mb-3 text-cakewalk-body-sm font-semibold text-cakewalk-text-primary">
                   Customer Information
                 </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Dwolla ID:</span>
+                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      Dwolla ID:
+                    </span>
                     <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
                       {dwolla.customer.id ? (
                         <a
                           href={`https://dashboard.dwolla.com/customers/${dwolla.customer.id}/funding-sources`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-cakewalk-primary hover:text-cakewalk-primary-dark underline transition-colors duration-200"
+                          className="text-cakewalk-primary underline transition-colors duration-200 hover:text-cakewalk-primary-dark"
                         >
                           {dwolla.customer.id}
                         </a>
                       ) : (
-                        'Not available'
+                        "Not available"
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Email:</span>
+                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      Email:
+                    </span>
                     <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                      {dwolla.customer.email || 'Not available'}
+                      {dwolla.customer.email || "Not available"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Name:</span>
+                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      Name:
+                    </span>
                     <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                      {dwolla.customer.name || 'Not available'}
+                      {dwolla.customer.name || "Not available"}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Status:</span>
-                    {getStatusBadge(dwolla.customer.status || 'unknown')}
+                  <div className="flex items-center justify-between">
+                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      Status:
+                    </span>
+                    {getStatusBadge(dwolla.customer.status || "unknown")}
                   </div>
                 </div>
               </div>
@@ -231,28 +269,37 @@ export function DataPanels({ data }: DataPanelsProps) {
               <>
                 <Separator className="bg-cakewalk-border" />
                 <div>
-                  <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                  <h4 className="mb-3 text-cakewalk-body-sm font-semibold text-cakewalk-text-primary">
                     Funding Sources ({dwolla.fundingSources.length})
                   </h4>
                   <div className="space-y-3">
                     {dwolla.fundingSources.map((source: any, index: number) => (
-                      <div key={source.id || index} className="p-3 bg-cakewalk-alice-200 rounded-xl">
+                      <div
+                        key={source.id || index}
+                        className="rounded-xl bg-cakewalk-alice-200 p-3"
+                      >
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Account Type:</span>
-                            <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary capitalize">
-                              {source.bankAccountType || source.type || 'Unknown'}
+                            <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                              Account Type:
+                            </span>
+                            <span className="text-cakewalk-body-xs font-medium capitalize text-cakewalk-text-primary">
+                              {source.bankAccountType || source.type || "Unknown"}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Account:</span>
+                            <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                              Account:
+                            </span>
                             <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                              {source.accountNumberMasked || source.name || 'Not available'}
+                              {source.accountNumberMasked || source.name || "Not available"}
                             </span>
                           </div>
                           {source.bankName && (
                             <div className="flex justify-between">
-                              <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Bank Name:</span>
+                              <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                                Bank Name:
+                              </span>
                               <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
                                 {source.bankName}
                               </span>
@@ -260,14 +307,18 @@ export function DataPanels({ data }: DataPanelsProps) {
                           )}
                           {source.routingNumber && (
                             <div className="flex justify-between">
-                              <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Routing Number:</span>
+                              <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                                Routing Number:
+                              </span>
                               <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
                                 {source.routingNumber}
                               </span>
                             </div>
                           )}
-                          <div className="flex justify-between items-center">
-                            <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">Status:</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                              Status:
+                            </span>
                             {getStatusBadge(source.status)}
                           </div>
                         </div>
@@ -283,21 +334,22 @@ export function DataPanels({ data }: DataPanelsProps) {
               <>
                 <Separator className="bg-cakewalk-border" />
                 <div>
-                  <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                  <h4 className="mb-3 text-cakewalk-body-sm font-semibold text-cakewalk-text-primary">
                     Recent Transfers ({dwolla.transfers.length})
                   </h4>
                   <div className="space-y-2">
                     {dwolla.transfers.map((transfer: any) => (
                       <div
                         key={transfer.id}
-                        className="flex items-center justify-between p-3 bg-cakewalk-alice-200 rounded-xl transition-colors duration-300"
+                        className="flex items-center justify-between rounded-xl bg-cakewalk-alice-200 p-3 transition-colors duration-300"
                       >
                         <div>
                           <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                            {transfer.amount || 'No amount'}
+                            {transfer.amount || "No amount"}
                           </p>
                           <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
-                            {transfer.date || transfer.created || 'Unknown date'} • {transfer.type || 'Transfer'}
+                            {transfer.date || transfer.created || "Unknown date"} •{" "}
+                            {transfer.type || "Transfer"}
                           </p>
                         </div>
                         {getStatusBadge(transfer.status)}
@@ -313,27 +365,32 @@ export function DataPanels({ data }: DataPanelsProps) {
               <>
                 <Separator className="bg-cakewalk-border" />
                 <div>
-                  <h4 className="text-cakewalk-body-sm font-semibold text-cakewalk-text-primary mb-3">
+                  <h4 className="mb-3 text-cakewalk-body-sm font-semibold text-cakewalk-text-primary">
                     Recent Notifications ({dwolla.notificationCount})
                   </h4>
                   {dwolla.notificationCount === 0 ? (
-                    <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">No recent notifications</p>
+                    <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      No recent notifications
+                    </p>
                   ) : (
                     <div className="space-y-2">
                       {dwolla.notifications?.map((notification: any) => (
                         <div
                           key={notification.id}
-                          className="p-3 bg-cakewalk-alice-200 rounded-xl transition-colors duration-300"
+                          className="rounded-xl bg-cakewalk-alice-200 p-3 transition-colors duration-300"
                         >
                           <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                            {notification.message || 'No message'}
+                            {notification.message || "No message"}
                           </p>
                           <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
-                            {notification.date || notification.created || 'Unknown date'} • {notification.type || 'Notification'}
+                            {notification.date || notification.created || "Unknown date"} •{" "}
+                            {notification.type || "Notification"}
                           </p>
                         </div>
                       )) || (
-                        <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">Notifications available but not loaded</p>
+                        <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                          Notifications available but not loaded
+                        </p>
                       )}
                     </div>
                   )}
@@ -346,11 +403,13 @@ export function DataPanels({ data }: DataPanelsProps) {
 
       {/* Clarity Sessions Panel - Full Width Below Both Panels */}
       {(hubspot?.data?.claritySessions?.length > 0 || true) && (
-        <Card className="shadow-cakewalk-medium border-cakewalk-border transition-colors duration-300">
+        <Card className="border-cakewalk-border shadow-cakewalk-medium transition-colors duration-300">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-2">
-              <VideoIcon className="w-5 h-5 text-cakewalk-primary" />
-              <CardTitle className="text-cakewalk-h4 text-cakewalk-text-primary">Microsoft Clarity Sessions</CardTitle>
+              <VideoIcon className="h-5 w-5 text-cakewalk-primary" />
+              <CardTitle className="text-cakewalk-h4 text-cakewalk-text-primary">
+                Microsoft Clarity Sessions
+              </CardTitle>
             </div>
             <CardDescription className="text-cakewalk-body-xs text-cakewalk-text-secondary">
               Session recordings and user behavior analytics
@@ -360,16 +419,20 @@ export function DataPanels({ data }: DataPanelsProps) {
             {hubspot?.data?.claritySessions?.length > 0 ? (
               <div className="space-y-4">
                 <div className="text-cakewalk-body-xs text-cakewalk-text-secondary">
-                  Found {hubspot.data.claritySessions.length} session recording{hubspot.data.claritySessions.length !== 1 ? 's' : ''}
+                  Found {hubspot.data.claritySessions.length} session recording
+                  {hubspot.data.claritySessions.length !== 1 ? "s" : ""}
                 </div>
-                
+
                 {hubspot.data.claritySessions.map((session: any, index: number) => (
-                  <div key={session.id || index} className="p-4 bg-cakewalk-alice-200 rounded-xl border">
+                  <div
+                    key={session.id || index}
+                    className="rounded-xl border bg-cakewalk-alice-200 p-4"
+                  >
                     <div className="space-y-3">
                       {/* Session Header */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <VideoIcon className="w-4 h-4 text-cakewalk-primary" />
+                          <VideoIcon className="h-4 w-4 text-cakewalk-primary" />
                           <span className="text-cakewalk-body-sm font-medium text-cakewalk-text-primary">
                             Microsoft Clarity Session
                           </span>
@@ -382,23 +445,23 @@ export function DataPanels({ data }: DataPanelsProps) {
                       {/* Recording Link */}
                       <div className="flex items-center justify-between">
                         {session.recordingUrl ? (
-                          <a 
-                            href={session.recordingUrl} 
+                          <a
+                            href={session.recordingUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cakewalk-primary hover:text-cakewalk-primary-dark underline text-cakewalk-body-sm transition-colors duration-200"
+                            className="text-cakewalk-body-sm text-cakewalk-primary underline transition-colors duration-200 hover:text-cakewalk-primary-dark"
                           >
                             🎥 Click to view recording
                           </a>
                         ) : (
-                          <span className="text-cakewalk-text-secondary text-cakewalk-body-sm">
+                          <span className="text-cakewalk-body-sm text-cakewalk-text-secondary">
                             No recording URL available (Session ID: {session.id})
                           </span>
                         )}
                       </div>
 
                       {/* Session Details */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-cakewalk-body-xs">
+                      <div className="grid grid-cols-2 gap-4 text-cakewalk-body-xs md:grid-cols-4">
                         {session.duration && (
                           <div>
                             <span className="text-cakewalk-text-secondary">Duration:</span>
@@ -410,7 +473,7 @@ export function DataPanels({ data }: DataPanelsProps) {
                         {session.deviceType && (
                           <div>
                             <span className="text-cakewalk-text-secondary">Device:</span>
-                            <div className="font-medium text-cakewalk-text-primary capitalize">
+                            <div className="font-medium capitalize text-cakewalk-text-primary">
                               {session.deviceType}
                             </div>
                           </div>
@@ -436,22 +499,25 @@ export function DataPanels({ data }: DataPanelsProps) {
                       {/* Smart Events */}
                       {session.smartEvents && session.smartEvents.length > 0 && (
                         <div className="border-t border-cakewalk-border pt-3">
-                          <div className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary mb-2">
+                          <div className="mb-2 text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
                             Smart Events:
                           </div>
                           <div className="space-y-1">
-                            {session.smartEvents.slice(0, 3).map((event: any, eventIndex: number) => (
-                              <div key={eventIndex} className="flex items-center justify-between text-cakewalk-body-xs">
-                                <span className="text-cakewalk-text-primary">
-                                  {event.event}
-                                </span>
-                                <span className="text-cakewalk-text-secondary">
-                                  {event.startTime} • {event.type}
-                                </span>
-                              </div>
-                            ))}
+                            {session.smartEvents
+                              .slice(0, 3)
+                              .map((event: any, eventIndex: number) => (
+                                <div
+                                  key={eventIndex}
+                                  className="flex items-center justify-between text-cakewalk-body-xs"
+                                >
+                                  <span className="text-cakewalk-text-primary">{event.event}</span>
+                                  <span className="text-cakewalk-text-secondary">
+                                    {event.startTime} • {event.type}
+                                  </span>
+                                </div>
+                              ))}
                             {session.smartEvents.length > 3 && (
-                              <div className="text-cakewalk-body-xs text-cakewalk-text-secondary italic">
+                              <div className="text-cakewalk-body-xs italic text-cakewalk-text-secondary">
                                 ... and {session.smartEvents.length - 3} more events
                               </div>
                             )}
@@ -463,21 +529,21 @@ export function DataPanels({ data }: DataPanelsProps) {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-cakewalk-text-secondary">
-                <VideoIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <div className="py-8 text-center text-cakewalk-text-secondary">
+                <VideoIcon className="mx-auto mb-4 h-12 w-12 opacity-50" />
                 <p className="text-cakewalk-body-sm">No session recordings found</p>
-                <p className="text-cakewalk-body-xs mt-2">
+                <p className="mt-2 text-cakewalk-body-xs">
                   Session recordings will appear here when available from Microsoft Clarity
                 </p>
-                
+
                 {/* Debug Info */}
-                <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <p className="text-yellow-800 text-cakewalk-body-xs font-medium">Debug Info:</p>
-                  <p className="text-yellow-700 text-cakewalk-body-xs mt-1">
+                <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
+                  <p className="text-cakewalk-body-xs font-medium text-yellow-800">Debug Info:</p>
+                  <p className="mt-1 text-cakewalk-body-xs text-yellow-700">
                     Sessions in data: {hubspot?.data?.claritySessions?.length || 0}
                   </p>
                   {hubspot?.data?.claritySessions && (
-                    <pre className="text-yellow-700 text-xs mt-2 overflow-x-auto">
+                    <pre className="mt-2 overflow-x-auto text-xs text-yellow-700">
                       {JSON.stringify(hubspot.data.claritySessions, null, 2).substring(0, 200)}...
                     </pre>
                   )}

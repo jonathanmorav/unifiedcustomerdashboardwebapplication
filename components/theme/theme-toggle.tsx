@@ -95,7 +95,7 @@ export function ThemeToggle({
             aria-pressed={theme === value}
             className={cn(
               "h-9 w-9",
-              theme === value && "ring-cakewalk-primary ring-2 ring-offset-2"
+              theme === value && "ring-2 ring-cakewalk-primary ring-offset-2"
             )}
           >
             <Icon className="h-4 w-4" />
@@ -112,7 +112,7 @@ export function ThemeToggle({
       <SelectTrigger
         className={cn(
           "h-9 w-auto gap-2",
-          "focus:ring-cakewalk-primary focus:ring-2 focus:ring-offset-2",
+          "focus:ring-2 focus:ring-cakewalk-primary focus:ring-offset-2",
           className
         )}
         aria-label="Select theme"
@@ -134,14 +134,14 @@ export function ThemeToggle({
                 <Icon className="h-4 w-4" />
                 <span>{label}</span>
                 {value === "system" && (
-                  <span className="text-muted-foreground ml-2 text-xs">({resolvedTheme})</span>
+                  <span className="ml-2 text-xs text-muted-foreground">({resolvedTheme})</span>
                 )}
               </div>
             </SelectItem>
           ))}
         </SelectGroup>
-        <div className="text-muted-foreground border-t px-2 py-1.5 text-xs">
-          <kbd className="bg-muted rounded px-1 py-0.5 text-xs">Alt+T</kbd> to toggle
+        <div className="border-t px-2 py-1.5 text-xs text-muted-foreground">
+          <kbd className="rounded bg-muted px-1 py-0.5 text-xs">Alt+T</kbd> to toggle
         </div>
       </SelectContent>
     </Select>
@@ -174,7 +174,7 @@ export function ThemeToggleButton({ className }: { className?: string }) {
       onClick={toggleTheme}
       className={cn(
         "h-9 w-9",
-        "focus:ring-cakewalk-primary focus:ring-2 focus:ring-offset-2",
+        "focus:ring-2 focus:ring-cakewalk-primary focus:ring-offset-2",
         className
       )}
       aria-label={`Current theme: ${theme}. Click to change theme`}

@@ -11,9 +11,11 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowUpDown, ArrowUp, ArrowDown, Eye } from "lucide-react"
+import { ArrowUpDown, ArrowUp, ArrowDown, Eye, AlertCircle } from "lucide-react"
 import { formatCurrency } from "@/utils/format-currency"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { getReturnCodeInfo } from "@/lib/api/dwolla/return-codes"
 
 interface ACHTransaction {
   id: string
@@ -28,6 +30,9 @@ interface ACHTransaction {
   bankLastFour?: string
   correlationId?: string
   invoiceNumber?: string
+  returnCode?: string
+  failureCode?: string
+  failureReason?: string
   transactionType?: string
   fees?: number
   netAmount?: number
@@ -45,7 +50,9 @@ interface TransactionTableProps {
 type SortField = "created" | "amount" | "customerName" | "status"
 type SortDirection = "asc" | "desc"
 
-const getStatusBadge = (status: ACHTransaction["status"]) => {
+const getStatusBadge = (transaction: ACHTransaction) => {
+  const { status, returnCode } = transaction
+  
   const variants: Record<string, { color: string; text: string }> = {
     pending: {
       color: "bg-cakewalk-warning-light text-cakewalk-warning",
@@ -81,6 +88,32 @@ const getStatusBadge = (status: ACHTransaction["status"]) => {
       color: "bg-cakewalk-neutral text-cakewalk-neutral-dark",
       text: status || "Unknown",
     }
+
+  // If there's a return code, show it with tooltip
+  if (returnCode && (status === 'failed' || status === 'returned')) {
+    const returnCodeInfo = getReturnCodeInfo(returnCode)
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-1.5">
+              <Badge className={`${variant.color} border-0`}>
+                {variant.text}
+              </Badge>
+              <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                <AlertCircle className="h-3 w-3" />
+                {returnCode}
+              </Badge>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            <p className="font-semibold">{returnCodeInfo.title}</p>
+            <p className="text-sm">{returnCodeInfo.description}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
 
   return <Badge className={`${variant.color} border-0`}>{variant.text}</Badge>
 }
@@ -250,7 +283,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                     {transaction.direction === "credit" ? "Credit" : "Debit"}
                   </Badge>
                 </TableCell>
-                <TableCell>{getStatusBadge(transaction.status)}</TableCell>
+                <TableCell>{getStatusBadge(transaction)}</TableCell>
                 <TableCell>
                   {transaction.bankLastFour ? `****${transaction.bankLastFour}` : "-"}
                 </TableCell>

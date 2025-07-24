@@ -15,21 +15,26 @@
 
 The Unified Customer Dashboard provides support teams with a single interface to search and manage customer data, reducing task completion time from 8-10 minutes to 2-3 minutes by eliminating context switching between multiple systems.
 
+> **⚠️ Breaking Change Notice**: Version 0.2.0 introduces a breaking change where transaction status "completed" has been renamed to "processed" for consistency across all data sources. Please update any external integrations accordingly. See [CHANGELOG.md](CHANGELOG.md) for details.
+
 ## ✨ Key Features
 
 ### Core Functionality
+
 - **🔍 Unified Search**: Search across HubSpot and Dwolla simultaneously
 - **⚡ Smart Detection**: Automatically identifies email, name, business name, or customer IDs
 - **🚀 Fast Response**: Parallel API execution ensures < 3 second response times
 - **📊 Consolidated View**: All customer data in one intuitive interface
 
 ### Security & Compliance
+
 - **🔐 Google OAuth**: Secure authentication with session management
 - **🛡️ Enterprise Security**: CSRF protection, rate limiting, and audit logging
 - **♿ WCAG 2.1 AA**: Full accessibility compliance
 - **🔒 Data Protection**: Field-level encryption for PII (planned)
 
 ### User Experience
+
 - **🎨 Modern Design**: Cakewalk Benefits design system
 - **🌓 Dark Mode**: Automatic theme switching
 - **📱 Responsive**: Mobile-first design approach
@@ -38,6 +43,7 @@ The Unified Customer Dashboard provides support teams with a single interface to
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 - PostgreSQL 14+
 - Google OAuth credentials
@@ -46,27 +52,31 @@ The Unified Customer Dashboard provides support teams with a single interface to
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/cakewalk-benefits/unified-customer-dashboard.git
    cd unified-customer-dashboard
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Configure environment**
+
    ```bash
    cp .env.local.example .env.local
    # Edit .env.local with your configuration
    ```
 
 4. **Set up database**
+
    ```bash
    # Using Docker
    docker-compose -f docker-compose.dev.yml up -d postgres
-   
+
    # Run migrations
    npm run setup:db
    ```
@@ -79,6 +89,7 @@ The Unified Customer Dashboard provides support teams with a single interface to
 ### Demo Mode
 
 Try the application with mock data:
+
 ```bash
 npm run setup:demo
 npm run dev
@@ -88,15 +99,15 @@ npm run dev
 
 ### Tech Stack
 
-| Layer | Technologies |
-|-------|-------------|
-| **Frontend** | Next.js 14, React 19, TypeScript, Tailwind CSS |
-| **Backend** | Next.js API Routes, Prisma ORM |
-| **Database** | PostgreSQL with connection pooling |
-| **Auth** | NextAuth.js with Google OAuth |
-| **Security** | CSRF tokens, rate limiting, helmet.js |
-| **Testing** | Jest, React Testing Library, Playwright |
-| **Monitoring** | Custom metrics, health checks |
+| Layer          | Technologies                                   |
+| -------------- | ---------------------------------------------- |
+| **Frontend**   | Next.js 14, React 19, TypeScript, Tailwind CSS |
+| **Backend**    | Next.js API Routes, Prisma ORM                 |
+| **Database**   | PostgreSQL with connection pooling             |
+| **Auth**       | NextAuth.js with Google OAuth                  |
+| **Security**   | CSRF tokens, rate limiting, helmet.js          |
+| **Testing**    | Jest, React Testing Library, Playwright        |
+| **Monitoring** | Custom metrics, health checks                  |
 
 ### Project Structure
 
@@ -125,22 +136,22 @@ unified-customer-dashboard/
 
 ### Required Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `NEXTAUTH_URL` | Application URL |
-| `NEXTAUTH_SECRET` | 32+ character secret |
-| `GOOGLE_CLIENT_ID` | OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | OAuth secret |
+| Variable               | Description                  |
+| ---------------------- | ---------------------------- |
+| `DATABASE_URL`         | PostgreSQL connection string |
+| `NEXTAUTH_URL`         | Application URL              |
+| `NEXTAUTH_SECRET`      | 32+ character secret         |
+| `GOOGLE_CLIENT_ID`     | OAuth client ID              |
+| `GOOGLE_CLIENT_SECRET` | OAuth secret                 |
 
 ### Optional API Configuration
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `HUBSPOT_API_KEY` | HubSpot API key | Demo mode |
-| `DWOLLA_CLIENT_ID` | Dwolla client ID | Demo mode |
-| `DWOLLA_CLIENT_SECRET` | Dwolla secret | Demo mode |
-| `DEMO_MODE` | Enable mock data | `false` |
+| Variable               | Description      | Default   |
+| ---------------------- | ---------------- | --------- |
+| `HUBSPOT_API_KEY`      | HubSpot API key  | Demo mode |
+| `DWOLLA_CLIENT_ID`     | Dwolla client ID | Demo mode |
+| `DWOLLA_CLIENT_SECRET` | Dwolla secret    | Demo mode |
+| `DEMO_MODE`            | Enable mock data | `false`   |
 
 ## 📝 Development
 

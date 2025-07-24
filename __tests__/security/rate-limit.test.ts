@@ -1,7 +1,7 @@
-import { RateLimiter } from '@/lib/security/rate-limit'
-import { NextRequest } from 'next/server'
+import { RateLimiter } from "@/lib/security/rate-limit"
+import { NextRequest } from "next/server"
 
-describe('RateLimiter', () => {
+describe("RateLimiter", () => {
   let rateLimiter: RateLimiter
 
   beforeEach(() => {
@@ -10,21 +10,21 @@ describe('RateLimiter', () => {
 
   const createMockRequest = (ip: string, userId?: string) => {
     const headers = new Headers()
-    headers.set('x-forwarded-for', ip)
-    
+    headers.set("x-forwarded-for", ip)
+
     return {
       headers,
       ip,
     } as unknown as NextRequest
   }
 
-  describe('limit', () => {
-    it('should allow requests within rate limit', async () => {
-      const request = createMockRequest('192.168.1.1')
+  describe("limit", () => {
+    it("should allow requests within rate limit", async () => {
+      const request = createMockRequest("192.168.1.1")
       const config = {
         windowMs: 60000,
         max: 5,
-        keyGenerator: () => '192.168.1.1',
+        keyGenerator: () => "192.168.1.1",
       }
 
       for (let i = 0; i < 5; i++) {
@@ -35,12 +35,12 @@ describe('RateLimiter', () => {
       }
     })
 
-    it('should block requests exceeding rate limit', async () => {
-      const request = createMockRequest('192.168.1.2')
+    it("should block requests exceeding rate limit", async () => {
+      const request = createMockRequest("192.168.1.2")
       const config = {
         windowMs: 60000,
         max: 2,
-        keyGenerator: () => '192.168.1.2',
+        keyGenerator: () => "192.168.1.2",
       }
 
       // First two requests should succeed
@@ -54,12 +54,12 @@ describe('RateLimiter', () => {
       expect(result.retryAfter).toBeGreaterThan(0)
     })
 
-    it('should reset limits after window expires', async () => {
-      const request = createMockRequest('192.168.1.3')
+    it("should reset limits after window expires", async () => {
+      const request = createMockRequest("192.168.1.3")
       const config = {
         windowMs: 100, // 100ms window for testing
         max: 1,
-        keyGenerator: () => '192.168.1.3',
+        keyGenerator: () => "192.168.1.3",
       }
 
       // First request should succeed
@@ -71,7 +71,7 @@ describe('RateLimiter', () => {
       expect(result2.success).toBe(false)
 
       // Wait for window to expire
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise((resolve) => setTimeout(resolve, 150))
 
       // Third request should succeed (new window)
       const result3 = await rateLimiter.limit(request, config)
@@ -79,13 +79,13 @@ describe('RateLimiter', () => {
     })
   })
 
-  describe('handleBurst', () => {
-    it('should allow burst requests up to 150% of limit', async () => {
-      const request = createMockRequest('192.168.1.4')
+  describe("handleBurst", () => {
+    it("should allow burst requests up to 150% of limit", async () => {
+      const request = createMockRequest("192.168.1.4")
       const config = {
         windowMs: 60000,
         max: 10,
-        keyGenerator: () => '192.168.1.4',
+        keyGenerator: () => "192.168.1.4",
       }
 
       // Fill up normal limit
@@ -105,12 +105,12 @@ describe('RateLimiter', () => {
       expect(result.success).toBe(false)
     })
 
-    it('should apply exponential backoff for burst requests', async () => {
-      const request = createMockRequest('192.168.1.5')
+    it("should apply exponential backoff for burst requests", async () => {
+      const request = createMockRequest("192.168.1.5")
       const config = {
         windowMs: 60000,
         max: 2,
-        keyGenerator: () => '192.168.1.5',
+        keyGenerator: () => "192.168.1.5",
       }
 
       // Fill normal limit
@@ -130,13 +130,13 @@ describe('RateLimiter', () => {
     })
   })
 
-  describe('abuse detection', () => {
-    it('should track rate limit violations', async () => {
-      const request = createMockRequest('192.168.1.6')
+  describe("abuse detection", () => {
+    it("should track rate limit violations", async () => {
+      const request = createMockRequest("192.168.1.6")
       const config = {
         windowMs: 60000,
         max: 1,
-        keyGenerator: () => '192.168.1.6',
+        keyGenerator: () => "192.168.1.6",
       }
 
       // First request succeeds
@@ -150,12 +150,12 @@ describe('RateLimiter', () => {
       }
     })
 
-    it('should detect abuse patterns', async () => {
-      const request = createMockRequest('192.168.1.7')
+    it("should detect abuse patterns", async () => {
+      const request = createMockRequest("192.168.1.7")
       const config = {
         windowMs: 100, // Short window for testing
         max: 1,
-        keyGenerator: () => '192.168.1.7',
+        keyGenerator: () => "192.168.1.7",
       }
 
       // Generate many violations quickly

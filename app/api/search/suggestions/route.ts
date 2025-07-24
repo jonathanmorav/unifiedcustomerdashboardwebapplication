@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     log.error("Search suggestions API error", error as Error, {
       userId: session?.user?.email,
       query,
-      operation: 'search_suggestions'
+      operation: "search_suggestions",
     })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

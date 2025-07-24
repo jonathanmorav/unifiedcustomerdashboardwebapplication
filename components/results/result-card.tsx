@@ -30,9 +30,9 @@ export function ResultCard({
           <CardTitle className="flex items-center gap-2 text-lg">
             {title}
             {isExpanded ? (
-              <ChevronUpIcon className="text-cakewalk-text-secondary h-5 w-5" />
+              <ChevronUpIcon className="h-5 w-5 text-cakewalk-text-secondary" />
             ) : (
-              <ChevronDownIcon className="text-cakewalk-text-secondary h-5 w-5" />
+              <ChevronDownIcon className="h-5 w-5 text-cakewalk-text-secondary" />
             )}
           </CardTitle>
           {actions && (

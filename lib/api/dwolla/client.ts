@@ -102,11 +102,14 @@ export class DwollaClient {
     // Create a new shared promise for all rate-limited requests
     const delay = Math.max(resetTime - Date.now(), this.retryConfig.initialDelay)
 
-    log.warn(`[DwollaClient] Rate limited. Waiting ${delay}ms until ${new Date(resetTime).toISOString()}`, {
-      delay,
-      resetTime: new Date(resetTime).toISOString(),
-      operation: 'dwolla_rate_limit'
-    })
+    log.warn(
+      `[DwollaClient] Rate limited. Waiting ${delay}ms until ${new Date(resetTime).toISOString()}`,
+      {
+        delay,
+        resetTime: new Date(resetTime).toISOString(),
+        operation: "dwolla_rate_limit",
+      }
+    )
 
     this.rateLimitPromise = this.sleep(delay).then(() => {
       this.rateLimitResetTime = null
@@ -130,7 +133,6 @@ export class DwollaClient {
    * Parse HAL response safely
    */
   private parseHALResponse<T>(response: any, embeddedKey: string): T[] {
-    // eslint-disable-line @typescript-eslint/no-explicit-any
     const embedded = response._embedded || {}
     return embedded[embeddedKey] ?? []
   }
@@ -182,11 +184,11 @@ export class DwollaClient {
             : Date.now() + this.retryConfig.initialDelay
 
           if (retryCount < this.retryConfig.maxRetries) {
-            await CorrelationTracking.log('warn', 'Dwolla rate limited', {
+            await CorrelationTracking.log("warn", "Dwolla rate limited", {
               url,
               status: response.status,
               retryCount,
-              resetTime: new Date(resetTime).toISOString()
+              resetTime: new Date(resetTime).toISOString(),
             })
             await this.handleRateLimit(resetTime)
             return this.fetchWithRetry<T>(url, options, retryCount + 1, signal)
@@ -197,7 +199,7 @@ export class DwollaClient {
         if (response.status === 401 && retryCount === 0) {
           log.warn("[DwollaClient] Token expired, refreshing...", {
             url,
-            operation: 'dwolla_token_refresh'
+            operation: "dwolla_token_refresh",
           })
           const error = new DwollaAPIError("Token expired", 401)
           this.onRetry({ attempt: retryCount + 1, error, url })
@@ -217,13 +219,16 @@ export class DwollaClient {
             this.retryConfig.maxDelay
           )
 
-          log.warn(`[DwollaClient] Server error (${response.status}). Retrying after ${delay}ms...`, {
-            status: response.status,
-            delay,
-            retryCount,
-            url,
-            operation: 'dwolla_server_error'
-          })
+          log.warn(
+            `[DwollaClient] Server error (${response.status}). Retrying after ${delay}ms...`,
+            {
+              status: response.status,
+              delay,
+              retryCount,
+              url,
+              operation: "dwolla_server_error",
+            }
+          )
 
           const error = new DwollaAPIError(
             errorData.message || `Server error: ${response.status}`,
@@ -276,7 +281,7 @@ export class DwollaClient {
           retryCount,
           url,
           error: error instanceof Error ? error.message : String(error),
-          operation: 'dwolla_network_error'
+          operation: "dwolla_network_error",
         })
 
         this.onRetry({
@@ -425,10 +430,13 @@ export class DwollaClient {
           )
         }
 
-        log.warn("[DwollaClient] Notifications endpoint not available (404). Returning empty array.", {
-          customerId,
-          operation: 'dwolla_notifications_404'
-        })
+        log.warn(
+          "[DwollaClient] Notifications endpoint not available (404). Returning empty array.",
+          {
+            customerId,
+            operation: "dwolla_notifications_404",
+          }
+        )
         return []
       }
 
@@ -485,11 +493,11 @@ export class DwollaClient {
     signal?: AbortSignal
   ): Promise<DwollaListResponse<DwollaTransfer>> {
     // Fetch transfers for the master account
-    const accountId = process.env.DWOLLA_MASTER_ACCOUNT_ID;
+    const accountId = process.env.DWOLLA_MASTER_ACCOUNT_ID
     if (!accountId) {
-      throw new DwollaAPIError("DWOLLA_MASTER_ACCOUNT_ID not configured", 500);
+      throw new DwollaAPIError("DWOLLA_MASTER_ACCOUNT_ID not configured", 500)
     }
-    
+
     // Use account-specific transfers endpoint
     const url = this.buildUrl(`/accounts/${accountId}/transfers`, {
       limit: params.limit,
@@ -499,7 +507,7 @@ export class DwollaClient {
       status: params.status,
       correlationId: params.correlationId,
     })
-    
+
     return this.fetchWithRetry<DwollaListResponse<DwollaTransfer>>(url, {}, 0, signal)
   }
 
@@ -509,6 +517,20 @@ export class DwollaClient {
   async getTransfer(transferId: string, signal?: AbortSignal): Promise<DwollaTransfer> {
     const url = this.buildUrl(`/transfers/${transferId}`)
     return this.fetchWithRetry<DwollaTransfer>(url, {}, 0, signal)
+  }
+
+  /**
+   * Get transfer events
+   */
+  async getTransferEvents(transferId: string, signal?: AbortSignal): Promise<any[]> {
+    try {
+      const url = this.buildUrl(`/transfers/${transferId}/events`)
+      const response = await this.fetchWithRetry<DwollaListResponse<any>>(url, {}, 0, signal)
+      return response._embedded?.events || []
+    } catch (error) {
+      log.error('Error fetching transfer events:', error)
+      return []
+    }
   }
 
   /**

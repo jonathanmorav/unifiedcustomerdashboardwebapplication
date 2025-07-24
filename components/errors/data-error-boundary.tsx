@@ -1,9 +1,9 @@
-'use client'
+"use client"
 
-import React, { useState } from 'react'
-import { ErrorBoundary } from './error-boundary'
-import { Button } from '@/components/ui/button'
-import { RefreshCw, WifiOff, AlertCircle } from 'lucide-react'
+import React, { useState } from "react"
+import { ErrorBoundary } from "./error-boundary"
+import { Button } from "@/components/ui/button"
+import { RefreshCw, WifiOff, AlertCircle } from "lucide-react"
 
 interface Props {
   children: React.ReactNode
@@ -11,21 +11,21 @@ interface Props {
   dataSource?: string
 }
 
-export function DataErrorBoundary({ children, onRetry, dataSource = 'data' }: Props) {
+export function DataErrorBoundary({ children, onRetry, dataSource = "data" }: Props) {
   const [retryCount, setRetryCount] = useState(0)
 
   const handleRetry = () => {
-    setRetryCount(prev => prev + 1)
+    setRetryCount((prev) => prev + 1)
     if (onRetry) {
       onRetry()
     }
   }
 
   const dataErrorFallback = (
-    <div className="flex flex-col items-center justify-center min-h-[300px] p-6">
-      <div className="max-w-md w-full space-y-4 text-center">
+    <div className="flex min-h-[300px] flex-col items-center justify-center p-6">
+      <div className="w-full max-w-md space-y-4 text-center">
         <div className="flex justify-center">
-          <div className="rounded-full bg-orange-100 dark:bg-orange-900/20 p-3">
+          <div className="rounded-full bg-orange-100 p-3 dark:bg-orange-900/20">
             <WifiOff className="h-8 w-8 text-orange-600 dark:text-orange-400" />
           </div>
         </div>
@@ -35,7 +35,7 @@ export function DataErrorBoundary({ children, onRetry, dataSource = 'data' }: Pr
             Failed to load {dataSource}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            We couldn't fetch the data from our servers. This might be a temporary issue.
+            We couldn&apos;t fetch the data from our servers. This might be a temporary issue.
           </p>
         </div>
 
@@ -47,7 +47,7 @@ export function DataErrorBoundary({ children, onRetry, dataSource = 'data' }: Pr
             disabled={retryCount > 3}
           >
             <RefreshCw className="mr-2 h-4 w-4" />
-            {retryCount > 0 ? `Retry (${retryCount}/3)` : 'Retry'}
+            {retryCount > 0 ? `Retry (${retryCount}/3)` : "Retry"}
           </Button>
 
           {retryCount > 3 && (
@@ -57,7 +57,7 @@ export function DataErrorBoundary({ children, onRetry, dataSource = 'data' }: Pr
           )}
         </div>
 
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
           <details className="text-left">
             <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
               Troubleshooting tips

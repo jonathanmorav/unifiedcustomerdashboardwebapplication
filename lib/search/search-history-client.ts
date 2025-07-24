@@ -69,7 +69,7 @@ export class SearchHistory {
           searchType,
           duration,
           totalResults: results.totalResults,
-          operation: 'search_history_add'
+          operation: "search_history_add",
         })
       }
     } catch (error) {
@@ -81,7 +81,7 @@ export class SearchHistory {
     try {
       localStorage.removeItem(this.STORAGE_KEY)
       console.info("Search history cleared", {
-        operation: 'search_history_clear'
+        operation: "search_history_clear",
       })
     } catch (error) {
       console.error("Failed to clear search history:", error)

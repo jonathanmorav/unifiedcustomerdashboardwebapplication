@@ -6,9 +6,9 @@ import { monitoringMiddleware } from "@/lib/monitoring/middleware-edge"
 
 // Simple UUID generator for Edge Runtime
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0
+    const v = c === "x" ? r : (r & 0x3) | 0x8
     return v.toString(16)
   })
 }
@@ -17,7 +17,7 @@ export default withAuth(
   async function middleware(req) {
     // Apply monitoring middleware first to track all requests
     const monitoredResponse = monitoringMiddleware(req)
-    
+
     // Apply rate limiting
     const rateLimitResponse = await rateLimitMiddleware(req)
     if (rateLimitResponse.status === 429) {
@@ -33,8 +33,7 @@ export default withAuth(
     }
 
     // Check session health for protected routes
-    if (req.nextUrl.pathname.startsWith('/dashboard') || 
-        req.nextUrl.pathname.startsWith('/api/')) {
+    if (req.nextUrl.pathname.startsWith("/dashboard") || req.nextUrl.pathname.startsWith("/api/")) {
       // Session health checks would be performed here
       // For now, we rely on NextAuth's session validation
     }
@@ -51,15 +50,12 @@ export default withAuth(
     headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
     headers.set("X-Request-ID", requestId)
     headers.set("X-Correlation-ID", correlationId)
-    
+
     // HSTS - Enforce HTTPS for 1 year with preload and subdomains
     if (process.env.NODE_ENV === "production") {
-      headers.set(
-        "Strict-Transport-Security",
-        "max-age=31536000; includeSubDomains; preload"
-      )
+      headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
     }
-    
+
     // Additional security headers
     headers.set("X-Permitted-Cross-Domain-Policies", "none")
     headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
@@ -77,9 +73,11 @@ export default withAuth(
         "frame-ancestors 'none'",
         "form-action 'self'",
         "base-uri 'self'",
-        process.env.CSP_REPORT_URI ? `report-uri ${process.env.CSP_REPORT_URI}` : ""
-      ].filter(Boolean).join("; ")
-      
+        process.env.CSP_REPORT_URI ? `report-uri ${process.env.CSP_REPORT_URI}` : "",
+      ]
+        .filter(Boolean)
+        .join("; ")
+
       headers.set("Content-Security-Policy", cspDirectives)
     }
 

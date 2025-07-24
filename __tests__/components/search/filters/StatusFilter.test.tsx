@@ -30,7 +30,7 @@ describe("StatusFilter", () => {
 
     it("renders all status options", () => {
       render(<StatusFilter {...defaultProps} />)
-      
+
       defaultStatuses.forEach((status) => {
         expect(screen.getByText(status.label)).toBeInTheDocument()
       })
@@ -38,7 +38,7 @@ describe("StatusFilter", () => {
 
     it("shows count for each status", () => {
       render(<StatusFilter {...defaultProps} />)
-      
+
       defaultStatuses.forEach((status) => {
         expect(screen.getByText(status.count!.toString())).toBeInTheDocument()
       })
@@ -46,7 +46,7 @@ describe("StatusFilter", () => {
 
     it("shows all checkboxes unchecked by default", () => {
       render(<StatusFilter {...defaultProps} />)
-      
+
       const checkboxes = screen.getAllByRole("checkbox", { hidden: true })
       checkboxes.forEach((checkbox) => {
         expect(checkbox).not.toBeChecked()
@@ -54,10 +54,8 @@ describe("StatusFilter", () => {
     })
 
     it("shows selected statuses as checked", () => {
-      render(
-        <StatusFilter {...defaultProps} value={["active", "pending"]} />
-      )
-      
+      render(<StatusFilter {...defaultProps} value={["active", "pending"]} />)
+
       const checkboxes = screen.getAllByRole("checkbox", { hidden: true })
       expect(checkboxes[0]).toBeChecked() // Active
       expect(checkboxes[1]).toBeChecked() // Pending
@@ -69,27 +67,25 @@ describe("StatusFilter", () => {
     it("toggles status on checkbox click", async () => {
       const user = userEvent.setup()
       render(<StatusFilter {...defaultProps} />)
-      
+
       const activeLabel = screen.getByText("Active")
       await user.click(activeLabel)
-      
+
       expect(mockOnChange).toHaveBeenCalledWith(["active"])
     })
 
     it("adds multiple statuses", async () => {
       const user = userEvent.setup()
       const { rerender } = render(<StatusFilter {...defaultProps} />)
-      
+
       const activeLabel = screen.getByText("Active")
       await user.click(activeLabel)
       expect(mockOnChange).toHaveBeenCalledWith(["active"])
-      
+
       // Reset mock and update props
       mockOnChange.mockClear()
-      rerender(
-        <StatusFilter {...defaultProps} value={["active"]} />
-      )
-      
+      rerender(<StatusFilter {...defaultProps} value={["active"]} />)
+
       const pendingLabel = screen.getByText("Pending")
       await user.click(pendingLabel)
       expect(mockOnChange).toHaveBeenCalledWith(["active", "pending"])
@@ -97,23 +93,21 @@ describe("StatusFilter", () => {
 
     it("removes status when unchecking", async () => {
       const user = userEvent.setup()
-      render(
-        <StatusFilter {...defaultProps} value={["active", "pending"]} />
-      )
-      
+      render(<StatusFilter {...defaultProps} value={["active", "pending"]} />)
+
       const activeLabel = screen.getByText("Active")
       await user.click(activeLabel)
-      
+
       expect(mockOnChange).toHaveBeenCalledWith(["pending"])
     })
 
     it("handles clicking on label", async () => {
       const user = userEvent.setup()
       render(<StatusFilter {...defaultProps} />)
-      
+
       const activeLabel = screen.getByText("Active")
       await user.click(activeLabel)
-      
+
       expect(mockOnChange).toHaveBeenCalledWith(["active"])
     })
   })
@@ -121,7 +115,7 @@ describe("StatusFilter", () => {
   describe("Select All / Clear All", () => {
     it("shows select all button when not all selected", () => {
       render(<StatusFilter {...defaultProps} value={["active"]} />)
-      
+
       const selectAllButton = screen.getByRole("button", { name: /select all/i })
       expect(selectAllButton).toBeInTheDocument()
     })
@@ -129,7 +123,7 @@ describe("StatusFilter", () => {
     it("shows clear button when some selected", () => {
       const allValues = defaultStatuses.map((s) => s.value)
       render(<StatusFilter {...defaultProps} value={allValues} />)
-      
+
       const clearButton = screen.getByRole("button", { name: /clear/i })
       expect(clearButton).toBeInTheDocument()
     })
@@ -137,10 +131,10 @@ describe("StatusFilter", () => {
     it("selects all statuses on select all click", async () => {
       const user = userEvent.setup()
       render(<StatusFilter {...defaultProps} />)
-      
+
       const selectAllButton = screen.getByRole("button", { name: /select all/i })
       await user.click(selectAllButton)
-      
+
       const allValues = defaultStatuses.map((s) => s.value)
       expect(mockOnChange).toHaveBeenCalledWith(allValues)
     })
@@ -149,10 +143,10 @@ describe("StatusFilter", () => {
       const user = userEvent.setup()
       const allValues = defaultStatuses.map((s) => s.value)
       render(<StatusFilter {...defaultProps} value={allValues} />)
-      
+
       const clearButton = screen.getByRole("button", { name: /clear/i })
       await user.click(clearButton)
-      
+
       expect(mockOnChange).toHaveBeenCalledWith([])
     })
   })
@@ -160,12 +154,12 @@ describe("StatusFilter", () => {
   describe("Empty State", () => {
     it("renders empty list when no options provided", () => {
       render(<StatusFilter {...defaultProps} options={[]} />)
-      
+
       // Should still show the label and buttons
       expect(screen.getByText("Status")).toBeInTheDocument()
       expect(screen.getByRole("button", { name: /select all/i })).toBeInTheDocument()
       expect(screen.getByRole("button", { name: /clear/i })).toBeInTheDocument()
-      
+
       // But no checkboxes
       const checkboxes = screen.queryAllByRole("checkbox", { hidden: true })
       expect(checkboxes).toHaveLength(0)
@@ -174,10 +168,8 @@ describe("StatusFilter", () => {
 
   describe("Custom Styling", () => {
     it("applies custom className", () => {
-      const { container } = render(
-        <StatusFilter {...defaultProps} className="custom-class" />
-      )
-      
+      const { container } = render(<StatusFilter {...defaultProps} className="custom-class" />)
+
       expect(container.firstChild).toHaveClass("custom-class")
     })
 
@@ -186,11 +178,9 @@ describe("StatusFilter", () => {
         { value: "active", label: "Active", count: 10, color: "green" },
         { value: "error", label: "Error", count: 5, color: "red" },
       ]
-      
-      render(
-        <StatusFilter {...defaultProps} options={customStatuses} />
-      )
-      
+
+      render(<StatusFilter {...defaultProps} options={customStatuses} />)
+
       // This would depend on how colors are implemented in the component
       // For now, just verify the statuses render
       expect(screen.getByText("Active")).toBeInTheDocument()
@@ -202,17 +192,17 @@ describe("StatusFilter", () => {
     it("supports keyboard navigation through checkboxes", async () => {
       const user = userEvent.setup()
       render(<StatusFilter {...defaultProps} />)
-      
+
       const checkboxes = screen.getAllByRole("checkbox", { hidden: true })
-      
+
       // Focus first checkbox
       checkboxes[0].focus()
       expect(checkboxes[0]).toHaveFocus()
-      
+
       // Tab to next checkbox
       await user.tab()
       expect(checkboxes[1]).toHaveFocus()
-      
+
       // Space to toggle
       await user.keyboard(" ")
       expect(mockOnChange).toHaveBeenCalledWith([defaultStatuses[1].value])
@@ -226,9 +216,9 @@ describe("StatusFilter", () => {
         label: `Status ${i}`,
         count: Math.floor(Math.random() * 100),
       }))
-      
+
       render(<StatusFilter {...defaultProps} options={manyStatuses} />)
-      
+
       expect(screen.getAllByRole("checkbox")).toHaveLength(50)
     })
 
@@ -239,17 +229,15 @@ describe("StatusFilter", () => {
         label: `Status ${i}`,
         count: i,
       }))
-      
+
       render(<StatusFilter {...defaultProps} options={manyStatuses} />)
-      
+
       // Select all should be efficient
       const selectAllButton = screen.getByRole("button", { name: /select all/i })
       await user.click(selectAllButton)
-      
+
       expect(mockOnChange).toHaveBeenCalledTimes(1)
-      expect(mockOnChange).toHaveBeenCalledWith(
-        manyStatuses.map((s) => s.value)
-      )
+      expect(mockOnChange).toHaveBeenCalledWith(manyStatuses.map((s) => s.value))
     })
   })
 
@@ -260,9 +248,9 @@ describe("StatusFilter", () => {
         { value: "status_with_underscore", label: "Status_With_Underscore", count: 2 },
         { value: "status.with.dot", label: "Status.With.Dot", count: 3 },
       ]
-      
+
       render(<StatusFilter {...defaultProps} options={specialStatuses} />)
-      
+
       specialStatuses.forEach((status) => {
         expect(screen.getByText(status.label)).toBeInTheDocument()
       })
@@ -273,9 +261,9 @@ describe("StatusFilter", () => {
         { value: "active", label: "Active", count: 10 },
         { value: "active", label: "Also Active", count: 5 },
       ]
-      
+
       render(<StatusFilter {...defaultProps} options={duplicateStatuses} />)
-      
+
       // Should render both even with duplicate values
       expect(screen.getByText("Active")).toBeInTheDocument()
       expect(screen.getByText("Also Active")).toBeInTheDocument()
@@ -286,9 +274,9 @@ describe("StatusFilter", () => {
         { value: "empty", label: "Empty", count: 0 },
         { value: "none", label: "None", count: 0 },
       ]
-      
+
       render(<StatusFilter {...defaultProps} options={zeroCountStatuses} />)
-      
+
       expect(screen.getAllByText("0")).toHaveLength(2)
     })
   })

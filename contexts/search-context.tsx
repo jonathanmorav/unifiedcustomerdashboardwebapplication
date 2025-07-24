@@ -58,32 +58,27 @@ export function SearchProvider({ children }: { children: ReactNode }) {
           searchTerm,
         }
         setResult(resultWithSearchTerm)
-        
+
         // Add to client-side search history
         const duration = Date.now() - startTime
-        
+
         // Create a UnifiedSearchResult-like object for the client-side history
         const searchResult = {
           results: {
             hubspot: data.data.hubspot ? [data.data.hubspot] : [],
-            dwolla: data.data.dwolla ? [data.data.dwolla] : []
+            dwolla: data.data.dwolla ? [data.data.dwolla] : [],
           },
           totalResults: (data.data.hubspot ? 1 : 0) + (data.data.dwolla ? 1 : 0),
           searchTerm,
           searchType,
           timestamp: new Date(),
-          duration
+          duration,
         }
-        
-        SearchHistory.addEntry(
-          searchTerm,
-          searchType,
-          searchResult as any,
-          duration
-        )
-        
+
+        SearchHistory.addEntry(searchTerm, searchType, searchResult as any, duration)
+
         // Dispatch custom event to notify components
-        window.dispatchEvent(new CustomEvent('searchHistoryUpdated'))
+        window.dispatchEvent(new CustomEvent("searchHistoryUpdated"))
       } else {
         throw new Error("Invalid response format")
       }

@@ -70,7 +70,7 @@ export class HubSpotClient {
     try {
       // Add correlation headers
       const correlationHeaders = await CorrelationTracking.addCorrelationHeaders(options.headers)
-      
+
       const response = await fetch(url, {
         ...options,
         headers: {
@@ -89,12 +89,16 @@ export class HubSpotClient {
           const delay = retryAfter ? parseInt(retryAfter) * 1000 : this.retryConfig.initialDelay
 
           if (retryCount < this.retryConfig.maxRetries) {
-            await CorrelationTracking.log('warn', `HubSpot rate limited. Retrying after ${delay}ms`, {
-              url,
-              status: response.status,
-              retryCount,
-              delay
-            })
+            await CorrelationTracking.log(
+              "warn",
+              `HubSpot rate limited. Retrying after ${delay}ms`,
+              {
+                url,
+                status: response.status,
+                retryCount,
+                delay,
+              }
+            )
             await this.sleep(delay)
             return this.fetchWithRetry<T>(url, options, retryCount + 1)
           }
@@ -117,7 +121,7 @@ export class HubSpotClient {
             delay,
             retryCount,
             url,
-            operation: 'hubspot_server_error'
+            operation: "hubspot_server_error",
           })
           await this.sleep(delay)
           return this.fetchWithRetry<T>(url, options, retryCount + 1)
@@ -149,7 +153,7 @@ export class HubSpotClient {
           retryCount,
           url,
           error: error instanceof Error ? error.message : String(error),
-          operation: 'hubspot_network_error'
+          operation: "hubspot_network_error",
         })
         await this.sleep(delay)
         return this.fetchWithRetry<T>(url, options, retryCount + 1)
@@ -234,7 +238,7 @@ export class HubSpotClient {
     await log.info(`Starting HubSpot company search`, {
       searchTerm,
       searchType,
-      operation: 'hubspot_search_companies_start'
+      operation: "hubspot_search_companies_start",
     })
 
     const searchRequest: HubSpotSearchRequest = {
@@ -254,14 +258,22 @@ export class HubSpotClient {
           ],
         },
       ],
-      properties: ["name", "domain", "email___owner", "dwolla_customer_id", "onboarding_status", "onboarding_step", "hs_object_id"],
+      properties: [
+        "name",
+        "domain",
+        "email___owner",
+        "dwolla_customer_id",
+        "onboarding_status",
+        "onboarding_step",
+        "hs_object_id",
+      ],
       limit: 10,
     }
 
     await log.info(`HubSpot search request prepared`, {
       searchRequest: JSON.stringify(searchRequest, null, 2),
       url: `${this.baseUrl}/crm/v3/objects/companies/search`,
-      operation: 'hubspot_search_companies_request'
+      operation: "hubspot_search_companies_request",
     })
 
     try {
@@ -274,7 +286,7 @@ export class HubSpotClient {
         resultsCount: response.results.length,
         totalResults: response.total,
         hasMore: response.paging?.next?.after ? true : false,
-        operation: 'hubspot_search_companies_success'
+        operation: "hubspot_search_companies_success",
       })
 
       // Log first result for debugging (without sensitive data)
@@ -286,9 +298,9 @@ export class HubSpotClient {
             name: firstResult.properties?.name,
             domain: firstResult.properties?.domain,
             hasOwnerEmail: !!firstResult.properties?.email___owner,
-            hasDwollaId: !!firstResult.properties?.dwolla_customer_id
+            hasDwollaId: !!firstResult.properties?.dwolla_customer_id,
           },
-          operation: 'hubspot_search_companies_sample'
+          operation: "hubspot_search_companies_sample",
         })
       }
 
@@ -298,9 +310,9 @@ export class HubSpotClient {
         searchTerm,
         searchType,
         error: error instanceof Error ? error.message : String(error),
-        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorName: error instanceof Error ? error.name : "Unknown",
         stack: error instanceof Error ? error.stack : undefined,
-        operation: 'hubspot_search_companies_error'
+        operation: "hubspot_search_companies_error",
       })
       throw error
     }
@@ -312,7 +324,7 @@ export class HubSpotClient {
   ): Promise<HubSpotObject<HubSpotSummaryOfBenefits["properties"]>[]> {
     await log.info(`Starting Summary of Benefits retrieval`, {
       companyId,
-      operation: 'hubspot_get_sob_start'
+      operation: "hubspot_get_sob_start",
     })
 
     try {
@@ -320,7 +332,7 @@ export class HubSpotClient {
       await log.info(`Fetching SOB associations for company`, {
         companyId,
         url: `${this.baseUrl}/crm/v3/objects/companies/${companyId}/associations/2-45680577`,
-        operation: 'hubspot_get_sob_associations'
+        operation: "hubspot_get_sob_associations",
       })
 
       const associations = await this.getAssociations("companies", companyId, "2-45680577")
@@ -328,14 +340,14 @@ export class HubSpotClient {
       await log.info(`SOB associations retrieved`, {
         companyId,
         associationsCount: associations.results.length,
-        associationIds: associations.results.map(a => a.id),
-        operation: 'hubspot_get_sob_associations_success'
+        associationIds: associations.results.map((a) => a.id),
+        operation: "hubspot_get_sob_associations_success",
       })
 
       if (!associations.results.length) {
         await log.info(`No SOB associations found for company`, {
           companyId,
-          operation: 'hubspot_get_sob_no_associations'
+          operation: "hubspot_get_sob_no_associations",
         })
         return []
       }
@@ -348,7 +360,7 @@ export class HubSpotClient {
         sobCount: sobIds.length,
         properties: ["amount_to_draft", "fee_amount", "pdf_document_url", "hs_object_id"],
         url: `${this.baseUrl}/crm/v3/objects/summary_of_benefits/batch/read`,
-        operation: 'hubspot_get_sob_batch_read_start'
+        operation: "hubspot_get_sob_batch_read_start",
       })
 
       const response = await this.batchReadObjects<HubSpotSummaryOfBenefits["properties"]>(
@@ -362,7 +374,7 @@ export class HubSpotClient {
         requestedCount: sobIds.length,
         retrievedCount: response.results.length,
         hasStatusInfo: !!response.status,
-        operation: 'hubspot_get_sob_batch_read_success'
+        operation: "hubspot_get_sob_batch_read_success",
       })
 
       // Log sample of retrieved SOB data (without sensitive info)
@@ -375,9 +387,9 @@ export class HubSpotClient {
             hasAmountToDraft: !!firstSob.properties?.amount_to_draft,
             hasFeeAmount: !!firstSob.properties?.fee_amount,
             hasPdfUrl: !!firstSob.properties?.pdf_document_url,
-            hasObjectId: !!firstSob.properties?.hs_object_id
+            hasObjectId: !!firstSob.properties?.hs_object_id,
           },
-          operation: 'hubspot_get_sob_sample'
+          operation: "hubspot_get_sob_sample",
         })
       }
 
@@ -386,9 +398,9 @@ export class HubSpotClient {
       await log.error(`SOB retrieval failed`, {
         companyId,
         error: error instanceof Error ? error.message : String(error),
-        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorName: error instanceof Error ? error.name : "Unknown",
         stack: error instanceof Error ? error.stack : undefined,
-        operation: 'hubspot_get_sob_error'
+        operation: "hubspot_get_sob_error",
       })
       throw error
     }
@@ -450,27 +462,22 @@ export class HubSpotClient {
         error: error instanceof Error ? error.message : String(error),
         objectType,
         objectId,
-        operation: 'hubspot_fetch_invoices'
+        operation: "hubspot_fetch_invoices",
       })
       return []
     }
   }
 
   // Get all lists (with pagination support)
-  async getAllLists(
-    limit = 50,
-    offset = 0
-  ): Promise<HubSpotListsResponse> {
+  async getAllLists(limit = 50, offset = 0): Promise<HubSpotListsResponse> {
     const url = `${this.baseUrl}/contacts/v1/lists`
     const params = new URLSearchParams({
       count: limit.toString(),
       offset: offset.toString(),
     })
 
-    const response = await this.fetchWithRetry<any>(
-      `${url}?${params.toString()}`
-    )
-    
+    const response = await this.fetchWithRetry<any>(`${url}?${params.toString()}`)
+
     // Log the raw response to check field names
     if (response.lists && response.lists.length > 0) {
       const sampleList = response.lists[0]
@@ -481,14 +488,14 @@ export class HubSpotClient {
           listType: sampleList.listType,
           hasMetaData: !!sampleList.metaData,
           metaDataSize: sampleList.metaData?.size,
-          hasSize: 'size' in sampleList,
+          hasSize: "size" in sampleList,
           sizeValue: sampleList.size,
-          hasMembershipCount: 'membershipCount' in sampleList,
+          hasMembershipCount: "membershipCount" in sampleList,
           membershipCountValue: sampleList.membershipCount,
-          allKeys: Object.keys(sampleList)
+          allKeys: Object.keys(sampleList),
         },
         totalLists: response.lists.length,
-        operation: "hubspot_lists_raw_response"
+        operation: "hubspot_lists_raw_response",
       })
     }
 
@@ -498,17 +505,15 @@ export class HubSpotClient {
   // Get list details by ID
   async getListById(listId: number): Promise<HubSpotList> {
     const url = `${this.baseUrl}/contacts/v1/lists/${listId}`
-    
+
     return this.fetchWithRetry<HubSpotList>(url)
   }
 
   // Get list memberships for a contact
-  async getContactListMemberships(
-    contactId: string
-  ): Promise<HubSpotListMembershipsResponse> {
+  async getContactListMemberships(contactId: string): Promise<HubSpotListMembershipsResponse> {
     await log.info(`Getting list memberships for contact`, {
       contactId,
-      operation: 'hubspot_get_contact_lists_start'
+      operation: "hubspot_get_contact_lists_start",
     })
 
     const url = `${this.baseUrl}/contacts/v1/contact/vid/${contactId}/lists`
@@ -532,21 +537,21 @@ export class HubSpotClient {
       // Transform to our interface format
       const memberships: HubSpotListMembershipsResponse = {
         lists: response.lists
-          .filter(list => !list.internal) // Filter out internal HubSpot lists
-          .map(list => ({
+          .filter((list) => !list.internal) // Filter out internal HubSpot lists
+          .map((list) => ({
             listId: list.listId,
             listName: list.name,
             listType: list.listType,
-            membershipTimestamp: new Date(list.updatedAt).toISOString()
+            membershipTimestamp: new Date(list.updatedAt).toISOString(),
           })),
-        total: response.lists.filter(list => !list.internal).length
+        total: response.lists.filter((list) => !list.internal).length,
       }
 
       await log.info(`Retrieved list memberships for contact`, {
         contactId,
         totalLists: memberships.total,
-        listNames: memberships.lists.map(l => l.listName),
-        operation: 'hubspot_get_contact_lists_success'
+        listNames: memberships.lists.map((l) => l.listName),
+        operation: "hubspot_get_contact_lists_success",
       })
 
       return memberships
@@ -554,7 +559,7 @@ export class HubSpotClient {
       await log.error(`Failed to get list memberships`, {
         contactId,
         error: error instanceof Error ? error.message : String(error),
-        operation: 'hubspot_get_contact_lists_error'
+        operation: "hubspot_get_contact_lists_error",
       })
       throw error
     }
@@ -566,7 +571,7 @@ export class HubSpotClient {
   ): Promise<Array<{ id: string; properties: { email?: string } }>> {
     await log.info(`Getting contacts for company`, {
       companyId,
-      operation: 'hubspot_get_company_contacts_start'
+      operation: "hubspot_get_company_contacts_start",
     })
 
     try {
@@ -576,23 +581,21 @@ export class HubSpotClient {
       if (!associations.results.length) {
         await log.info(`No contacts found for company`, {
           companyId,
-          operation: 'hubspot_get_company_contacts_empty'
+          operation: "hubspot_get_company_contacts_empty",
         })
         return []
       }
 
       // Batch read contact details
       const contactIds = associations.results.map((a) => a.id)
-      const response = await this.batchReadObjects<{ email?: string }>(
-        "contacts",
-        contactIds,
-        ["email"]
-      )
+      const response = await this.batchReadObjects<{ email?: string }>("contacts", contactIds, [
+        "email",
+      ])
 
       await log.info(`Retrieved contacts for company`, {
         companyId,
         contactCount: response.results.length,
-        operation: 'hubspot_get_company_contacts_success'
+        operation: "hubspot_get_company_contacts_success",
       })
 
       return response.results
@@ -600,19 +603,17 @@ export class HubSpotClient {
       await log.error(`Failed to get company contacts`, {
         companyId,
         error: error instanceof Error ? error.message : String(error),
-        operation: 'hubspot_get_company_contacts_error'
+        operation: "hubspot_get_company_contacts_error",
       })
       throw error
     }
   }
 
   // Get aggregated list memberships for a company (via its contacts)
-  async getCompanyListMemberships(
-    companyId: string
-  ): Promise<HubSpotListMembershipsResponse> {
+  async getCompanyListMemberships(companyId: string): Promise<HubSpotListMembershipsResponse> {
     await log.info(`Getting list memberships for company`, {
       companyId,
-      operation: 'hubspot_get_company_lists_start'
+      operation: "hubspot_get_company_lists_start",
     })
 
     try {
@@ -625,16 +626,16 @@ export class HubSpotClient {
 
       // Get list memberships for each contact
       const allMemberships = await Promise.all(
-        contacts.map(contact => 
+        contacts.map((contact) =>
           this.getContactListMemberships(contact.id).catch(() => ({ lists: [], total: 0 }))
         )
       )
 
       // Aggregate and deduplicate lists
       const listMap = new Map<number, HubSpotListMembership>()
-      
-      allMemberships.forEach(membership => {
-        membership.lists.forEach(list => {
+
+      allMemberships.forEach((membership) => {
+        membership.lists.forEach((list) => {
           if (!listMap.has(list.listId)) {
             listMap.set(list.listId, list)
           }
@@ -647,37 +648,34 @@ export class HubSpotClient {
         companyId,
         contactCount: contacts.length,
         uniqueListCount: aggregatedLists.length,
-        listNames: aggregatedLists.map(l => l.listName),
-        operation: 'hubspot_get_company_lists_success'
+        listNames: aggregatedLists.map((l) => l.listName),
+        operation: "hubspot_get_company_lists_success",
       })
 
       return {
         lists: aggregatedLists,
-        total: aggregatedLists.length
+        total: aggregatedLists.length,
       }
     } catch (error) {
       await log.error(`Failed to get company list memberships`, {
         companyId,
         error: error instanceof Error ? error.message : String(error),
-        operation: 'hubspot_get_company_lists_error'
+        operation: "hubspot_get_company_lists_error",
       })
       return { lists: [], total: 0 }
     }
   }
 
   // Get engagements for a contact
-  async getContactEngagements(
-    contactId: string,
-    limit = 100
-  ): Promise<HubSpotEngagement[]> {
+  async getContactEngagements(contactId: string, limit = 100): Promise<HubSpotEngagement[]> {
     try {
       // HubSpot v3 Engagements API endpoint
       const url = `${this.baseUrl}/crm/v3/objects/contacts/${contactId}/associations/engagements`
-      
+
       const response = await this.fetchWithRetry<{
-        results: Array<{ 
+        results: Array<{
           id: string
-          type?: string 
+          type?: string
         }>
       }>(url)
 
@@ -686,7 +684,7 @@ export class HubSpotClient {
       }
 
       // Fetch full engagement details
-      const engagementIds = response.results.map(r => r.id)
+      const engagementIds = response.results.map((r) => r.id)
       const engagements = await this.batchReadEngagements(engagementIds)
 
       return engagements
@@ -694,38 +692,47 @@ export class HubSpotClient {
       log.warn("Failed to fetch contact engagements", {
         contactId,
         error: error instanceof Error ? error.message : String(error),
-        operation: 'hubspot_get_contact_engagements'
+        operation: "hubspot_get_contact_engagements",
       })
       return []
     }
   }
 
   // Batch read engagements
-  private async batchReadEngagements(
-    engagementIds: string[]
-  ): Promise<HubSpotEngagement[]> {
+  private async batchReadEngagements(engagementIds: string[]): Promise<HubSpotEngagement[]> {
     if (engagementIds.length === 0) return []
 
     try {
       const url = `${this.baseUrl}/crm/v3/objects/engagements/batch/read`
-      
+
       const response = await this.fetchWithRetry<{
         results: HubSpotEngagement[]
       }>(url, {
         method: "POST",
         body: JSON.stringify({
-          inputs: engagementIds.map(id => ({ id })),
-          properties: ["hs_timestamp", "hs_engagement_type", "hs_body_preview", "hs_activity_type", "hs_all_accessible_team_ids", "hs_body_preview_html", "hs_body_preview_is_truncated"]
-        })
+          inputs: engagementIds.map((id) => ({ id })),
+          properties: [
+            "hs_timestamp",
+            "hs_engagement_type",
+            "hs_body_preview",
+            "hs_activity_type",
+            "hs_all_accessible_team_ids",
+            "hs_body_preview_html",
+            "hs_body_preview_is_truncated",
+          ],
+        }),
       })
 
       // Log the raw engagement response for debugging
       if (response.results && response.results.length > 0) {
-        console.log("[CLARITY DEBUG] Raw engagement from HubSpot:", JSON.stringify(response.results[0], null, 2))
+        console.log(
+          "[CLARITY DEBUG] Raw engagement from HubSpot:",
+          JSON.stringify(response.results[0], null, 2)
+        )
         log.info("Raw engagement data from HubSpot", {
           sampleEngagement: JSON.stringify(response.results[0], null, 2),
           totalEngagements: response.results.length,
-          operation: 'hubspot_raw_engagements'
+          operation: "hubspot_raw_engagements",
         })
       }
 
@@ -734,34 +741,32 @@ export class HubSpotClient {
       log.error("Failed to batch read engagements", {
         engagementCount: engagementIds.length,
         error: error instanceof Error ? error.message : String(error),
-        operation: 'hubspot_batch_read_engagements'
+        operation: "hubspot_batch_read_engagements",
       })
       return []
     }
   }
 
   // Parse Clarity sessions from engagements
-  parseClaritySessionsFromEngagements(
-    engagements: HubSpotEngagement[]
-  ): ClaritySession[] {
+  parseClaritySessionsFromEngagements(engagements: HubSpotEngagement[]): ClaritySession[] {
     const sessions: ClaritySession[] = []
 
     // Debug logging
     log.info(`Parsing ${engagements.length} engagements for Clarity sessions`, {
       totalEngagements: engagements.length,
-      operation: 'parse_clarity_sessions'
+      operation: "parse_clarity_sessions",
     })
-    
+
     // Log first engagement structure for debugging
     if (engagements.length > 0) {
       console.log("\n[CLARITY DEBUG] First engagement full structure:")
       console.log(JSON.stringify(engagements[0], null, 2))
       console.log("\n[CLARITY DEBUG] Engagement properties:")
       console.log(JSON.stringify(engagements[0].properties, null, 2))
-      
+
       log.info("Sample engagement structure", {
         engagement: JSON.stringify(engagements[0], null, 2),
-        operation: 'sample_engagement_structure'
+        operation: "sample_engagement_structure",
       })
     }
 
@@ -773,7 +778,7 @@ export class HubSpotClient {
         bodyPreview: engagement.properties?.hs_body_preview?.substring(0, 100),
         bodyPreviewHtml: engagement.properties?.hs_body_preview_html?.substring(0, 100),
         allPropertyKeys: Object.keys(engagement.properties || {}),
-        operation: 'check_engagement_for_clarity'
+        operation: "check_engagement_for_clarity",
       })
 
       // Check if this is a Clarity session engagement
@@ -782,9 +787,9 @@ export class HubSpotClient {
       const bodyPreviewHtml = engagement.properties?.hs_body_preview_html || ""
       const activityType = engagement.properties?.hs_activity_type || ""
       const engagementType = engagement.properties?.hs_engagement_type || ""
-      
+
       // More comprehensive Clarity detection
-      const isClarity = (
+      const isClarity =
         // Check for Clarity URL in body
         bodyPreview.includes("clarity.microsoft.com") ||
         bodyPreviewHtml.includes("clarity.microsoft.com") ||
@@ -796,7 +801,9 @@ export class HubSpotClient {
         // Check engagement type (if Clarity uses a specific type)
         engagementType === "CLARITY_SESSION" ||
         // Broader engagement type checks
-        engagementType === "NOTE" || engagementType === "EMAIL" || engagementType === "TASK" ||
+        engagementType === "NOTE" ||
+        engagementType === "EMAIL" ||
+        engagementType === "TASK" ||
         // Check for common Clarity-related keywords in body
         bodyPreview.toLowerCase().includes("session recording") ||
         bodyPreview.toLowerCase().includes("user session") ||
@@ -805,19 +812,18 @@ export class HubSpotClient {
         bodyPreviewHtml.toLowerCase().includes("user session") ||
         bodyPreviewHtml.toLowerCase().includes("recording") ||
         // Fallback: check any property value for Clarity URLs or keywords
-        Object.values(engagement.properties || {}).some(
-          value => {
-            if (typeof value === 'string') {
-              const lowerValue = value.toLowerCase()
-              return lowerValue.includes("clarity.microsoft.com") ||
-                     lowerValue.includes("session recording") ||
-                     lowerValue.includes("user session")
-            }
-            return false
+        Object.values(engagement.properties || {}).some((value) => {
+          if (typeof value === "string") {
+            const lowerValue = value.toLowerCase()
+            return (
+              lowerValue.includes("clarity.microsoft.com") ||
+              lowerValue.includes("session recording") ||
+              lowerValue.includes("user session")
+            )
           }
-        )
-      )
-      
+          return false
+        })
+
       // Log detection decision for debugging
       log.info(`Clarity detection for engagement ${engagement.id}`, {
         isClarity,
@@ -825,23 +831,27 @@ export class HubSpotClient {
         hasBodyPreviewHtml: !!bodyPreviewHtml,
         engagementType,
         activityType,
-        operation: 'clarity_detection_decision'
+        operation: "clarity_detection_decision",
       })
-      
+
       if (isClarity) {
         // Extract recording URL from various sources
-        const recordingUrl = engagement.properties?.clarity_recording_url ||
-                           this.extractUrlFromBody(bodyPreview) ||
-                           this.extractUrlFromBody(bodyPreviewHtml) ||
-                           ""
-        
+        const recordingUrl =
+          engagement.properties?.clarity_recording_url ||
+          this.extractUrlFromBody(bodyPreview) ||
+          this.extractUrlFromBody(bodyPreviewHtml) ||
+          ""
+
         // Debug logging for URL extraction
         console.log(`[CLARITY DEBUG] URL extraction for engagement ${engagement.id}:`)
-        console.log(`  - clarity_recording_url property:`, engagement.properties?.clarity_recording_url)
+        console.log(
+          `  - clarity_recording_url property:`,
+          engagement.properties?.clarity_recording_url
+        )
         console.log(`  - bodyPreview URL extraction:`, this.extractUrlFromBody(bodyPreview))
         console.log(`  - bodyPreviewHtml URL extraction:`, this.extractUrlFromBody(bodyPreviewHtml))
         console.log(`  - Final recordingUrl:`, recordingUrl)
-        
+
         // Parse the session data from the engagement
         const session: ClaritySession = {
           id: engagement.id,
@@ -850,7 +860,7 @@ export class HubSpotClient {
           duration: engagement.properties?.clarity_duration,
           smartEvents: this.parseSmartEvents(engagement),
           deviceType: engagement.properties?.clarity_device_type,
-          browser: engagement.properties?.clarity_browser
+          browser: engagement.properties?.clarity_browser,
         }
 
         sessions.push(session)
@@ -863,31 +873,31 @@ export class HubSpotClient {
   // Helper to extract URL from engagement body
   private extractUrlFromBody(body: string): string {
     if (!body) return ""
-    
+
     // Try multiple URL patterns
     const patterns = [
       /https:\/\/clarity\.microsoft\.com[^\s"'<>]*/g,
       /clarity\.microsoft\.com[^\s"'<>]*/g,
-      /Recording URL:\s*([^\n\r]*)/g
+      /Recording URL:\s*([^\n\r]*)/g,
     ]
-    
+
     for (const pattern of patterns) {
       const matches = body.match(pattern)
       if (matches && matches.length > 0) {
         let url = matches[0].trim()
         // Ensure https:// prefix
-        if (!url.startsWith('http')) {
-          url = 'https://' + url
+        if (!url.startsWith("http")) {
+          url = "https://" + url
         }
         // Clean up any trailing punctuation or HTML
-        url = url.replace(/[<>"'\s]*$/, '')
-        if (url.includes('clarity.microsoft.com')) {
+        url = url.replace(/[<>"'\s]*$/, "")
+        if (url.includes("clarity.microsoft.com")) {
           console.log(`[CLARITY DEBUG] URL extracted from body: ${url}`)
           return url
         }
       }
     }
-    
+
     return ""
   }
 
@@ -905,15 +915,18 @@ export class HubSpotClient {
 
     // Fallback: try to parse from engagement body
     const events: ClaritySessionEvent[] = []
-    const body = engagement.properties?.hs_body_preview || engagement.properties?.hs_body_preview_html || ""
+    const body =
+      engagement.properties?.hs_body_preview || engagement.properties?.hs_body_preview_html || ""
 
     // Look for event patterns in the body
-    const eventMatches = body.matchAll(/Event:\s*([^\n]+)\s*Type:\s*([^\n]+)\s*Start Time:\s*([^\n]+)/g)
+    const eventMatches = body.matchAll(
+      /Event:\s*([^\n]+)\s*Type:\s*([^\n]+)\s*Start Time:\s*([^\n]+)/g
+    )
     for (const match of eventMatches) {
       events.push({
         event: match[1].trim(),
         type: match[2].trim(),
-        startTime: match[3].trim()
+        startTime: match[3].trim(),
       })
     }
 

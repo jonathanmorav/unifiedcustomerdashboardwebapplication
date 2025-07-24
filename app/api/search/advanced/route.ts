@@ -11,45 +11,73 @@ import { log } from "@/lib/logger"
 const advancedSearchSchema = z.object({
   searchTerm: z.string().min(1).max(200),
   searchType: z.enum(["email", "name", "business_name", "dwolla_id", "auto"]).optional(),
-  filters: z.object({
-    customerStatus: z.array(z.enum(["active", "inactive", "verified", "unverified", "suspended"])).optional(),
-    transferStatus: z.array(z.enum(["completed", "pending", "failed", "cancelled", "processed"])).optional(),
-    fundingSourceStatus: z.array(z.enum(["verified", "unverified"])).optional(),
-    createdDateRange: z.object({
-      start: z.string(),
-      end: z.string(),
-    }).optional(),
-    modifiedDateRange: z.object({
-      start: z.string(),
-      end: z.string(),
-    }).optional(),
-    transferDateRange: z.object({
-      start: z.string(),
-      end: z.string(),
-    }).optional(),
-    transferAmountRange: z.object({
-      min: z.number(),
-      max: z.number(),
-      currency: z.string().optional(),
-    }).optional(),
-    benefitAmountRange: z.object({
-      min: z.number(),
-      max: z.number(),
-      currency: z.string().optional(),
-    }).optional(),
-    hasFailedTransfers: z.boolean().optional(),
-    hasUnverifiedFunding: z.boolean().optional(),
-    hasPendingInvoices: z.boolean().optional(),
-    searchIn: z.enum(["hubspot", "dwolla", "both"]).optional(),
-  }).optional(),
-  sort: z.object({
-    field: z.enum(["relevance", "date_created", "date_modified", "amount", "customer_name", "company_name", "status"]),
-    order: z.enum(["asc", "desc"]),
-  }).optional(),
-  pagination: z.object({
-    page: z.number().min(1),
-    pageSize: z.number().min(1).max(100),
-  }).optional(),
+  filters: z
+    .object({
+      customerStatus: z
+        .array(z.enum(["active", "inactive", "verified", "unverified", "suspended"]))
+        .optional(),
+      transferStatus: z
+        .array(z.enum(["completed", "pending", "failed", "cancelled", "processed"]))
+        .optional(),
+      fundingSourceStatus: z.array(z.enum(["verified", "unverified"])).optional(),
+      createdDateRange: z
+        .object({
+          start: z.string(),
+          end: z.string(),
+        })
+        .optional(),
+      modifiedDateRange: z
+        .object({
+          start: z.string(),
+          end: z.string(),
+        })
+        .optional(),
+      transferDateRange: z
+        .object({
+          start: z.string(),
+          end: z.string(),
+        })
+        .optional(),
+      transferAmountRange: z
+        .object({
+          min: z.number(),
+          max: z.number(),
+          currency: z.string().optional(),
+        })
+        .optional(),
+      benefitAmountRange: z
+        .object({
+          min: z.number(),
+          max: z.number(),
+          currency: z.string().optional(),
+        })
+        .optional(),
+      hasFailedTransfers: z.boolean().optional(),
+      hasUnverifiedFunding: z.boolean().optional(),
+      hasPendingInvoices: z.boolean().optional(),
+      searchIn: z.enum(["hubspot", "dwolla", "both"]).optional(),
+    })
+    .optional(),
+  sort: z
+    .object({
+      field: z.enum([
+        "relevance",
+        "date_created",
+        "date_modified",
+        "amount",
+        "customer_name",
+        "company_name",
+        "status",
+      ]),
+      order: z.enum(["asc", "desc"]),
+    })
+    .optional(),
+  pagination: z
+    .object({
+      page: z.number().min(1),
+      pageSize: z.number().min(1).max(100),
+    })
+    .optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -136,7 +164,7 @@ export async function POST(request: NextRequest) {
         log.error("Failed to save search history", err as Error, {
           userId: session.user.email,
           searchTerm: result.searchTerm,
-          operation: 'advanced_search_history'
+          operation: "advanced_search_history",
         })
       })
 
@@ -152,7 +180,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     log.error("Advanced search API error", error as Error, {
       userId: session?.user?.email,
-      operation: 'advanced_search'
+      operation: "advanced_search",
     })
 
     if (error instanceof Error && error.name === "AbortError") {
@@ -194,15 +222,24 @@ export async function GET(request: NextRequest) {
         { value: "unverified", label: "Unverified", count: 20 },
       ],
       dateRanges: [
-        { label: "Today", value: { start: new Date().toISOString(), end: new Date().toISOString() } },
-        { label: "Last 7 days", value: {
-          start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          end: new Date().toISOString(),
-        }},
-        { label: "Last 30 days", value: {
-          start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-          end: new Date().toISOString(),
-        }},
+        {
+          label: "Today",
+          value: { start: new Date().toISOString(), end: new Date().toISOString() },
+        },
+        {
+          label: "Last 7 days",
+          value: {
+            start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+            end: new Date().toISOString(),
+          },
+        },
+        {
+          label: "Last 30 days",
+          value: {
+            start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+            end: new Date().toISOString(),
+          },
+        },
       ],
     }
 
@@ -213,7 +250,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     log.error("Filter options API error", error as Error, {
       userId: session?.user?.email,
-      operation: 'advanced_search_filters'
+      operation: "advanced_search_filters",
     })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

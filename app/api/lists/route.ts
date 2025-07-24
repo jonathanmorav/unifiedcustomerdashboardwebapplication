@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     await log.info("Fetching all HubSpot lists", {
       userId: session.user.id,
       correlationId,
-      operation: "lists_fetch_all"
+      operation: "lists_fetch_all",
     })
 
     // Initialize HubSpot client
@@ -30,11 +30,12 @@ export async function GET(request: NextRequest) {
 
     // Transform the response to include proper types
     // HubSpot Lists API v1 uses 'metaData.size' for member count
-    const lists = listsResponse.lists.map(list => ({
+    const lists = listsResponse.lists.map((list) => ({
       listId: list.listId,
       name: list.name,
       listType: list.listType,
-      membershipCount: (list as any).metaData?.size || (list as any).size || list.membershipCount || 0,
+      membershipCount:
+        (list as any).metaData?.size || (list as any).size || list.membershipCount || 0,
       createdAt: list.createdAt,
       updatedAt: list.updatedAt,
     }))
@@ -43,26 +44,25 @@ export async function GET(request: NextRequest) {
     const latestSnapshots = await prisma.listSnapshot.findMany({
       where: {
         listId: {
-          in: lists.map(l => l.listId)
-        }
+          in: lists.map((l) => l.listId),
+        },
       },
       orderBy: {
-        snapshotDate: 'desc'
+        snapshotDate: "desc",
       },
-      distinct: ['listId'],
+      distinct: ["listId"],
     })
 
     // Create a map for quick lookup
-    const snapshotMap = new Map(
-      latestSnapshots.map(s => [s.listId, s.memberCount])
-    )
+    const snapshotMap = new Map(latestSnapshots.map((s) => [s.listId, s.memberCount]))
 
     // Calculate trends
-    const listsWithTrends = lists.map(list => {
+    const listsWithTrends = lists.map((list) => {
       const previousCount = snapshotMap.get(list.listId)
-      const trend = previousCount !== undefined && previousCount > 0
-        ? ((list.membershipCount - previousCount) / previousCount) * 100
-        : null
+      const trend =
+        previousCount !== undefined && previousCount > 0
+          ? ((list.membershipCount - previousCount) / previousCount) * 100
+          : null
 
       return {
         ...list,
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Update metadata for all lists
-    const metadataUpdates = lists.map(list => 
+    const metadataUpdates = lists.map((list) =>
       prisma.listMetadata.upsert({
         where: { listId: list.listId },
         update: {
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
           listId: list.listId,
           listName: list.name,
           listType: list.listType,
-        }
+        },
       })
     )
 
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
       userId: session.user.id,
       listCount: lists.length,
       correlationId,
-      operation: "lists_fetch_all_success"
+      operation: "lists_fetch_all_success",
     })
 
     return NextResponse.json({
@@ -103,21 +103,20 @@ export async function GET(request: NextRequest) {
         lists: listsWithTrends,
         total: listsResponse.total || lists.length,
         hasMore: listsResponse.hasMore || false,
-      }
+      },
     })
-
   } catch (error) {
     await log.error("Error fetching lists", {
       error: error instanceof Error ? error.message : String(error),
       correlationId,
-      operation: "lists_fetch_all_error"
+      operation: "lists_fetch_all_error",
     })
 
     return NextResponse.json(
       {
         success: false,
         error: "Failed to fetch lists",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     )

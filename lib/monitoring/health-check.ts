@@ -1,10 +1,10 @@
-import { prisma } from '@/lib/db'
-import { HubSpotClient } from '@/lib/api/hubspot/client'
-import { DwollaClient } from '@/lib/api/dwolla/client'
-import { log } from '@/lib/logger'
+import { prisma } from "@/lib/db"
+import { HubSpotClient } from "@/lib/api/hubspot/client"
+import { DwollaClient } from "@/lib/api/dwolla/client"
+import { log } from "@/lib/logger"
 
 export interface HealthCheckResult {
-  status: 'healthy' | 'degraded' | 'unhealthy'
+  status: "healthy" | "degraded" | "unhealthy"
   timestamp: string
   version: string
   uptime: number
@@ -17,7 +17,7 @@ export interface HealthCheckResult {
 }
 
 export interface ComponentHealth {
-  status: 'up' | 'down' | 'degraded'
+  status: "up" | "down" | "degraded"
   responseTime?: number
   message?: string
   details?: Record<string, any>
@@ -34,14 +34,14 @@ const startTime = Date.now()
 export class HealthCheckService {
   private static hubspotClient: HubSpotClient | null = null
   private static dwollaClient: DwollaClient | null = null
-  
+
   private static getHubSpotClient(): HubSpotClient | null {
     if (!this.hubspotClient) {
       try {
         this.hubspotClient = new HubSpotClient()
       } catch (error) {
         // In test environment, clients may fail to initialize
-        if (process.env.NODE_ENV === 'test') {
+        if (process.env.NODE_ENV === "test") {
           return null
         }
         throw error
@@ -49,14 +49,14 @@ export class HealthCheckService {
     }
     return this.hubspotClient
   }
-  
+
   private static getDwollaClient(): DwollaClient | null {
     if (!this.dwollaClient) {
       try {
         this.dwollaClient = new DwollaClient()
       } catch (error) {
         // In test environment, clients may fail to initialize
-        if (process.env.NODE_ENV === 'test') {
+        if (process.env.NODE_ENV === "test") {
           return null
         }
         throw error
@@ -68,9 +68,9 @@ export class HealthCheckService {
   /**
    * Basic health check - just confirms the service is running
    */
-  static async checkLiveness(): Promise<{ status: 'ok'; timestamp: string }> {
+  static async checkLiveness(): Promise<{ status: "ok"; timestamp: string }> {
     return {
-      status: 'ok',
+      status: "ok",
       timestamp: new Date().toISOString(),
     }
   }
@@ -89,22 +89,22 @@ export class HealthCheckService {
     const [database, hubspot, dwolla, memory] = checks
 
     // Determine overall status
-    const hasDown = checks.some(check => check.status === 'down')
-    const hasDegraded = checks.some(check => check.status === 'degraded')
-    
-    let status: 'healthy' | 'degraded' | 'unhealthy'
+    const hasDown = checks.some((check) => check.status === "down")
+    const hasDegraded = checks.some((check) => check.status === "degraded")
+
+    let status: "healthy" | "degraded" | "unhealthy"
     if (hasDown) {
-      status = 'unhealthy'
+      status = "unhealthy"
     } else if (hasDegraded) {
-      status = 'degraded'
+      status = "degraded"
     } else {
-      status = 'healthy'
+      status = "healthy"
     }
 
     return {
       status,
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '0.3.0',
+      version: process.env.npm_package_version || "0.3.0",
       uptime: Math.floor((Date.now() - startTime) / 1000), // seconds
       checks: {
         database,
@@ -123,8 +123,8 @@ export class HealthCheckService {
     const errors: string[] = []
 
     // Check critical components
-    if (health.checks.database.status === 'down') {
-      errors.push('Database connection failed')
+    if (health.checks.database.status === "down") {
+      errors.push("Database connection failed")
     }
 
     // Memory threshold - warn if over 90% used
@@ -135,17 +135,17 @@ export class HealthCheckService {
 
     // External APIs being down is not critical for readiness
     // but we log warnings
-    if (health.checks.hubspot.status === 'down') {
-      log.warn('HubSpot API is unavailable', {
-        operation: 'readiness_check',
-        component: 'hubspot'
+    if (health.checks.hubspot.status === "down") {
+      log.warn("HubSpot API is unavailable", {
+        operation: "readiness_check",
+        component: "hubspot",
       })
     }
 
-    if (health.checks.dwolla.status === 'down') {
-      log.warn('Dwolla API is unavailable', {
-        operation: 'readiness_check',
-        component: 'dwolla'
+    if (health.checks.dwolla.status === "down") {
+      log.warn("Dwolla API is unavailable", {
+        operation: "readiness_check",
+        component: "dwolla",
       })
     }
 
@@ -161,29 +161,29 @@ export class HealthCheckService {
    */
   private static async checkDatabase(): Promise<ComponentHealth> {
     const start = Date.now()
-    
+
     try {
       // Simple query to check connection
       await prisma.$queryRaw`SELECT 1`
-      
+
       const responseTime = Date.now() - start
-      
+
       return {
-        status: responseTime > 1000 ? 'degraded' : 'up',
+        status: responseTime > 1000 ? "degraded" : "up",
         responseTime,
-        message: responseTime > 1000 ? 'Slow database response' : 'Database is healthy',
+        message: responseTime > 1000 ? "Slow database response" : "Database is healthy",
       }
     } catch (error) {
-      log.error('Database health check failed', error as Error, {
-        operation: 'health_check_database'
+      log.error("Database health check failed", error as Error, {
+        operation: "health_check_database",
       })
-      
+
       return {
-        status: 'down',
+        status: "down",
         responseTime: Date.now() - start,
-        message: 'Database connection failed',
+        message: "Database connection failed",
         details: {
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
         },
       }
     }
@@ -194,49 +194,50 @@ export class HealthCheckService {
    */
   private static async checkHubSpotAPI(): Promise<ComponentHealth> {
     const start = Date.now()
-    
+
     try {
       // Make a lightweight API call
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000) // 5s timeout
-      
+
       try {
         const client = this.getHubSpotClient()
         if (!client) {
           return {
-            status: 'down',
-            message: 'HubSpot client not initialized',
+            status: "down",
+            message: "HubSpot client not initialized",
           }
         }
-        
+
         // Search with a non-existent ID to minimize response size
-        await client.searchCompanies('health-check-test', 'email')
-        
+        await client.searchCompanies("health-check-test", "email")
+
         const responseTime = Date.now() - start
-        
+
         return {
-          status: responseTime > 3000 ? 'degraded' : 'up',
+          status: responseTime > 3000 ? "degraded" : "up",
           responseTime,
-          message: responseTime > 3000 ? 'Slow HubSpot API response' : 'HubSpot API is healthy',
+          message: responseTime > 3000 ? "Slow HubSpot API response" : "HubSpot API is healthy",
         }
       } finally {
         clearTimeout(timeoutId)
       }
     } catch (error) {
       // Don't log every health check failure to avoid log spam
-      if (Math.random() < 0.1) { // Log 10% of failures
-        log.warn('HubSpot health check failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          operation: 'health_check_hubspot'
+      if (Math.random() < 0.1) {
+        // Log 10% of failures
+        log.warn("HubSpot health check failed", {
+          error: error instanceof Error ? error.message : "Unknown error",
+          operation: "health_check_hubspot",
         })
       }
-      
+
       return {
-        status: 'down',
+        status: "down",
         responseTime: Date.now() - start,
-        message: 'HubSpot API unavailable',
+        message: "HubSpot API unavailable",
         details: {
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
         },
       }
     }
@@ -247,65 +248,63 @@ export class HealthCheckService {
    */
   private static async checkDwollaAPI(): Promise<ComponentHealth> {
     const start = Date.now()
-    
+
     try {
       const client = this.getDwollaClient()
       if (!client) {
         return {
-          status: 'down',
-          message: 'Dwolla client not initialized',
+          status: "down",
+          message: "Dwolla client not initialized",
         }
       }
-      
+
       // Check if we can get a valid token
       const isTokenValid = client.isRateLimited() ? false : true
-      
+
       if (!isTokenValid) {
         return {
-          status: 'degraded',
-          message: 'Dwolla API rate limited',
+          status: "degraded",
+          message: "Dwolla API rate limited",
           details: {
             resetTime: client.getRateLimitResetTime()?.toISOString(),
           },
         }
       }
-      
+
       // Make a lightweight API call
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000) // 5s timeout
-      
+
       try {
         // Search with a non-existent email to minimize response size
-        await client.searchCustomers(
-          { email: 'health-check@example.com' },
-          controller.signal
-        )
-        
+        await client.searchCustomers({ email: "health-check@example.com" }, controller.signal)
+
         const responseTime = Date.now() - start
-        
+
         return {
-          status: responseTime > 3000 ? 'degraded' : 'up',
+          status: responseTime > 3000 ? "degraded" : "up",
           responseTime,
-          message: responseTime > 3000 ? 'Slow Dwolla API response' : 'Dwolla API is healthy',
+          message: responseTime > 3000 ? "Slow Dwolla API response" : "Dwolla API is healthy",
         }
       } finally {
         clearTimeout(timeoutId)
       }
     } catch (error) {
       // Don't log every health check failure to avoid log spam
-      if (Math.random() < 0.1) { // Log 10% of failures
-        log.warn('Dwolla health check failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          operation: 'health_check_dwolla'
+      if (Math.random() < 0.1) {
+        // Log 10% of failures
+        log.warn("Dwolla health check failed", {
+          error: error instanceof Error ? error.message : "Unknown error",
+          operation: "health_check_dwolla",
         })
       }
-      
+
       return {
-        status: 'down',
+        status: "down",
         responseTime: Date.now() - start,
-        message: 'Dwolla API unavailable',
+        message: "Dwolla API unavailable",
         details: {
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
         },
       }
     }
@@ -319,21 +318,21 @@ export class HealthCheckService {
     const heapUsed = usage.heapUsed
     const heapTotal = usage.heapTotal
     const percentUsed = (heapUsed / heapTotal) * 100
-    
-    let status: 'up' | 'degraded' | 'down'
+
+    let status: "up" | "degraded" | "down"
     let message: string
-    
+
     if (percentUsed > 95) {
-      status = 'down'
-      message = 'Memory usage critical'
+      status = "down"
+      message = "Memory usage critical"
     } else if (percentUsed > 80) {
-      status = 'degraded'
-      message = 'Memory usage high'
+      status = "degraded"
+      message = "Memory usage high"
     } else {
-      status = 'up'
-      message = 'Memory usage normal'
+      status = "up"
+      message = "Memory usage normal"
     }
-    
+
     return {
       status,
       message,

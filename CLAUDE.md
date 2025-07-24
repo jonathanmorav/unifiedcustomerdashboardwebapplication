@@ -1,11 +1,13 @@
 # Claude AI Assistant Context
 
 ## Project Overview
+
 This is the Unified Customer Dashboard for Cakewalk Benefits - an enterprise-grade customer data management platform that integrates with HubSpot CRM and Dwolla payment systems.
 
 ## Current Status (July 18, 2025)
 
 ### ✅ Completed Features
+
 1. **Core Infrastructure**
    - Next.js 14 App Router architecture
    - TypeScript implementation
@@ -45,9 +47,11 @@ This is the Unified Customer Dashboard for Cakewalk Benefits - an enterprise-gra
    - Edge Runtime compatibility
 
 ### 🚧 In Progress
+
 - CI/CD pipeline setup remains to be configured
 
 ### 📋 Pending Features
+
 1. **Security Enhancements**
    - Input sanitization layer
    - Field-level encryption for PII
@@ -66,6 +70,7 @@ This is the Unified Customer Dashboard for Cakewalk Benefits - an enterprise-gra
 ## Technical Architecture
 
 ### Frontend
+
 - **Framework**: Next.js 14 with App Router
 - **UI Library**: React 19
 - **Styling**: Tailwind CSS with Cakewalk design system
@@ -73,6 +78,7 @@ This is the Unified Customer Dashboard for Cakewalk Benefits - an enterprise-gra
 - **Authentication**: NextAuth.js
 
 ### Backend
+
 - **API**: Next.js API routes
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: NextAuth with Google OAuth
@@ -80,6 +86,7 @@ This is the Unified Customer Dashboard for Cakewalk Benefits - an enterprise-gra
 - **Logging**: Winston (server) / Console (client)
 
 ### External Integrations
+
 - **HubSpot**: CRM data (demo mode available)
 - **Dwolla**: Payment data (demo mode available)
 - **Google OAuth**: Authentication
@@ -106,7 +113,9 @@ This is the Unified Customer Dashboard for Cakewalk Benefits - an enterprise-gra
 ```
 
 ## Environment Variables
+
 Key environment variables needed:
+
 - `DATABASE_URL` - PostgreSQL connection
 - `NEXTAUTH_URL` - Application URL
 - `NEXTAUTH_SECRET` - Session encryption
@@ -115,6 +124,7 @@ Key environment variables needed:
 - `DEMO_MODE` - Enable mock data
 
 ## Development Commands
+
 ```bash
 npm run dev          # Start development server
 npm run build        # Build for production
@@ -124,6 +134,7 @@ npm run setup:db     # Setup database
 ```
 
 ## Recent Changes (This Session)
+
 1. Fixed Edge Runtime compatibility issues
 2. Implemented Cakewalk Benefits design system
 3. Added proper logo and branding
@@ -132,6 +143,7 @@ npm run setup:db     # Setup database
 6. Fixed CSRF protection for search endpoints
 
 ## Next Steps
+
 1. Push all changes to GitHub repository
 2. Set up CI/CD with GitHub Actions
 3. Create API documentation
@@ -139,10 +151,12 @@ npm run setup:db     # Setup database
 5. Add Redis caching layer
 
 ## Important Notes
+
 - The app runs in demo mode by default with mock data
 - Real API integrations require proper API keys
 - Database must be running for authentication
 - All security features are enabled by default
 
 ## Contact
+
 For questions about this implementation, contact the development team at Cakewalk Benefits.

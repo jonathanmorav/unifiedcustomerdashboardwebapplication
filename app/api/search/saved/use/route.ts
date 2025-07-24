@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         action: "SAVED_SEARCH_USED",
         resource: "saved_search",
         resourceId: id,
-        metadata: { 
+        metadata: {
           name: savedSearch.name,
           isTemplate: savedSearch.isTemplate,
         },
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Track saved search usage error:", error)
-    
+
     // Don't fail if we can't track usage
     return NextResponse.json({
       success: true,

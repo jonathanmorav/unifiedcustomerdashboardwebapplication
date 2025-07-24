@@ -9,7 +9,12 @@ import { DateRangeFilter } from "./DateRangeFilter"
 import { AmountRangeFilter } from "./AmountRangeFilter"
 import { StatusFilter } from "./StatusFilter"
 import { cn } from "@/lib/utils"
-import type { SearchFilters, CustomerStatus, TransferStatus, FundingSourceStatus } from "@/lib/types/search"
+import type {
+  SearchFilters,
+  CustomerStatus,
+  TransferStatus,
+  FundingSourceStatus,
+} from "@/lib/types/search"
 
 interface FilterPanelProps {
   filters: SearchFilters
@@ -36,10 +41,8 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
   const [localFilters, setLocalFilters] = useState<SearchFilters>(filters)
 
   const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev =>
-      prev.includes(sectionId)
-        ? prev.filter(id => id !== sectionId)
-        : [...prev, sectionId]
+    setExpandedSections((prev) =>
+      prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId]
     )
   }
 
@@ -78,10 +81,10 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
 
   return (
     <Card className={cn("p-4", className)}>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-cakewalk-secondary" />
-          <h3 className="text-cakewalk-h5 font-cakewalk-semibold text-cakewalk-primary-dark">
+          <Filter className="text-cakewalk-secondary h-4 w-4" />
+          <h3 className="font-cakewalk-semibold text-cakewalk-h5 text-cakewalk-primary-dark">
             Filters
           </h3>
           {activeCount > 0 && (
@@ -92,22 +95,12 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
         </div>
         <div className="flex items-center gap-2">
           {activeCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearAllFilters}
-              className="text-xs"
-            >
+            <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-xs">
               Clear all
             </Button>
           )}
           {onClose && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="h-8 w-8"
-            >
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
               <X className="h-4 w-4" />
             </Button>
           )}
@@ -116,10 +109,10 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
 
       <div className="space-y-3">
         {/* Status Filters Section */}
-        <div className="border rounded-lg">
+        <div className="rounded-lg border">
           <button
             onClick={() => toggleSection("status")}
-            className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+            className="flex w-full items-center justify-between p-3 transition-colors hover:bg-gray-50"
           >
             <span className="text-sm font-medium">Status Filters</span>
             {expandedSections.includes("status") ? (
@@ -129,7 +122,7 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
             )}
           </button>
           {expandedSections.includes("status") && (
-            <div className="p-3 border-t space-y-3">
+            <div className="space-y-3 border-t p-3">
               <StatusFilter
                 label="Customer Status"
                 value={localFilters.customerStatus || []}
@@ -157,7 +150,9 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
               <StatusFilter
                 label="Funding Source Status"
                 value={localFilters.fundingSourceStatus || []}
-                onChange={(value) => updateFilters({ fundingSourceStatus: value as FundingSourceStatus[] })}
+                onChange={(value) =>
+                  updateFilters({ fundingSourceStatus: value as FundingSourceStatus[] })
+                }
                 options={[
                   { value: "verified", label: "Verified" },
                   { value: "unverified", label: "Unverified" },
@@ -168,10 +163,10 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
         </div>
 
         {/* Date Filters Section */}
-        <div className="border rounded-lg">
+        <div className="rounded-lg border">
           <button
             onClick={() => toggleSection("date")}
-            className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+            className="flex w-full items-center justify-between p-3 transition-colors hover:bg-gray-50"
           >
             <span className="text-sm font-medium">Date Filters</span>
             {expandedSections.includes("date") ? (
@@ -181,7 +176,7 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
             )}
           </button>
           {expandedSections.includes("date") && (
-            <div className="p-3 border-t space-y-3">
+            <div className="space-y-3 border-t p-3">
               <DateRangeFilter
                 label="Created Date"
                 value={localFilters.createdDateRange}
@@ -202,10 +197,10 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
         </div>
 
         {/* Amount Filters Section */}
-        <div className="border rounded-lg">
+        <div className="rounded-lg border">
           <button
             onClick={() => toggleSection("amount")}
-            className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+            className="flex w-full items-center justify-between p-3 transition-colors hover:bg-gray-50"
           >
             <span className="text-sm font-medium">Amount Filters</span>
             {expandedSections.includes("amount") ? (
@@ -215,7 +210,7 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
             )}
           </button>
           {expandedSections.includes("amount") && (
-            <div className="p-3 border-t space-y-3">
+            <div className="space-y-3 border-t p-3">
               <AmountRangeFilter
                 label="Transfer Amount"
                 value={localFilters.transferAmountRange}
@@ -233,10 +228,10 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
         </div>
 
         {/* Other Filters Section */}
-        <div className="border rounded-lg">
+        <div className="rounded-lg border">
           <button
             onClick={() => toggleSection("other")}
-            className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+            className="flex w-full items-center justify-between p-3 transition-colors hover:bg-gray-50"
           >
             <span className="text-sm font-medium">Other Filters</span>
             {expandedSections.includes("other") ? (
@@ -246,7 +241,7 @@ export function FilterPanel({ filters, onFiltersChange, onClose, className }: Fi
             )}
           </button>
           {expandedSections.includes("other") && (
-            <div className="p-3 border-t space-y-3">
+            <div className="space-y-3 border-t p-3">
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"

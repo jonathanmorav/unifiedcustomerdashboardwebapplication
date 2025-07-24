@@ -23,7 +23,10 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
     console.log("[SEARCH RESULTS DEBUG] HubSpot data:", result.hubspot)
     console.log("[SEARCH RESULTS DEBUG] HubSpot data.data:", result.hubspot?.data)
     console.log("[SEARCH RESULTS DEBUG] Clarity sessions:", result.hubspot?.data?.claritySessions)
-    console.log("[SEARCH RESULTS DEBUG] Clarity sessions count:", result.hubspot?.data?.claritySessions?.length || 0)
+    console.log(
+      "[SEARCH RESULTS DEBUG] Clarity sessions count:",
+      result.hubspot?.data?.claritySessions?.length || 0
+    )
   }
 
   // Initial state - no search performed yet
@@ -43,16 +46,21 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
 
   // Use a state to track viewport size for proper hydration
   const [showDesktopView, setShowDesktopView] = useState(true)
-  
+
   useEffect(() => {
     const checkViewport = () => {
       setShowDesktopView(window.innerWidth >= 1024)
-      console.log("[SEARCH RESULTS DEBUG] Viewport check - showDesktopView:", window.innerWidth >= 1024, "Width:", window.innerWidth)
+      console.log(
+        "[SEARCH RESULTS DEBUG] Viewport check - showDesktopView:",
+        window.innerWidth >= 1024,
+        "Width:",
+        window.innerWidth
+      )
     }
-    
+
     checkViewport()
-    window.addEventListener('resize', checkViewport)
-    return () => window.removeEventListener('resize', checkViewport)
+    window.addEventListener("resize", checkViewport)
+    return () => window.removeEventListener("resize", checkViewport)
   }, [])
 
   // Mobile view - use tabs
@@ -61,7 +69,7 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
       <div className="w-full">
         <div className="mb-4">
           {result && (
-            <div className="text-cakewalk-text-secondary flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-sm text-cakewalk-text-secondary">
               <span>Found in: {result.summary.foundIn.join(", ")}</span>
               <span>Search completed in {result.summary.duration}</span>
             </div>
@@ -113,7 +121,7 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
   return (
     <div className="w-full">
       {result && (
-        <div className="text-cakewalk-text-secondary mb-4 flex items-center justify-between text-sm">
+        <div className="mb-4 flex items-center justify-between text-sm text-cakewalk-text-secondary">
           <span>Found in: {result.summary.foundIn.join(", ")}</span>
           <span>Search completed in {result.summary.duration}</span>
         </div>
@@ -123,7 +131,7 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
         {/* HubSpot Panel */}
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <BuildingIcon className="text-cakewalk-primary h-5 w-5" />
+            <BuildingIcon className="h-5 w-5 text-cakewalk-primary" />
             <h2 className="text-xl font-semibold">HubSpot</h2>
           </div>
           <HubSpotResultPanel
@@ -138,7 +146,7 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
         {/* Dwolla Panel */}
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <BanknoteIcon className="text-cakewalk-primary h-5 w-5" />
+            <BanknoteIcon className="h-5 w-5 text-cakewalk-primary" />
             <h2 className="text-xl font-semibold">Dwolla</h2>
           </div>
           <DwollaResultPanel
@@ -153,7 +161,7 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
         {/* Clarity Sessions Panel */}
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <VideoIcon className="text-cakewalk-primary h-5 w-5" />
+            <VideoIcon className="h-5 w-5 text-cakewalk-primary" />
             <h2 className="text-xl font-semibold">Session Recordings</h2>
           </div>
           <ClarityResultPanel

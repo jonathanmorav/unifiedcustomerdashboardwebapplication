@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
 
     // Get query parameters
     const searchParams = request.nextUrl.searchParams
-    const listId = searchParams.get('listId')
-    const days = parseInt(searchParams.get('days') || '30')
-    
+    const listId = searchParams.get("listId")
+    const days = parseInt(searchParams.get("days") || "30")
+
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
@@ -28,14 +28,14 @@ export async function GET(request: NextRequest) {
       listId,
       days,
       correlationId,
-      operation: "lists_history_fetch"
+      operation: "lists_history_fetch",
     })
 
     // Build query
     const whereClause: any = {
       snapshotDate: {
-        gte: startDate
-      }
+        gte: startDate,
+      },
     }
 
     if (listId) {
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     const snapshots = await prisma.listSnapshot.findMany({
       where: whereClause,
       orderBy: {
-        snapshotDate: 'asc'
+        snapshotDate: "asc",
       },
       select: {
         listId: true,
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
         listType: true,
         memberCount: true,
         snapshotDate: true,
-      }
+      },
     })
 
     // Group by listId for easier consumption
@@ -64,15 +64,15 @@ export async function GET(request: NextRequest) {
           listId: snapshot.listId,
           listName: snapshot.listName,
           listType: snapshot.listType,
-          history: []
+          history: [],
         }
       }
-      
+
       acc[snapshot.listId].history.push({
         date: snapshot.snapshotDate.toISOString(),
-        memberCount: snapshot.memberCount
+        memberCount: snapshot.memberCount,
       })
-      
+
       return acc
     }, {})
 
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       listCount: listsWithHistory.length,
       totalSnapshots: snapshots.length,
       correlationId,
-      operation: "lists_history_fetch_success"
+      operation: "lists_history_fetch_success",
     })
 
     return NextResponse.json({
@@ -106,23 +106,22 @@ export async function GET(request: NextRequest) {
         dateRange: {
           start: startDate.toISOString(),
           end: new Date().toISOString(),
-          days
-        }
-      }
+          days,
+        },
+      },
     })
-
   } catch (error) {
     await log.error("Error fetching list history", {
       error: error instanceof Error ? error.message : String(error),
       correlationId,
-      operation: "lists_history_fetch_error"
+      operation: "lists_history_fetch_error",
     })
 
     return NextResponse.json(
       {
         success: false,
         error: "Failed to fetch list history",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     )

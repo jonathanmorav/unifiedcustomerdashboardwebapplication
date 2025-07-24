@@ -19,19 +19,19 @@ interface PaginationControlsProps {
 
 const pageSizeOptions = [10, 20, 50, 100]
 
-export function PaginationControls({ 
-  pagination, 
-  onPaginationChange, 
-  className 
+export function PaginationControls({
+  pagination,
+  onPaginationChange,
+  className,
 }: PaginationControlsProps) {
   const totalPages = Math.ceil(pagination.total / pagination.pageSize)
   const currentPage = pagination.page
-  
+
   // Calculate page range to display
   const getPageNumbers = () => {
     const pages: (number | string)[] = []
     const maxVisible = 7
-    
+
     if (totalPages <= maxVisible) {
       // Show all pages if total is small
       for (let i = 1; i <= totalPages; i++) {
@@ -61,7 +61,7 @@ export function PaginationControls({
         pages.push(totalPages)
       }
     }
-    
+
     return pages
   }
 
@@ -76,7 +76,7 @@ export function PaginationControls({
     // Adjust current page if necessary
     const newTotalPages = Math.ceil(pagination.total / newPageSize)
     const newPage = Math.min(currentPage, newTotalPages)
-    
+
     onPaginationChange({
       page: newPage,
       pageSize: newPageSize,
@@ -91,19 +91,16 @@ export function PaginationControls({
   const endItem = Math.min(currentPage * pagination.pageSize, pagination.total)
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}>
+    <div className={`flex flex-col items-center justify-between gap-4 sm:flex-row ${className}`}>
       <div className="text-sm text-cakewalk-text-secondary">
         Showing {startItem} to {endItem} of {pagination.total} results
       </div>
-      
+
       <div className="flex items-center gap-2">
         {/* Page size selector */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-cakewalk-text-secondary">Show</span>
-          <Select
-            value={pagination.pageSize.toString()}
-            onValueChange={handlePageSizeChange}
-          >
+          <Select value={pagination.pageSize.toString()} onValueChange={handlePageSizeChange}>
             <SelectTrigger className="h-8 w-[70px]">
               <SelectValue />
             </SelectTrigger>
@@ -117,9 +114,9 @@ export function PaginationControls({
           </Select>
           <span className="text-sm text-cakewalk-text-secondary">per page</span>
         </div>
-        
-        <div className="h-4 w-px bg-gray-300 mx-2" />
-        
+
+        <div className="mx-2 h-4 w-px bg-gray-300" />
+
         {/* Page navigation */}
         <div className="flex items-center gap-1">
           <Button
@@ -140,7 +137,7 @@ export function PaginationControls({
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          
+
           <div className="flex items-center gap-1">
             {getPageNumbers().map((page, index) => (
               <div key={index}>
@@ -159,7 +156,7 @@ export function PaginationControls({
               </div>
             ))}
           </div>
-          
+
           <Button
             variant="outline"
             size="icon"

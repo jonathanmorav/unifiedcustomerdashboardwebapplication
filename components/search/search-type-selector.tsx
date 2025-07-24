@@ -59,7 +59,7 @@ export function SearchTypeSelector({ value, onChange, className }: SearchTypeSel
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <InfoIcon className="text-cakewalk-text-secondary h-4 w-4 cursor-help" />
+            <InfoIcon className="h-4 w-4 cursor-help text-cakewalk-text-secondary" />
           </TooltipTrigger>
           <TooltipContent side="right" className="max-w-xs">
             <p className="mb-2 font-medium">Search Types:</p>

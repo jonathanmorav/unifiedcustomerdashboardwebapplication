@@ -1,10 +1,10 @@
 import { UnifiedSearchEngine } from "./unified-search"
-import type { 
-  AdvancedSearchParams, 
-  AdvancedSearchResult, 
+import type {
+  AdvancedSearchParams,
+  AdvancedSearchResult,
   SearchFilters,
   SortOptions,
-  PaginationOptions 
+  PaginationOptions,
 } from "@/lib/types/search"
 import type { HubSpotCustomerData } from "@/lib/types/hubspot"
 import type { DwollaCustomerData } from "@/lib/types/dwolla"
@@ -58,12 +58,16 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
       timestamp: new Date(),
       duration: endTime - startTime,
       appliedFilters: params.filters,
-      pagination: params.pagination ? {
-        currentPage: params.pagination.page,
-        pageSize: params.pagination.pageSize,
-        totalResults: hubspotData.length + dwollaData.length,
-        totalPages: Math.ceil((hubspotData.length + dwollaData.length) / params.pagination.pageSize),
-      } : undefined,
+      pagination: params.pagination
+        ? {
+            currentPage: params.pagination.page,
+            pageSize: params.pagination.pageSize,
+            totalResults: hubspotData.length + dwollaData.length,
+            totalPages: Math.ceil(
+              (hubspotData.length + dwollaData.length) / params.pagination.pageSize
+            ),
+          }
+        : undefined,
       hubspot: {
         success: basicResult.hubspot.success,
         data: paginatedHubSpot.items,
@@ -89,7 +93,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
     data: HubSpotCustomerData[],
     filters: SearchFilters
   ): HubSpotCustomerData[] {
-    return data.filter(customer => {
+    return data.filter((customer) => {
       // Apply customer status filter
       if (filters.customerStatus && filters.customerStatus.length > 0) {
         const status = this.getHubSpotCustomerStatus(customer)
@@ -119,9 +123,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       // Apply pending invoices filter
       if (filters.hasPendingInvoices !== undefined) {
-        const hasPending = customer.monthlyInvoices?.some(
-          invoice => invoice.status === "pending"
-        )
+        const hasPending = customer.monthlyInvoices?.some((invoice) => invoice.status === "pending")
         if (filters.hasPendingInvoices !== hasPending) {
           return false
         }
@@ -138,7 +140,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
     data: DwollaCustomerData[],
     filters: SearchFilters
   ): DwollaCustomerData[] {
-    return data.filter(customer => {
+    return data.filter((customer) => {
       // Apply customer status filter
       if (filters.customerStatus && filters.customerStatus.length > 0) {
         const status = this.getDwollaCustomerStatus(customer)
@@ -149,7 +151,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       // Apply funding source status filter
       if (filters.fundingSourceStatus && filters.fundingSourceStatus.length > 0) {
-        const hasMatchingSource = customer.fundingSources?.some(source => 
+        const hasMatchingSource = customer.fundingSources?.some((source) =>
           filters.fundingSourceStatus!.includes(source.status as any)
         )
         if (!hasMatchingSource) {
@@ -159,7 +161,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       // Apply transfer status filter
       if (filters.transferStatus && filters.transferStatus.length > 0) {
-        const hasMatchingTransfer = customer.transfers?.some(transfer =>
+        const hasMatchingTransfer = customer.transfers?.some((transfer) =>
           filters.transferStatus!.includes(transfer.status as any)
         )
         if (!hasMatchingTransfer) {
@@ -169,7 +171,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       // Apply transfer date range filter
       if (filters.transferDateRange && customer.transfers) {
-        const hasTransferInRange = customer.transfers.some(transfer => {
+        const hasTransferInRange = customer.transfers.some((transfer) => {
           const transferDate = new Date(transfer.created)
           return this.isInDateRange(transferDate, filters.transferDateRange!)
         })
@@ -180,7 +182,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       // Apply transfer amount range filter
       if (filters.transferAmountRange && customer.transfers) {
-        const hasTransferInRange = customer.transfers.some(transfer => {
+        const hasTransferInRange = customer.transfers.some((transfer) => {
           const amount = parseFloat(transfer.amount.value)
           return this.isInAmountRange(amount, filters.transferAmountRange!)
         })
@@ -191,7 +193,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       // Apply failed transfers filter
       if (filters.hasFailedTransfers !== undefined) {
-        const hasFailed = customer.transfers?.some(t => t.status === "failed")
+        const hasFailed = customer.transfers?.some((t) => t.status === "failed")
         if (filters.hasFailedTransfers !== hasFailed) {
           return false
         }
@@ -199,7 +201,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       // Apply unverified funding filter
       if (filters.hasUnverifiedFunding !== undefined) {
-        const hasUnverified = customer.fundingSources?.some(f => f.status !== "verified")
+        const hasUnverified = customer.fundingSources?.some((f) => f.status !== "verified")
         if (filters.hasUnverifiedFunding !== hasUnverified) {
           return false
         }
@@ -212,59 +214,55 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
   /**
    * Sort HubSpot data
    */
-  private sortHubSpotData(
-    data: HubSpotCustomerData[],
-    sort: SortOptions
-  ): HubSpotCustomerData[] {
+  private sortHubSpotData(data: HubSpotCustomerData[], sort: SortOptions): HubSpotCustomerData[] {
     const sorted = [...data]
-    
+
     sorted.sort((a, b) => {
       let compareValue = 0
-      
+
       switch (sort.field) {
         case "date_created":
-          compareValue = new Date(a.company.createdAt).getTime() - 
-                        new Date(b.company.createdAt).getTime()
+          compareValue =
+            new Date(a.company.createdAt).getTime() - new Date(b.company.createdAt).getTime()
           break
         case "date_modified":
-          compareValue = new Date(a.company.updatedAt).getTime() - 
-                        new Date(b.company.updatedAt).getTime()
+          compareValue =
+            new Date(a.company.updatedAt).getTime() - new Date(b.company.updatedAt).getTime()
           break
         case "company_name":
           compareValue = a.company.name.localeCompare(b.company.name)
           break
         case "amount":
-          const amountA = a.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amountToDraft || 0), 0) || 0
-          const amountB = b.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amountToDraft || 0), 0) || 0
+          const amountA =
+            a.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amountToDraft || 0), 0) || 0
+          const amountB =
+            b.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amountToDraft || 0), 0) || 0
           compareValue = amountA - amountB
           break
         default:
           // Relevance or unsupported sort - maintain original order
           return 0
       }
-      
+
       return sort.order === "asc" ? compareValue : -compareValue
     })
-    
+
     return sorted
   }
 
   /**
    * Sort Dwolla data
    */
-  private sortDwollaData(
-    data: DwollaCustomerData[],
-    sort: SortOptions
-  ): DwollaCustomerData[] {
+  private sortDwollaData(data: DwollaCustomerData[], sort: SortOptions): DwollaCustomerData[] {
     const sorted = [...data]
-    
+
     sorted.sort((a, b) => {
       let compareValue = 0
-      
+
       switch (sort.field) {
         case "date_created":
-          compareValue = new Date(a.customer.created).getTime() - 
-                        new Date(b.customer.created).getTime()
+          compareValue =
+            new Date(a.customer.created).getTime() - new Date(b.customer.created).getTime()
           break
         case "customer_name":
           const nameA = `${a.customer.firstName} ${a.customer.lastName}`
@@ -282,20 +280,17 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
         default:
           return 0
       }
-      
+
       return sort.order === "asc" ? compareValue : -compareValue
     })
-    
+
     return sorted
   }
 
   /**
    * Paginate data
    */
-  private paginate<T>(
-    data: T[],
-    pagination?: PaginationOptions
-  ): { items: T[]; total: number } {
+  private paginate<T>(data: T[], pagination?: PaginationOptions): { items: T[]; total: number } {
     if (!pagination) {
       return { items: data, total: data.length }
     }
@@ -317,26 +312,28 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
     dwollaData: DwollaCustomerData[]
   ) {
     const totalCustomers = hubspotData.length + dwollaData.length
-    
-    const activeCustomers = 
-      hubspotData.filter(c => this.getHubSpotCustomerStatus(c) === "active").length +
-      dwollaData.filter(c => this.getDwollaCustomerStatus(c) === "active").length
+
+    const activeCustomers =
+      hubspotData.filter((c) => this.getHubSpotCustomerStatus(c) === "active").length +
+      dwollaData.filter((c) => this.getDwollaCustomerStatus(c) === "active").length
 
     const totalTransferAmount = dwollaData.reduce((sum, customer) => {
-      const customerTotal = customer.transfers?.reduce(
-        (tSum, transfer) => tSum + parseFloat(transfer.amount.value),
-        0
-      ) || 0
+      const customerTotal =
+        customer.transfers?.reduce(
+          (tSum, transfer) => tSum + parseFloat(transfer.amount.value),
+          0
+        ) || 0
       return sum + customerTotal
     }, 0)
 
     const failedTransfersCount = dwollaData.reduce((count, customer) => {
-      const failedCount = customer.transfers?.filter(t => t.status === "failed").length || 0
+      const failedCount = customer.transfers?.filter((t) => t.status === "failed").length || 0
       return count + failedCount
     }, 0)
 
     const unverifiedFundingCount = dwollaData.reduce((count, customer) => {
-      const unverifiedCount = customer.fundingSources?.filter(f => f.status !== "verified").length || 0
+      const unverifiedCount =
+        customer.fundingSources?.filter((f) => f.status !== "verified").length || 0
       return count + unverifiedCount
     }, 0)
 
@@ -377,7 +374,9 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
   /**
    * Helper: Get Dwolla customer status
    */
-  private getDwollaCustomerStatus(customer: DwollaCustomerData): "active" | "inactive" | "suspended" | "verified" | "unverified" {
+  private getDwollaCustomerStatus(
+    customer: DwollaCustomerData
+  ): "active" | "inactive" | "suspended" | "verified" | "unverified" {
     const status = customer.customer.status
     if (status === "verified") return "verified"
     if (status === "unverified") return "unverified"

@@ -24,7 +24,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
-    
+
     /* Font variables for V0 compatibility */
     --font-sans: var(--font-dm-sans);
     --font-heading: var(--font-space-grotesk);
@@ -46,6 +46,13 @@
     --cakewalk-text-tertiary: 221 15% 50%;
     --cakewalk-error: 0 84% 60%;
     --cakewalk-warning: 38 92% 50%;
+    --cakewalk-info: 217 91% 60%;
+    --cakewalk-info-light: 217 100% 94%;
+    --cakewalk-warning-light: 48 100% 96%;
+    --cakewalk-error-light: 0 86% 97%;
+    --cakewalk-success-bg: 142 76% 36%;
+    --cakewalk-neutral: 220 13% 91%;
+    --cakewalk-neutral-dark: 215 28% 17%;
   }
 
   .dark {
@@ -86,6 +93,13 @@
     --cakewalk-text-tertiary: 210 10% 60%;
     --cakewalk-error: 0 72% 51%;
     --cakewalk-warning: 38 82% 45%;
+    --cakewalk-info: 217 91% 60%;
+    --cakewalk-info-light: 222 47% 11%;
+    --cakewalk-warning-light: 222 47% 11%;
+    --cakewalk-error-light: 222 47% 11%;
+    --cakewalk-success-bg: 142 76% 36%;
+    --cakewalk-neutral: 222 47% 11%;
+    --cakewalk-neutral-dark: 210 40% 98%;
   }
 }
 
@@ -248,6 +262,48 @@
   border-color: hsl(var(--cakewalk-border));
 }
 
+/* Cakewalk Status Utilities */
+.bg-cakewalk-warning {
+  background-color: hsl(var(--cakewalk-warning));
+}
+.bg-cakewalk-warning-light {
+  background-color: hsl(var(--cakewalk-warning-light));
+}
+.bg-cakewalk-error {
+  background-color: hsl(var(--cakewalk-error));
+}
+.bg-cakewalk-error-light {
+  background-color: hsl(var(--cakewalk-error-light));
+}
+.bg-cakewalk-info {
+  background-color: hsl(var(--cakewalk-info));
+}
+.bg-cakewalk-info-light {
+  background-color: hsl(var(--cakewalk-info-light));
+}
+.bg-cakewalk-success-bg {
+  background-color: hsl(var(--cakewalk-success-bg));
+}
+.bg-cakewalk-neutral {
+  background-color: hsl(var(--cakewalk-neutral));
+}
+
+.text-cakewalk-warning {
+  color: hsl(var(--cakewalk-warning));
+}
+.text-cakewalk-error {
+  color: hsl(var(--cakewalk-error));
+}
+.text-cakewalk-info {
+  color: hsl(var(--cakewalk-info));
+}
+.text-cakewalk-success-bg {
+  color: hsl(var(--cakewalk-success-bg));
+}
+.text-cakewalk-neutral-dark {
+  color: hsl(var(--cakewalk-neutral-dark));
+}
+
 /* Cakewalk Shadows */
 .shadow-cakewalk-light {
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -259,7 +315,9 @@
   box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.05);
 }
 .shadow-cakewalk-hover {
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 .dark .shadow-cakewalk-light {
@@ -272,7 +330,9 @@
   box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.2);
 }
 .dark .shadow-cakewalk-hover {
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.3),
+    0 4px 6px -4px rgb(0 0 0 / 0.3);
 }
 
 /* Animations */
@@ -337,5 +397,15 @@
 
 /* Dark mode transitions */
 .theme-transition {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* Custom dialog styles for failed transactions modal */
+.failed-transactions-dialog [data-slot="dialog-content"] {
+  max-width: 95vw !important;
+  width: 95vw !important;
 }

@@ -73,9 +73,9 @@ export const authOptions: NextAuthOptions = {
         // Check MFA status
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { mfaEnabled: true }
+          select: { mfaEnabled: true },
         })
-        
+
         token.mfaEnabled = dbUser?.mfaEnabled || false
         token.mfaVerified = false // Requires separate verification
 

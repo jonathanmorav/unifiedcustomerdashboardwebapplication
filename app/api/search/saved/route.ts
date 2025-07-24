@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     // Build query conditions
     const conditions = []
     conditions.push({ userId: session.user.id })
-    
+
     if (includePublic) {
       conditions.push({ isPublic: true })
     }
@@ -46,18 +46,14 @@ export async function GET(request: NextRequest) {
       where: {
         OR: conditions,
       },
-      orderBy: [
-        { isTemplate: "desc" },
-        { lastUsed: "desc" },
-        { createdAt: "desc" },
-      ],
+      orderBy: [{ isTemplate: "desc" }, { lastUsed: "desc" }, { createdAt: "desc" }],
     })
 
     // Include templates if requested
     let results = savedSearches
     if (includeTemplates) {
       // Convert templates to saved search format
-      const templates = defaultSearchTemplates.map(template => ({
+      const templates = defaultSearchTemplates.map((template) => ({
         id: template.id,
         userId: "system",
         name: template.name,
@@ -80,7 +76,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     log.error("Fetch saved searches error", error as Error, {
       userId: session?.user?.id,
-      operation: 'fetch_saved_searches'
+      operation: "fetch_saved_searches",
     })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
@@ -154,7 +150,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     log.error("Create saved search error", error as Error, {
       userId: session?.user?.id,
-      operation: 'create_saved_search'
+      operation: "create_saved_search",
     })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
@@ -228,7 +224,7 @@ export async function PATCH(request: NextRequest) {
     log.error("Update saved search error", error as Error, {
       userId: session?.user?.id,
       searchId: id,
-      operation: 'update_saved_search'
+      operation: "update_saved_search",
     })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
@@ -292,7 +288,7 @@ export async function DELETE(request: NextRequest) {
     log.error("Delete saved search error", error as Error, {
       userId: session?.user?.id,
       searchId: id,
-      operation: 'delete_saved_search'
+      operation: "delete_saved_search",
     })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

@@ -1,10 +1,10 @@
-'use client'
+"use client"
 
-import React from 'react'
-import { ErrorBoundary } from './error-boundary'
-import { Button } from '@/components/ui/button'
-import { ShieldAlert, Home, RefreshCw } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import React from "react"
+import { ErrorBoundary } from "./error-boundary"
+import { Button } from "@/components/ui/button"
+import { ShieldAlert, Home, RefreshCw } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface Props {
   children: React.ReactNode
@@ -14,10 +14,10 @@ export function PaymentErrorBoundary({ children }: Props) {
   const router = useRouter()
 
   const paymentErrorFallback = (
-    <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
-      <div className="max-w-md w-full space-y-6 text-center">
+    <div className="flex min-h-[400px] flex-col items-center justify-center p-8">
+      <div className="w-full max-w-md space-y-6 text-center">
         <div className="flex justify-center">
-          <div className="rounded-full bg-red-100 dark:bg-red-900/20 p-4">
+          <div className="rounded-full bg-red-100 p-4 dark:bg-red-900/20">
             <ShieldAlert className="h-10 w-10 text-red-600 dark:text-red-400" />
           </div>
         </div>
@@ -27,19 +27,19 @@ export function PaymentErrorBoundary({ children }: Props) {
             Secure Processing Error
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            We encountered an error while processing secure financial data. 
-            For your security, this action has been stopped.
+            We encountered an error while processing secure financial data. For your security, this
+            action has been stopped.
           </p>
         </div>
 
-        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+        <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
           <p className="text-xs text-blue-800 dark:text-blue-200">
-            <strong>Your data is safe.</strong> No financial information was compromised. 
-            This error has been logged for review.
+            <strong>Your data is safe.</strong> No financial information was compromised. This error
+            has been logged for review.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Button
             onClick={() => window.location.reload()}
             variant="default"
@@ -48,9 +48,9 @@ export function PaymentErrorBoundary({ children }: Props) {
             <RefreshCw className="mr-2 h-4 w-4" />
             Try again
           </Button>
-          
+
           <Button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push("/dashboard")}
             variant="outline"
             className="inline-flex items-center"
           >
@@ -59,9 +59,7 @@ export function PaymentErrorBoundary({ children }: Props) {
           </Button>
         </div>
 
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Error ID: {crypto.randomUUID()}
-        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Error ID: {crypto.randomUUID()}</p>
       </div>
     </div>
   )
@@ -71,13 +69,13 @@ export function PaymentErrorBoundary({ children }: Props) {
       fallback={paymentErrorFallback}
       level="section"
       isolate
-      onError={(error, errorInfo) => {
+      onError={(error) => {
         // Never log sensitive payment data
-        console.error('Payment processing error occurred', {
+        console.error("Payment processing error occurred", {
           timestamp: new Date().toISOString(),
           // Only log non-sensitive information
           errorType: error.name,
-          errorMessage: error.message.replace(/[0-9]/g, 'X'), // Mask any numbers
+          errorMessage: error.message.replace(/[0-9]/g, "X"), // Mask any numbers
         })
       }}
     >

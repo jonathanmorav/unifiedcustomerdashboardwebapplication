@@ -3,6 +3,7 @@
 This guide will walk you through setting up Google OAuth for the Unified Customer Dashboard application.
 
 ## Table of Contents
+
 1. [Prerequisites](#prerequisites)
 2. [Create a Google Cloud Project](#create-a-google-cloud-project)
 3. [Enable APIs](#enable-apis)
@@ -72,25 +73,29 @@ This guide will walk you through setting up Google OAuth for the Unified Custome
 Add the appropriate redirect URIs for each environment once you have your domains configured:
 
 ### Local Development
+
 ```
 Authorized redirect URIs:
 - http://localhost:3000/api/auth/callback/google
 ```
 
 ### Staging Environment (when configured)
+
 ```
 Authorized redirect URIs:
 - https://[your-staging-domain]/api/auth/callback/google
 ```
 
 ### Production Environment (when configured)
+
 ```
 Authorized redirect URIs:
 - https://[your-production-domain]/api/auth/callback/google
 - https://www.[your-production-domain]/api/auth/callback/google (if using www)
 ```
 
-**Important**: 
+**Important**:
+
 - You'll need to add these URIs once you have your domains set up
 - Add ALL domains you'll use
 - Include both www and non-www versions if applicable
@@ -112,6 +117,7 @@ GOOGLE_CLIENT_SECRET=your-client-secret-here
 ```
 
 **Security Notes**:
+
 - Never commit these values to version control
 - Use different OAuth clients for each environment
 - Rotate credentials periodically
@@ -122,6 +128,7 @@ GOOGLE_CLIENT_SECRET=your-client-secret-here
 ### Local Testing
 
 1. Ensure your `.env.local` file has the correct values:
+
 ```bash
 NEXTAUTH_URL=http://localhost:3000
 GOOGLE_CLIENT_ID=your-client-id
@@ -129,6 +136,7 @@ GOOGLE_CLIENT_SECRET=your-client-secret
 ```
 
 2. Run the development server:
+
 ```bash
 npm run dev
 ```
@@ -140,15 +148,15 @@ npm run dev
 
 ### Common Issues During Testing
 
-1. **Redirect URI mismatch**: 
+1. **Redirect URI mismatch**:
    - Double-check the URI in Google Console matches exactly
    - Include the port number for localhost
 
-2. **Invalid client**: 
+2. **Invalid client**:
    - Ensure you're using the correct client ID and secret
    - Check for extra spaces or newlines in env values
 
-3. **Access blocked**: 
+3. **Access blocked**:
    - For external apps, ensure the testing email is in the test users list
 
 ## Production Deployment
@@ -156,12 +164,14 @@ npm run dev
 ### 1. Create Production OAuth Client
 
 Create a separate OAuth client for production:
+
 - Use your production domain(s)
 - Never reuse development credentials
 
 ### 2. Domain Verification (External Apps)
 
 For external apps, verify your domain:
+
 1. Go to "OAuth consent screen" > "Domain verification"
 2. Add and verify your production domain
 3. Follow Google's verification process
@@ -169,6 +179,7 @@ For external apps, verify your domain:
 ### 3. App Verification (External Apps)
 
 If you have sensitive scopes or 100+ users:
+
 1. Submit your app for verification
 2. Provide required documentation
 3. Wait for Google's review (can take weeks)
@@ -185,7 +196,8 @@ If you have sensitive scopes or 100+ users:
 ### Error: "Access blocked: This app's request is invalid"
 
 **Cause**: Redirect URI mismatch
-**Solution**: 
+**Solution**:
+
 1. Check the exact error message for the expected URI
 2. Add that exact URI to your OAuth client configuration
 3. Wait 5-10 minutes for changes to propagate
@@ -194,6 +206,7 @@ If you have sensitive scopes or 100+ users:
 
 **Cause**: Wrong or malformed client ID
 **Solution**:
+
 1. Verify you're using the correct environment's credentials
 2. Check for typos or extra characters
 3. Ensure the OAuth client is not deleted or disabled
@@ -202,6 +215,7 @@ If you have sensitive scopes or 100+ users:
 
 **Cause**: Email not in authorized list (using AUTHORIZED_EMAILS)
 **Solution**:
+
 1. Add the email to your `.env` file's AUTHORIZED_EMAILS
 2. For Google Workspace, check domain restrictions
 3. Verify the user's email is being returned correctly
@@ -210,6 +224,7 @@ If you have sensitive scopes or 100+ users:
 
 **Cause**: URI not configured in Google Console
 **Solution**:
+
 1. Go to your OAuth client settings
 2. Add the exact URI shown in the error
 3. Common mistakes:
@@ -220,10 +235,11 @@ If you have sensitive scopes or 100+ users:
 ### Debugging Tips
 
 1. **Enable debug logging**:
+
 ```javascript
 // In your [...nextauth]/route.ts
 export const authOptions = {
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env.NODE_ENV === "development",
   // ... rest of config
 }
 ```
@@ -233,6 +249,7 @@ export const authOptions = {
    - Check for error parameters in URLs
 
 3. **Test with curl**:
+
 ```bash
 # Test if your callback URL is accessible
 curl -I https://yourdomain.com/api/auth/callback/google
@@ -247,6 +264,7 @@ curl -I https://yourdomain.com/api/auth/callback/google
 ## Support
 
 If you encounter issues not covered here:
+
 1. Check the application logs
 2. Review NextAuth.js debug output
 3. Consult the Google OAuth error reference

@@ -5,6 +5,7 @@ This checklist ensures all critical items are addressed before deploying to prod
 ## Pre-Deployment Requirements
 
 ### 1. API Credentials ✓
+
 - [ ] **HubSpot API Key**
   - [ ] Create Private App in HubSpot
   - [ ] Grant required scopes:
@@ -28,6 +29,7 @@ This checklist ensures all critical items are addressed before deploying to prod
   - [ ] Copy Client ID and Secret to `.env.production.local`
 
 ### 2. Infrastructure ✓
+
 - [ ] **Domain & SSL**
   - [ ] Domain registered and DNS configured
   - [ ] SSL certificate provisioned (auto with Vercel/Netlify)
@@ -47,6 +49,7 @@ This checklist ensures all critical items are addressed before deploying to prod
   - [ ] Auto-scaling configured if applicable
 
 ### 3. Security Configuration ✓
+
 - [ ] **Authentication**
   - [ ] Generate production `NEXTAUTH_SECRET` (32+ chars)
   - [ ] Set authorized email list
@@ -66,6 +69,7 @@ This checklist ensures all critical items are addressed before deploying to prod
   - [ ] Backup encryption configured
 
 ### 4. Environment Configuration ✓
+
 - [ ] Create `.env.production.local` from `.env.production`
 - [ ] Fill in all `[REQUIRED]` values
 - [ ] Verify no placeholder values remain
@@ -77,6 +81,7 @@ This checklist ensures all critical items are addressed before deploying to prod
 ## Deployment Steps
 
 ### 1. Pre-Deployment Testing
+
 ```bash
 # Build production version locally
 npm run build
@@ -89,6 +94,7 @@ npm run test:production
 ```
 
 ### 2. Database Migration
+
 ```bash
 # Backup existing data (if any)
 pg_dump $OLD_DATABASE_URL > backup-$(date +%Y%m%d).sql
@@ -103,6 +109,7 @@ DATABASE_URL=$PRODUCTION_DATABASE_URL npx prisma db pull
 ### 3. Deploy to Hosting Platform
 
 #### Vercel
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
@@ -112,6 +119,7 @@ vercel --prod
 ```
 
 #### AWS/Docker
+
 ```bash
 # Build Docker image
 docker build -t unified-dashboard:prod .
@@ -125,6 +133,7 @@ docker push your-registry/unified-dashboard:prod
 ### 4. Post-Deployment Verification
 
 #### Functional Tests
+
 - [ ] Application loads without errors
 - [ ] Login with authorized Google account works
 - [ ] Search returns results from HubSpot
@@ -134,12 +143,14 @@ docker push your-registry/unified-dashboard:prod
 - [ ] All navigation links work
 
 #### API Integration Tests
+
 - [ ] HubSpot API connection successful
 - [ ] Dwolla API authentication works
 - [ ] Rate limiting is active
 - [ ] Error handling works correctly
 
 #### Security Tests
+
 - [ ] Unauthorized users cannot access
 - [ ] Session timeout works
 - [ ] Security headers present
@@ -147,6 +158,7 @@ docker push your-registry/unified-dashboard:prod
 - [ ] No sensitive data in browser console
 
 #### Performance Tests
+
 - [ ] Page load time < 3 seconds
 - [ ] Search response time < 5 seconds
 - [ ] No memory leaks detected
@@ -155,12 +167,14 @@ docker push your-registry/unified-dashboard:prod
 ## Monitoring Setup
 
 ### 1. Application Monitoring
+
 - [ ] Error tracking configured (Sentry/Rollbar)
 - [ ] APM configured (New Relic/DataDog)
 - [ ] Custom metrics dashboard created
 - [ ] Log aggregation configured
 
 ### 2. Alerts Configuration
+
 - [ ] Downtime alerts
 - [ ] Error rate alerts (>1%)
 - [ ] API failure alerts
@@ -168,6 +182,7 @@ docker push your-registry/unified-dashboard:prod
 - [ ] Security incident alerts
 
 ### 3. Health Checks
+
 - [ ] `/api/health` endpoint monitoring
 - [ ] Database connectivity checks
 - [ ] API integration health checks
@@ -176,6 +191,7 @@ docker push your-registry/unified-dashboard:prod
 ## Go-Live Checklist
 
 ### Final Checks
+
 - [ ] All environment variables set correctly
 - [ ] No debug mode or verbose logging enabled
 - [ ] All test accounts removed
@@ -183,12 +199,14 @@ docker push your-registry/unified-dashboard:prod
 - [ ] Team notified of go-live
 
 ### Communication
+
 - [ ] Stakeholders notified
 - [ ] Support team briefed
 - [ ] Monitoring team on standby
 - [ ] Rollback plan documented
 
 ### Post Go-Live (First 24 Hours)
+
 - [ ] Monitor error logs closely
 - [ ] Check API rate limits
 - [ ] Verify backup processes
@@ -205,10 +223,11 @@ If critical issues occur:
    - Begin investigation
 
 2. **Rollback Steps**
+
    ```bash
    # Vercel
    vercel rollback [previous-deployment-url]
-   
+
    # Docker
    kubectl rollout undo deployment/unified-dashboard
    ```

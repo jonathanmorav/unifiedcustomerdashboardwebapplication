@@ -61,7 +61,7 @@ export function useTheme(): UseThemeReturn {
       initialTheme: theme,
       systemTheme,
     })
-  }, [])
+  }, [theme, systemTheme])
 
   return {
     theme: theme as Theme | undefined,

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 
 export interface CSRFTokenResponse {
   token: string
@@ -20,13 +20,13 @@ export function useCSRFToken() {
 
     const fetchToken = async () => {
       try {
-        const response = await fetch('/api/auth/csrf', {
-          method: 'GET',
-          credentials: 'include',
+        const response = await fetch("/api/auth/csrf", {
+          method: "GET",
+          credentials: "include",
         })
 
         if (!response.ok) {
-          throw new Error('Failed to fetch CSRF token')
+          throw new Error("Failed to fetch CSRF token")
         }
 
         const data: CSRFTokenResponse = await response.json()
@@ -42,7 +42,7 @@ export function useCSRFToken() {
           return () => clearTimeout(timeout)
         }
       } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown error'))
+        setError(err instanceof Error ? err : new Error("Unknown error"))
         setToken(null)
       } finally {
         setLoading(false)
@@ -57,19 +57,19 @@ export function useCSRFToken() {
     setError(null)
 
     try {
-      const response = await fetch('/api/auth/csrf', {
-        method: 'POST',
-        credentials: 'include',
+      const response = await fetch("/api/auth/csrf", {
+        method: "POST",
+        credentials: "include",
       })
 
       if (!response.ok) {
-        throw new Error('Failed to refresh CSRF token')
+        throw new Error("Failed to refresh CSRF token")
       }
 
       const data: CSRFTokenResponse = await response.json()
       setToken(data.token)
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'))
+      setError(err instanceof Error ? err : new Error("Unknown error"))
       setToken(null)
     } finally {
       setLoading(false)
@@ -97,7 +97,7 @@ export function fetchWithCSRF(
     ...fetchOptions,
     headers: {
       ...fetchOptions.headers,
-      'X-CSRF-Token': csrfToken,
+      "X-CSRF-Token": csrfToken,
     },
   })
 }
@@ -110,7 +110,7 @@ export async function fetchWithAPISignature(
   options: RequestInit & { apiKey: string }
 ): Promise<Response> {
   const { apiKey, ...fetchOptions } = options
-  const method = fetchOptions.method || 'GET'
+  const method = fetchOptions.method || "GET"
   const timestamp = Date.now().toString()
 
   // Calculate body hash if present
@@ -118,47 +118,41 @@ export async function fetchWithAPISignature(
   if (fetchOptions.body) {
     const encoder = new TextEncoder()
     const data = encoder.encode(
-      typeof fetchOptions.body === 'string'
-        ? fetchOptions.body
-        : JSON.stringify(fetchOptions.body)
+      typeof fetchOptions.body === "string" ? fetchOptions.body : JSON.stringify(fetchOptions.body)
     )
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data)
     bodyHash = Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("")
   }
 
   // Create signature
   const path = new URL(url).pathname
-  const payload = `${method}:${path}:${timestamp}:${bodyHash || ''}`
-  
+  const payload = `${method}:${path}:${timestamp}:${bodyHash || ""}`
+
   const encoder = new TextEncoder()
   const key = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     encoder.encode(apiKey),
-    { name: 'HMAC', hash: 'SHA-256' },
+    { name: "HMAC", hash: "SHA-256" },
     false,
-    ['sign']
+    ["sign"]
   )
-  
-  const signatureBuffer = await crypto.subtle.sign(
-    'HMAC',
-    key,
-    encoder.encode(payload)
-  )
-  
+
+  const signatureBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(payload))
+
   const signature = Array.from(new Uint8Array(signatureBuffer))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
 
   return fetch(url, {
     ...fetchOptions,
     headers: {
       ...fetchOptions.headers,
-      'X-API-Key': apiKey,
-      'X-Request-Signature': signature,
-      'X-Timestamp': timestamp,
-      ...(bodyHash ? { 'X-Body-Hash': bodyHash } : {}),
+      "X-API-Key": apiKey,
+      "X-Request-Signature": signature,
+      "X-Timestamp": timestamp,
+      ...(bodyHash ? { "X-Body-Hash": bodyHash } : {}),
     },
   })
 }

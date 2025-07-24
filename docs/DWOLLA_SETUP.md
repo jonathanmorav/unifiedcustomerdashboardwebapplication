@@ -44,6 +44,7 @@ npm run tsx scripts/test-dwolla-connection.ts
 ```
 
 You should see output like:
+
 ```
 Testing Dwolla API connection...
 
@@ -79,6 +80,7 @@ For real-time transaction updates, configure Dwolla webhooks:
 ### 1. Create Webhook Subscription
 
 Use Dwolla's API or Dashboard to create a webhook subscription pointing to:
+
 ```
 https://your-domain.com/api/webhooks/dwolla
 ```
@@ -86,6 +88,7 @@ https://your-domain.com/api/webhooks/dwolla
 ### 2. Subscribe to Events
 
 Subscribe to these event topics:
+
 - `transfer_created`
 - `transfer_completed`
 - `transfer_failed`
@@ -103,6 +106,7 @@ The webhook endpoint is already stubbed at `/app/api/webhooks/dwolla/route.ts`. 
 ## API Rate Limits
 
 Dwolla API has the following rate limits:
+
 - Sandbox: 60 requests per minute
 - Production: 60 requests per minute
 
@@ -129,6 +133,7 @@ The client automatically handles rate limiting with exponential backoff.
 ### Debug Mode
 
 Enable debug logging by setting:
+
 ```env
 LOG_LEVEL=debug
 ```
@@ -145,11 +150,13 @@ This will show detailed API requests and responses in the console.
 ## Support
 
 For Dwolla API issues:
+
 - Documentation: https://docs.dwolla.com
 - API Reference: https://docs.dwolla.com/#api-reference
 - Support: https://www.dwolla.com/support
 
 For dashboard issues:
+
 - Check the application logs
 - Review error messages in the browser console
 - Contact your system administrator

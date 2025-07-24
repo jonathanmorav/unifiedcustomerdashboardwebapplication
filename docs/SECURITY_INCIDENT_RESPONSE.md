@@ -2,13 +2,13 @@
 
 ## Emergency Contacts
 
-| Role | Name | Phone | Email | Escalation |
-|------|------|-------|-------|------------|
-| Security Lead | [Name] | +1-XXX-XXX-XXXX | security-lead@company.com | Primary |
-| CISO | [Name] | +1-XXX-XXX-XXXX | ciso@company.com | P1 Incidents |
-| DevOps On-Call | [Rotation] | +1-XXX-XXX-XXXX | devops-oncall@company.com | 24/7 |
-| Legal Counsel | [Name] | +1-XXX-XXX-XXXX | legal@company.com | Data Breach |
-| PR Team | [Name] | +1-XXX-XXX-XXXX | pr@company.com | Public Incidents |
+| Role           | Name       | Phone           | Email                     | Escalation       |
+| -------------- | ---------- | --------------- | ------------------------- | ---------------- |
+| Security Lead  | [Name]     | +1-XXX-XXX-XXXX | security-lead@company.com | Primary          |
+| CISO           | [Name]     | +1-XXX-XXX-XXXX | ciso@company.com          | P1 Incidents     |
+| DevOps On-Call | [Rotation] | +1-XXX-XXX-XXXX | devops-oncall@company.com | 24/7             |
+| Legal Counsel  | [Name]     | +1-XXX-XXX-XXXX | legal@company.com         | Data Breach      |
+| PR Team        | [Name]     | +1-XXX-XXX-XXXX | pr@company.com            | Public Incidents |
 
 **Security Hotline**: +1-800-XXX-XXXX (24/7)
 
@@ -16,12 +16,12 @@
 
 ### Priority Levels
 
-| Level | Description | Response Time | Examples |
-|-------|-------------|---------------|----------|
-| **P1 - Critical** | Active breach, data exposure, system compromise | < 15 minutes | Data breach, ransomware, system takeover |
-| **P2 - High** | Imminent threat, partial compromise | < 1 hour | Suspicious admin activity, auth bypass found |
-| **P3 - Medium** | Security weakness exploited | < 4 hours | Spike in failed logins, unusual API usage |
-| **P4 - Low** | Potential security issue | < 24 hours | Policy violation, configuration drift |
+| Level             | Description                                     | Response Time | Examples                                     |
+| ----------------- | ----------------------------------------------- | ------------- | -------------------------------------------- |
+| **P1 - Critical** | Active breach, data exposure, system compromise | < 15 minutes  | Data breach, ransomware, system takeover     |
+| **P2 - High**     | Imminent threat, partial compromise             | < 1 hour      | Suspicious admin activity, auth bypass found |
+| **P3 - Medium**   | Security weakness exploited                     | < 4 hours     | Spike in failed logins, unusual API usage    |
+| **P4 - Low**      | Potential security issue                        | < 24 hours    | Policy violation, configuration drift        |
 
 ## Immediate Response Actions
 
@@ -54,6 +54,7 @@
 #### 2. Containment (5-15 minutes)
 
 **For Active Breach:**
+
 ```bash
 # Block suspicious IPs immediately
 sudo iptables -A INPUT -s <suspicious-ip> -j DROP
@@ -69,6 +70,7 @@ npm run security:revoke-all-sessions
 ```
 
 **Containment Checklist:**
+
 - [ ] Isolate affected systems
 - [ ] Disable compromised accounts
 - [ ] Block malicious IPs/domains
@@ -79,6 +81,7 @@ npm run security:revoke-all-sessions
 #### 3. Investigation (15-60 minutes)
 
 **Data Collection Commands:**
+
 ```bash
 # Export recent audit logs
 npm run security:export-logs --hours=24 --severity=all
@@ -94,6 +97,7 @@ npm run security:access-report --suspicious-only
 ```
 
 **Investigation Questions:**
+
 - What was accessed/modified?
 - When did the incident start?
 - How did the attacker gain access?
@@ -113,6 +117,7 @@ npm run security:access-report --suspicious-only
 #### 5. Recovery (2-8 hours)
 
 **Recovery Steps:**
+
 ```bash
 # Restore from clean backups if needed
 npm run restore:from-backup --timestamp=<pre-incident>
@@ -144,15 +149,17 @@ npm run security:clear-sessions --suspicious
 ### 🔐 Credential Compromise
 
 **Indicators:**
+
 - Unusual login patterns
 - Access from new locations
 - Privilege escalation attempts
 - Mass data downloads
 
 **Response:**
+
 ```bash
 # 1. Disable affected accounts
-UPDATE users SET locked_until = NOW() + INTERVAL '1 year' 
+UPDATE users SET locked_until = NOW() + INTERVAL '1 year'
 WHERE email IN ('compromised@example.com');
 
 # 2. Revoke all sessions
@@ -161,12 +168,12 @@ DELETE FROM sessions WHERE user_id IN (
 );
 
 # 3. Force password reset
-UPDATE users SET password_reset_required = true 
+UPDATE users SET password_reset_required = true
 WHERE email IN ('compromised@example.com');
 
 # 4. Review audit logs
-SELECT * FROM audit_logs 
-WHERE user_id = '<compromised-user-id>' 
+SELECT * FROM audit_logs
+WHERE user_id = '<compromised-user-id>'
 AND created_at > NOW() - INTERVAL '7 days'
 ORDER BY created_at DESC;
 ```
@@ -174,11 +181,13 @@ ORDER BY created_at DESC;
 ### 💉 SQL Injection Attack
 
 **Indicators:**
+
 - Unusual SQL patterns in logs
 - Database errors in application logs
 - Unexpected data modifications
 
 **Response:**
+
 1. Enable SQL query logging
 2. Block attacking IPs
 3. Review and sanitize all user inputs
@@ -188,12 +197,14 @@ ORDER BY created_at DESC;
 ### 🌐 DDoS Attack
 
 **Indicators:**
+
 - Spike in traffic
 - High rate limit violations
 - Service degradation
 - Unusual geographic distribution
 
 **Response:**
+
 ```bash
 # 1. Enable DDoS protection
 npm run cloudflare:enable-under-attack-mode
@@ -211,11 +222,13 @@ npm run infra:scale-up --component=api --factor=3
 ### 🔓 Authentication Bypass
 
 **Indicators:**
+
 - Access without valid sessions
 - Privilege escalation
 - Unauthorized API calls
 
 **Response:**
+
 1. Disable affected endpoints
 2. Review authentication middleware
 3. Audit all recent access
@@ -225,12 +238,14 @@ npm run infra:scale-up --component=api --factor=3
 ### 📊 Data Breach
 
 **Indicators:**
+
 - Large data exports
 - Unusual API access patterns
 - Database dumps detected
 - Customer data on dark web
 
 **Response Protocol:**
+
 1. **Immediate** (0-1 hour)
    - Contain the breach
    - Preserve evidence
@@ -407,34 +422,41 @@ Respectfully submitted,
 # Post-Incident Review: {Incident ID}
 
 ## Incident Summary
+
 - **Date**: {date}
 - **Duration**: {duration}
 - **Severity**: P{X}
 - **Impact**: {impact description}
 
 ## Timeline
+
 - {time}: Initial detection
 - {time}: Incident confirmed
 - {time}: Containment started
 - {time}: Incident resolved
 
 ## What Went Well
+
 1. {positive point}
 2. {positive point}
 
 ## What Could Be Improved
+
 1. {improvement area}
 2. {improvement area}
 
 ## Root Cause
+
 {Detailed root cause analysis}
 
 ## Action Items
-| Action | Owner | Due Date | Status |
-|--------|-------|----------|--------|
-| {action} | {name} | {date} | {status} |
+
+| Action   | Owner  | Due Date | Status   |
+| -------- | ------ | -------- | -------- |
+| {action} | {name} | {date}   | {status} |
 
 ## Metrics
+
 - Time to Detection: {time}
 - Time to Containment: {time}
 - Time to Resolution: {time}
@@ -442,10 +464,12 @@ Respectfully submitted,
 - Users Affected: {number}
 
 ## Recommendations
+
 1. {recommendation}
 2. {recommendation}
 
 ## Approval
+
 - Security Lead: {signature}
 - Engineering Lead: {signature}
 - Management: {signature}
@@ -486,12 +510,12 @@ Respectfully submitted,
 
 ### Notification Timelines
 
-| Regulation | Notification Requirement | Who to Notify |
-|------------|-------------------------|---------------|
-| GDPR | 72 hours to authorities, without undue delay to individuals | DPA, affected users |
-| CCPA | Without unreasonable delay | CA Attorney General, affected residents |
-| HIPAA | 60 days to individuals, HHS | HHS, affected individuals, media (if >500) |
-| PCI DSS | Immediately | Card brands, acquiring bank |
+| Regulation | Notification Requirement                                    | Who to Notify                              |
+| ---------- | ----------------------------------------------------------- | ------------------------------------------ |
+| GDPR       | 72 hours to authorities, without undue delay to individuals | DPA, affected users                        |
+| CCPA       | Without unreasonable delay                                  | CA Attorney General, affected residents    |
+| HIPAA      | 60 days to individuals, HHS                                 | HHS, affected individuals, media (if >500) |
+| PCI DSS    | Immediately                                                 | Card brands, acquiring bank                |
 
 ### Evidence Retention
 

@@ -155,21 +155,19 @@ export const defaultSearchTemplates: SearchTemplate[] = [
  * Get search templates by category
  */
 export function getTemplatesByCategory(category: SearchTemplate["category"]) {
-  return defaultSearchTemplates.filter(template => template.category === category)
+  return defaultSearchTemplates.filter((template) => template.category === category)
 }
 
 /**
  * Get search templates by tag
  */
 export function getTemplatesByTag(tag: string) {
-  return defaultSearchTemplates.filter(
-    template => template.tags?.includes(tag)
-  )
+  return defaultSearchTemplates.filter((template) => template.tags?.includes(tag))
 }
 
 /**
  * Get template by ID
  */
 export function getTemplateById(id: string) {
-  return defaultSearchTemplates.find(template => template.id === id)
+  return defaultSearchTemplates.find((template) => template.id === id)
 }

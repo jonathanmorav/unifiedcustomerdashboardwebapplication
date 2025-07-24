@@ -18,11 +18,11 @@ const searchRequestSchema = z.object({
 export const POST = withErrorHandler(async (request: NextRequest) => {
   console.log("[CLARITY DEBUG] Search API called")
   const correlationId = await CorrelationTracking.getCorrelationId()
-  
+
   // Check authentication
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
-    throw new AuthenticationError('Authentication required', { correlationId })
+    throw new AuthenticationError("Authentication required", { correlationId })
   }
 
   // Parse and validate request body
@@ -30,11 +30,10 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   const validation = searchRequestSchema.safeParse(body)
 
   if (!validation.success) {
-    throw new ValidationError(
-      'Invalid search request',
-      validation.error.flatten().fieldErrors,
-      { correlationId, userId: session.user.email }
-    )
+    throw new ValidationError("Invalid search request", validation.error.flatten().fieldErrors, {
+      correlationId,
+      userId: session.user.email,
+    })
   }
 
   const { searchTerm, searchType = "auto" } = validation.data
@@ -77,11 +76,11 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     // Save to search history (non-blocking)
     SearchHistoryManager.saveSearch(result, session.user.email).catch((err) => {
       log.error("Failed to save search history", {
-        error: err instanceof Error ? err.message : 'Unknown error',
+        error: err instanceof Error ? err.message : "Unknown error",
         userId: session.user.email,
         searchTerm,
         correlationId,
-        operation: 'search_history_save'
+        operation: "search_history_save",
       })
     })
 
@@ -100,11 +99,11 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 // GET endpoint for search history
 export const GET = withErrorHandler(async (request: NextRequest) => {
   const correlationId = await CorrelationTracking.getCorrelationId()
-  
+
   // Check authentication
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
-    throw new AuthenticationError('Authentication required', { correlationId })
+    throw new AuthenticationError("Authentication required", { correlationId })
   }
 
   // Get query parameters
@@ -115,8 +114,8 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
   // Validate limit
   if (limit < 1 || limit > 100) {
     throw new ValidationError(
-      'Invalid limit parameter',
-      { limit: ['Limit must be between 1 and 100'] },
+      "Invalid limit parameter",
+      { limit: ["Limit must be between 1 and 100"] },
       { correlationId, userId: session.user.email }
     )
   }

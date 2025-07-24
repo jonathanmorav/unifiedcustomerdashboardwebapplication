@@ -5,11 +5,7 @@ import { DollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import type { AmountRange } from "@/lib/types/search"
 
@@ -64,7 +60,7 @@ export function AmountRangeFilter({
     return `${formatCurrency(range.min, currency)} - ${formatCurrency(range.max, currency)}`
   }
 
-  const handlePresetClick = (preset: typeof presetRanges[0]) => {
+  const handlePresetClick = (preset: (typeof presetRanges)[0]) => {
     const range = { min: preset.min, max: preset.max, currency }
     setLocalRange([preset.min, preset.max])
     setInputMin(String(preset.min))
@@ -97,7 +93,7 @@ export function AmountRangeFilter({
   const handleApply = () => {
     const minVal = parseInt(inputMin) || 0
     const maxVal = parseInt(inputMax) || 0
-    
+
     if (minVal <= maxVal) {
       onChange({ min: minVal, max: maxVal, currency })
       setIsOpen(false)
@@ -131,7 +127,7 @@ export function AmountRangeFilter({
         <PopoverContent className="w-80" align="start">
           <div className="space-y-4">
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Quick select</h4>
+              <h4 className="text-sm font-medium">Quick select</h4>
               <div className="grid grid-cols-2 gap-2">
                 {presetRanges.map((preset) => (
                   <Button
@@ -145,9 +141,9 @@ export function AmountRangeFilter({
                 ))}
               </div>
             </div>
-            
+
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Custom range</h4>
+              <h4 className="text-sm font-medium">Custom range</h4>
               <div className="space-y-4">
                 <div className="px-2">
                   <Slider
@@ -161,7 +157,9 @@ export function AmountRangeFilter({
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <Label htmlFor="min-amount" className="text-xs">Min amount</Label>
+                    <Label htmlFor="min-amount" className="text-xs">
+                      Min amount
+                    </Label>
                     <div className="relative">
                       <DollarSign className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                       <input
@@ -169,12 +167,14 @@ export function AmountRangeFilter({
                         type="number"
                         value={inputMin}
                         onChange={(e) => handleInputChange("min", e.target.value)}
-                        className="w-full pl-8 pr-2 py-1 text-sm border rounded-md"
+                        className="w-full rounded-md border py-1 pl-8 pr-2 text-sm"
                       />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="max-amount" className="text-xs">Max amount</Label>
+                    <Label htmlFor="max-amount" className="text-xs">
+                      Max amount
+                    </Label>
                     <div className="relative">
                       <DollarSign className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                       <input
@@ -182,28 +182,19 @@ export function AmountRangeFilter({
                         type="number"
                         value={inputMax}
                         onChange={(e) => handleInputChange("max", e.target.value)}
-                        className="w-full pl-8 pr-2 py-1 text-sm border rounded-md"
+                        className="w-full rounded-md border py-1 pl-8 pr-2 text-sm"
                       />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClear}
-                className="flex-1"
-              >
+              <Button variant="outline" size="sm" onClick={handleClear} className="flex-1">
                 Clear
               </Button>
-              <Button
-                size="sm"
-                onClick={handleApply}
-                className="flex-1"
-              >
+              <Button size="sm" onClick={handleApply} className="flex-1">
                 Apply
               </Button>
             </div>

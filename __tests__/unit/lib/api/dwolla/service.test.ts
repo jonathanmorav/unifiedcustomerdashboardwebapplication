@@ -6,7 +6,7 @@ import {
   DwollaFundingSource,
   DwollaTransfer,
   DwollaSearchParams,
-  DwollaServiceResult
+  DwollaServiceResult,
 } from "@/lib/types/dwolla"
 
 // Mock dependencies
@@ -16,13 +16,13 @@ jest.mock("@/lib/api/dwolla/client", () => ({
     getCustomer: jest.fn(),
     getFundingSources: jest.fn(),
     getTransfers: jest.fn(),
-  }))
+  })),
 }))
 
 jest.mock("@/lib/api/dwolla/auth", () => ({
   DwollaOAuth: jest.fn().mockImplementation(() => ({
     getAccessToken: jest.fn().mockResolvedValue("test-access-token"),
-  }))
+  })),
 }))
 
 describe("DwollaService", () => {
@@ -31,10 +31,10 @@ describe("DwollaService", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     // Create service - it will use the mocked dependencies
     service = new DwollaService()
-    
+
     // Get reference to the mocked client
     mockClient = (service as any).client
   })
@@ -60,15 +60,15 @@ describe("DwollaService", () => {
           city: "Austin",
           stateProvinceRegion: "TX",
           postalCode: "78701",
-          country: "US"
-        }
-      }
+          country: "US",
+        },
+      },
     }
 
     it("should search customer by email", async () => {
       mockClient.searchCustomers.mockResolvedValueOnce({
         _embedded: { customers: [mockCustomer] },
-        total: 1
+        total: 1,
       })
 
       const params: DwollaSearchParams = { email: "john@example.com" }
@@ -79,15 +79,12 @@ describe("DwollaService", () => {
           customer: mockCustomer,
           fundingSources: [],
           transfers: [],
-          notifications: []
+          notifications: [],
         },
-        error: null
+        error: null,
       })
 
-      expect(mockClient.searchCustomers).toHaveBeenCalledWith(
-        "john@example.com",
-        undefined
-      )
+      expect(mockClient.searchCustomers).toHaveBeenCalledWith("john@example.com", undefined)
     })
 
     it("should search customer by dwolla ID", async () => {
@@ -97,31 +94,25 @@ describe("DwollaService", () => {
       const result = await service.searchCustomer(params)
 
       expect(result.data?.customer).toEqual(mockCustomer)
-      expect(mockClient.getCustomer).toHaveBeenCalledWith(
-        "dwolla-123",
-        undefined
-      )
+      expect(mockClient.getCustomer).toHaveBeenCalledWith("dwolla-123", undefined)
     })
 
     it("should search customer by name", async () => {
       mockClient.searchCustomers.mockResolvedValueOnce({
         _embedded: { customers: [mockCustomer] },
-        total: 1
+        total: 1,
       })
 
       const params: DwollaSearchParams = { name: "John Doe" }
       await service.searchCustomer(params)
 
-      expect(mockClient.searchCustomers).toHaveBeenCalledWith(
-        "John Doe",
-        undefined
-      )
+      expect(mockClient.searchCustomers).toHaveBeenCalledWith("John Doe", undefined)
     })
 
     it("should handle customer not found", async () => {
       mockClient.searchCustomers.mockResolvedValueOnce({
         _embedded: { customers: [] },
-        total: 0
+        total: 0,
       })
 
       const result = await service.searchCustomer({ email: "notfound@example.com" })
@@ -130,8 +121,8 @@ describe("DwollaService", () => {
         data: null,
         error: {
           code: "CUSTOMER_NOT_FOUND",
-          message: "No customer found with the provided search criteria"
-        }
+          message: "No customer found with the provided search criteria",
+        },
       })
     })
 
@@ -144,8 +135,8 @@ describe("DwollaService", () => {
         data: null,
         error: {
           code: "DWOLLA_API_ERROR",
-          message: "Failed to search customer"
-        }
+          message: "Failed to search customer",
+        },
       })
     })
 
@@ -153,13 +144,10 @@ describe("DwollaService", () => {
       const abortController = new AbortController()
       mockClient.searchCustomers.mockResolvedValueOnce({
         _embedded: { customers: [mockCustomer] },
-        total: 1
+        total: 1,
       })
 
-      await service.searchCustomer(
-        { email: "test@example.com" },
-        abortController.signal
-      )
+      await service.searchCustomer({ email: "test@example.com" }, abortController.signal)
 
       expect(mockClient.searchCustomers).toHaveBeenCalledWith(
         "test@example.com",
@@ -179,17 +167,19 @@ describe("DwollaService", () => {
       removed: false,
       channels: ["ach"],
       bankName: "Test Bank",
-      fingerprint: "abc123"
+      fingerprint: "abc123",
     }
 
     it("should get funding sources with masked account numbers", async () => {
       mockClient.getFundingSources.mockResolvedValueOnce({
         _embedded: {
-          "funding-sources": [{
-            ...mockFundingSource,
-            name: "Test Bank Account - 1234"
-          }]
-        }
+          "funding-sources": [
+            {
+              ...mockFundingSource,
+              name: "Test Bank Account - 1234",
+            },
+          ],
+        },
       })
 
       const result = await service.getFundingSources("dwolla-123")
@@ -198,18 +188,20 @@ describe("DwollaService", () => {
       expect(result[0]).toEqual({
         ...mockFundingSource,
         name: "Test Bank Account - 1234",
-        accountNumber: "****1234" // Masked account number
+        accountNumber: "****1234", // Masked account number
       })
     })
 
     it("should handle funding sources without account numbers", async () => {
       mockClient.getFundingSources.mockResolvedValueOnce({
         _embedded: {
-          "funding-sources": [{
-            ...mockFundingSource,
-            name: "Balance"
-          }]
-        }
+          "funding-sources": [
+            {
+              ...mockFundingSource,
+              name: "Balance",
+            },
+          ],
+        },
       })
 
       const result = await service.getFundingSources("dwolla-123")
@@ -219,7 +211,7 @@ describe("DwollaService", () => {
 
     it("should handle empty funding sources", async () => {
       mockClient.getFundingSources.mockResolvedValueOnce({
-        _embedded: { "funding-sources": [] }
+        _embedded: { "funding-sources": [] },
       })
 
       const result = await service.getFundingSources("dwolla-123")
@@ -242,62 +234,54 @@ describe("DwollaService", () => {
       status: "processed",
       amount: {
         value: "100.00",
-        currency: "USD"
+        currency: "USD",
       },
       created: "2024-01-15T10:00:00Z",
       source: {
         type: "funding-source",
-        id: "fs-source-123"
+        id: "fs-source-123",
       },
       destination: {
-        type: "funding-source", 
-        id: "fs-dest-123"
+        type: "funding-source",
+        id: "fs-dest-123",
       },
       sourceAccount: "Test Source Account",
       destinationAccount: "Test Destination Account",
       clearing: {
         source: "standard",
-        destination: "next-available"
+        destination: "next-available",
       },
-      correlationId: "order-123"
+      correlationId: "order-123",
     }
 
     it("should get transfers with formatted data", async () => {
       mockClient.getTransfers.mockResolvedValueOnce({
         _embedded: { transfers: [mockTransfer] },
-        total: 1
+        total: 1,
       })
 
       const result = await service.getTransfers("dwolla-123", 10)
 
       expect(result).toHaveLength(1)
       expect(result[0]).toEqual(mockTransfer)
-      expect(mockClient.getTransfers).toHaveBeenCalledWith(
-        "dwolla-123",
-        10,
-        undefined
-      )
+      expect(mockClient.getTransfers).toHaveBeenCalledWith("dwolla-123", 10, undefined)
     })
 
     it("should use default limit of 25", async () => {
       mockClient.getTransfers.mockResolvedValueOnce({
         _embedded: { transfers: [] },
-        total: 0
+        total: 0,
       })
 
       await service.getTransfers("dwolla-123")
 
-      expect(mockClient.getTransfers).toHaveBeenCalledWith(
-        "dwolla-123",
-        25,
-        undefined
-      )
+      expect(mockClient.getTransfers).toHaveBeenCalledWith("dwolla-123", 25, undefined)
     })
 
     it("should handle empty transfers", async () => {
       mockClient.getTransfers.mockResolvedValueOnce({
         _embedded: { transfers: [] },
-        total: 0
+        total: 0,
       })
 
       const result = await service.getTransfers("dwolla-123")
@@ -324,12 +308,8 @@ describe("DwollaService", () => {
 
   describe("error handling", () => {
     it("should handle OAuth token refresh errors", async () => {
-      mockAuth.getAccessToken.mockRejectedValueOnce(
-        new Error("Token refresh failed")
-      )
-      mockClient.searchCustomers.mockRejectedValueOnce(
-        new Error("Unauthorized")
-      )
+      mockAuth.getAccessToken.mockRejectedValueOnce(new Error("Token refresh failed"))
+      mockClient.searchCustomers.mockRejectedValueOnce(new Error("Unauthorized"))
 
       const result = await service.searchCustomer({ email: "test@example.com" })
 
@@ -339,11 +319,11 @@ describe("DwollaService", () => {
 
     it("should handle rate limit errors", async () => {
       const rateLimitError = new Error("Rate limit exceeded")
-      ;(rateLimitError as any).response = { 
+      ;(rateLimitError as any).response = {
         status: 429,
-        headers: { 'x-rate-limit-reset': '1234567890' }
+        headers: { "x-rate-limit-reset": "1234567890" },
       }
-      
+
       mockClient.searchCustomers.mockRejectedValueOnce(rateLimitError)
 
       const result = await service.searchCustomer({ email: "test@example.com" })
@@ -354,7 +334,7 @@ describe("DwollaService", () => {
     it("should handle network timeouts", async () => {
       const timeoutError = new Error("Request timeout")
       ;(timeoutError as any).code = "ECONNABORTED"
-      
+
       mockClient.searchCustomers.mockRejectedValueOnce(timeoutError)
 
       const result = await service.searchCustomer({ email: "test@example.com" })
@@ -367,12 +347,12 @@ describe("DwollaService", () => {
     it("should mask SSN in customer data", async () => {
       const customerWithSSN = {
         ...mockCustomer,
-        ssn: "123-45-6789"
+        ssn: "123-45-6789",
       }
 
       mockClient.searchCustomers.mockResolvedValueOnce({
         _embedded: { customers: [customerWithSSN] },
-        total: 1
+        total: 1,
       })
 
       const result = await service.searchCustomer({ email: "test@example.com" })
@@ -384,13 +364,15 @@ describe("DwollaService", () => {
     it("should extract last 4 digits from bank name", async () => {
       mockClient.getFundingSources.mockResolvedValueOnce({
         _embedded: {
-          "funding-sources": [{
-            id: "fs-123",
-            name: "Chase Checking - 9876",
-            type: "bank",
-            status: "verified"
-          }]
-        }
+          "funding-sources": [
+            {
+              id: "fs-123",
+              name: "Chase Checking - 9876",
+              type: "bank",
+              status: "verified",
+            },
+          ],
+        },
       })
 
       const result = await service.getFundingSources("dwolla-123")

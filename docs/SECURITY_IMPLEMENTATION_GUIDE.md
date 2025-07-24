@@ -3,6 +3,7 @@
 ## Quick Start Security Checklist
 
 Before implementing any feature, ensure you:
+
 - [ ] Understand the security requirements
 - [ ] Review existing security patterns in the codebase
 - [ ] Plan for input validation and output encoding
@@ -16,26 +17,26 @@ Before implementing any feature, ensure you:
 
 ```typescript
 // Always use the withAuth middleware for protected routes
-import { withAuth } from '@/lib/auth/middleware'
-import { auditLog } from '@/lib/security/audit'
+import { withAuth } from "@/lib/auth/middleware"
+import { auditLog } from "@/lib/security/audit"
 
 export const GET = withAuth(
   async (request, { user }) => {
     // Log the access
     await auditLog({
       userId: user.id,
-      action: 'VIEW_SENSITIVE_DATA',
-      resource: 'customer',
+      action: "VIEW_SENSITIVE_DATA",
+      resource: "customer",
       resourceId: customerId,
-      metadata: { reason: 'support_request' }
+      metadata: { reason: "support_request" },
     })
 
     // Your logic here
     return Response.json(data)
   },
-  { 
-    requiredRole: 'SUPPORT',
-    requireMFA: true // For sensitive operations
+  {
+    requiredRole: "SUPPORT",
+    requireMFA: true, // For sensitive operations
   }
 )
 ```
@@ -43,24 +44,27 @@ export const GET = withAuth(
 ### 2. Input Validation
 
 ```typescript
-import { z } from 'zod'
+import { z } from "zod"
 
 // Define your schema
 const searchSchema = z.object({
   email: z.string().email().optional(),
   name: z.string().min(2).max(100).optional(),
-  dwollaId: z.string().regex(/^[a-f0-9-]{36}$/).optional(),
+  dwollaId: z
+    .string()
+    .regex(/^[a-f0-9-]{36}$/)
+    .optional(),
 })
 
 // Validate input
 export async function POST(request: Request) {
   const body = await request.json()
-  
+
   // Validate with Zod
   const validation = searchSchema.safeParse(body)
   if (!validation.success) {
     return Response.json(
-      { error: 'Invalid input' }, // Generic error message
+      { error: "Invalid input" }, // Generic error message
       { status: 400 }
     )
   }
@@ -73,13 +77,13 @@ export async function POST(request: Request) {
 ### 3. Rate Limiting
 
 ```typescript
-import { createEndpointRateLimiter } from '@/lib/security/middleware/rate-limit-middleware'
+import { createEndpointRateLimiter } from "@/lib/security/middleware/rate-limit-middleware"
 
 // Create custom rate limiter
 const searchLimiter = createEndpointRateLimiter({
   windowMs: 60 * 1000, // 1 minute
   max: 10, // 10 requests per minute
-  message: 'Too many search requests'
+  message: "Too many search requests",
 })
 
 export async function POST(request: NextRequest) {
@@ -95,17 +99,17 @@ export async function POST(request: NextRequest) {
 
 ```typescript
 // Client-side: Using the CSRF hook
-import { useCSRFToken } from '@/lib/hooks/use-csrf-token'
+import { useCSRFToken } from "@/lib/hooks/use-csrf-token"
 
 function MyComponent() {
   const { token, fetchWithCSRF } = useCSRFToken()
 
   const handleSubmit = async (data: any) => {
-    const response = await fetchWithCSRF('/api/sensitive-action', {
-      method: 'POST',
+    const response = await fetchWithCSRF("/api/sensitive-action", {
+      method: "POST",
       body: JSON.stringify(data),
     })
-    
+
     if (!response.ok) {
       // Handle error
     }
@@ -129,12 +133,12 @@ interface CustomerResponse {
 
 // Mask sensitive data
 function maskAccountNumber(accountNumber: string): string {
-  if (!accountNumber || accountNumber.length < 4) return '****'
+  if (!accountNumber || accountNumber.length < 4) return "****"
   return `****${accountNumber.slice(-4)}`
 }
 
 // Sanitize before storage
-import { sanitizeHtml } from '@/lib/security/sanitization'
+import { sanitizeHtml } from "@/lib/security/sanitization"
 
 const sanitizedInput = sanitizeHtml(userInput)
 ```
@@ -143,28 +147,22 @@ const sanitizedInput = sanitizeHtml(userInput)
 
 ```typescript
 // Check for session anomalies
-import { SessionManagement } from '@/lib/security/session-management'
+import { SessionManagement } from "@/lib/security/session-management"
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession()
-  
+
   // Detect anomalies
-  const anomalies = await SessionManagement.detectSessionAnomalies(
-    session.user.id,
-    {
-      fingerprint: request.headers.get('x-device-fingerprint'),
-      ipAddress: request.ip,
-      userAgent: request.headers.get('user-agent'),
-      lastActive: new Date()
-    }
-  )
+  const anomalies = await SessionManagement.detectSessionAnomalies(session.user.id, {
+    fingerprint: request.headers.get("x-device-fingerprint"),
+    ipAddress: request.ip,
+    userAgent: request.headers.get("user-agent"),
+    lastActive: new Date(),
+  })
 
   // Handle high-severity anomalies
-  if (anomalies.some(a => a.severity === 'high')) {
-    return Response.json(
-      { error: 'Session verification required' },
-      { status: 403 }
-    )
+  if (anomalies.some((a) => a.severity === "high")) {
+    return Response.json({ error: "Session verification required" }, { status: 403 })
   }
 }
 ```
@@ -228,9 +226,9 @@ export const POST = withAuth(
     // Sensitive operation logic
   },
   {
-    requiredRole: 'ADMIN',
+    requiredRole: "ADMIN",
     requireMFA: true,
-    requireFreshAuth: true // Within last 15 minutes
+    requireFreshAuth: true, // Within last 15 minutes
   }
 )
 ```
@@ -241,9 +239,9 @@ export const POST = withAuth(
 // Check if user needs MFA
 if (user.mfaEnabled && !session.mfaVerified) {
   return Response.json(
-    { 
-      error: 'MFA_REQUIRED',
-      mfaToken: generateMFAToken(session.id)
+    {
+      error: "MFA_REQUIRED",
+      mfaToken: generateMFAToken(session.id),
     },
     { status: 403 }
   )
@@ -258,28 +256,28 @@ if (user.mfaEnabled && !session.mfaVerified) {
 // Always log these events
 await auditLog({
   userId: user.id,
-  action: 'EXPORT_CUSTOMER_DATA',
-  resource: 'customer',
+  action: "EXPORT_CUSTOMER_DATA",
+  resource: "customer",
   resourceId: customerId,
   metadata: {
-    exportFormat: 'pdf',
+    exportFormat: "pdf",
     recordCount: 150,
-    includePaymentData: true
+    includePaymentData: true,
   },
   ipAddress: request.ip,
-  userAgent: request.headers.get('user-agent')
+  userAgent: request.headers.get("user-agent"),
 })
 ```
 
 ### Audit Log Categories
 
-| Action | When to Log |
-|--------|-------------|
-| AUTH_* | All authentication events |
-| ACCESS_* | Data access (view, search, export) |
-| MODIFY_* | Data changes (create, update, delete) |
-| ADMIN_* | Administrative actions |
-| SECURITY_* | Security events (lockouts, MFA) |
+| Action       | When to Log                           |
+| ------------ | ------------------------------------- |
+| AUTH\_\*     | All authentication events             |
+| ACCESS\_\*   | Data access (view, search, export)    |
+| MODIFY\_\*   | Data changes (create, update, delete) |
+| ADMIN\_\*    | Administrative actions                |
+| SECURITY\_\* | Security events (lockouts, MFA)       |
 
 ## Error Handling
 
@@ -289,25 +287,19 @@ await auditLog({
 // Development vs Production errors
 function handleError(error: unknown, isDevelopment: boolean) {
   // Log full error internally
-  logger.error('API Error', {
-    error: error instanceof Error ? error.message : 'Unknown error',
+  logger.error("API Error", {
+    error: error instanceof Error ? error.message : "Unknown error",
     stack: error instanceof Error ? error.stack : undefined,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   })
 
   // Return safe error to client
   if (isDevelopment && error instanceof Error) {
-    return Response.json(
-      { error: error.message },
-      { status: 500 }
-    )
+    return Response.json({ error: error.message }, { status: 500 })
   }
 
   // Production: Generic messages
-  return Response.json(
-    { error: 'An error occurred' },
-    { status: 500 }
-  )
+  return Response.json({ error: "An error occurred" }, { status: 500 })
 }
 ```
 
@@ -316,29 +308,29 @@ function handleError(error: unknown, isDevelopment: boolean) {
 ### Unit Tests
 
 ```typescript
-describe('API Security', () => {
-  it('should reject requests without authentication', async () => {
-    const response = await fetch('/api/protected')
+describe("API Security", () => {
+  it("should reject requests without authentication", async () => {
+    const response = await fetch("/api/protected")
     expect(response.status).toBe(401)
   })
 
-  it('should enforce rate limiting', async () => {
+  it("should enforce rate limiting", async () => {
     // Make requests up to limit
     for (let i = 0; i < 10; i++) {
-      await fetch('/api/search', { method: 'POST' })
+      await fetch("/api/search", { method: "POST" })
     }
-    
+
     // 11th request should be rate limited
-    const response = await fetch('/api/search', { method: 'POST' })
+    const response = await fetch("/api/search", { method: "POST" })
     expect(response.status).toBe(429)
   })
 
-  it('should validate CSRF tokens', async () => {
-    const response = await fetch('/api/sensitive', {
-      method: 'POST',
+  it("should validate CSRF tokens", async () => {
+    const response = await fetch("/api/sensitive", {
+      method: "POST",
       headers: {
-        'X-CSRF-Token': 'invalid-token'
-      }
+        "X-CSRF-Token": "invalid-token",
+      },
     })
     expect(response.status).toBe(403)
   })
@@ -348,19 +340,19 @@ describe('API Security', () => {
 ### Integration Tests
 
 ```typescript
-describe('MFA Flow', () => {
-  it('should require MFA for sensitive operations', async () => {
+describe("MFA Flow", () => {
+  it("should require MFA for sensitive operations", async () => {
     // Login
     const session = await login(testUser)
-    
+
     // Try sensitive operation
-    const response = await fetch('/api/admin/users', {
-      headers: { Authorization: `Bearer ${session.token}` }
+    const response = await fetch("/api/admin/users", {
+      headers: { Authorization: `Bearer ${session.token}` },
     })
-    
+
     expect(response.status).toBe(403)
     expect(response.json()).toMatchObject({
-      error: 'MFA_REQUIRED'
+      error: "MFA_REQUIRED",
     })
   })
 })
@@ -376,16 +368,16 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next()
 
   // Security headers
-  response.headers.set('X-Frame-Options', 'DENY')
-  response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('X-XSS-Protection', '1; mode=block')
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  
+  response.headers.set("X-Frame-Options", "DENY")
+  response.headers.set("X-Content-Type-Options", "nosniff")
+  response.headers.set("X-XSS-Protection", "1; mode=block")
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+
   // HSTS for production
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     response.headers.set(
-      'Strict-Transport-Security',
-      'max-age=31536000; includeSubDomains; preload'
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains; preload"
     )
   }
 
@@ -402,7 +394,7 @@ Always verify authentication at the start of protected functions:
 ```typescript
 const session = await getServerSession()
 if (!session?.user) {
-  return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  return Response.json({ error: "Unauthorized" }, { status: 401 })
 }
 ```
 
@@ -414,11 +406,11 @@ Verify user permissions for the requested action:
 if (!canUserAccessResource(user, resource)) {
   await auditLog({
     userId: user.id,
-    action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+    action: "UNAUTHORIZED_ACCESS_ATTEMPT",
     resource: resource.type,
-    resourceId: resource.id
+    resourceId: resource.id,
   })
-  return Response.json({ error: 'Forbidden' }, { status: 403 })
+  return Response.json({ error: "Forbidden" }, { status: 403 })
 }
 ```
 
@@ -431,15 +423,12 @@ Validate all input data:
 const schema = z.object({
   email: z.string().email(),
   amount: z.number().positive().max(10000),
-  notes: z.string().max(500).optional()
+  notes: z.string().max(500).optional(),
 })
 
 const result = schema.safeParse(input)
 if (!result.success) {
-  return Response.json(
-    { error: 'Invalid input', fields: result.error.flatten() },
-    { status: 400 }
-  )
+  return Response.json({ error: "Invalid input", fields: result.error.flatten() }, { status: 400 })
 }
 ```
 

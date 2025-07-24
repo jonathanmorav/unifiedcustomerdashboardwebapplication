@@ -60,9 +60,7 @@ describe("UnifiedSearchBar", () => {
     })
 
     it("applies custom className", () => {
-      const { container } = render(
-        <UnifiedSearchBar {...defaultProps} className="custom-class" />
-      )
+      const { container } = render(<UnifiedSearchBar {...defaultProps} className="custom-class" />)
       expect(container.firstChild).toHaveClass("custom-class")
     })
   })
@@ -74,7 +72,7 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "test search")
       expect(input).toHaveValue("test search")
     })
@@ -85,10 +83,10 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "test search")
       await user.keyboard("{Enter}")
-      
+
       expect(mockOnSearch).toHaveBeenCalledWith("test search", "all")
       expect(mockOnSearch).toHaveBeenCalledTimes(1)
     })
@@ -100,10 +98,10 @@ describe("UnifiedSearchBar", () => {
         "Search by email, name, business name, or Dwolla ID..."
       )
       const button = screen.getByRole("button", { name: /search/i })
-      
+
       await user.type(input, "test search")
       await user.click(button)
-      
+
       expect(mockOnSearch).toHaveBeenCalledWith("test search", "all")
     })
 
@@ -113,10 +111,10 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "  test search  ")
       await user.keyboard("{Enter}")
-      
+
       expect(mockOnSearch).toHaveBeenCalledWith("test search", "all")
     })
 
@@ -126,10 +124,10 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "   ")
       await user.keyboard("{Enter}")
-      
+
       expect(mockOnSearch).not.toHaveBeenCalled()
     })
 
@@ -139,9 +137,9 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       expect(screen.queryByRole("button", { name: "" })).not.toBeInTheDocument()
-      
+
       await user.type(input, "test")
       const clearButton = screen.getAllByRole("button")[0]
       expect(clearButton).toBeInTheDocument()
@@ -153,13 +151,13 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       ) as HTMLInputElement
-      
+
       await user.type(input, "test search")
       expect(input.value).toBe("test search")
-      
+
       const clearButton = screen.getAllByRole("button")[0]
       await user.click(clearButton)
-      
+
       expect(input.value).toBe("")
     })
   })
@@ -171,9 +169,9 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "acme")
-      
+
       await waitFor(() => {
         mockSearchSuggestions.forEach((suggestion) => {
           expect(screen.getByText(suggestion)).toBeInTheDocument()
@@ -187,14 +185,14 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "acme")
       await waitFor(() => {
         expect(screen.getByText(mockSearchSuggestions[0])).toBeInTheDocument()
       })
-      
+
       await user.clear(input)
-      
+
       await waitFor(() => {
         mockSearchSuggestions.forEach((suggestion) => {
           expect(screen.queryByText(suggestion)).not.toBeInTheDocument()
@@ -208,14 +206,14 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "acme")
       await waitFor(() => {
         expect(screen.getByText(mockSearchSuggestions[0])).toBeInTheDocument()
       })
-      
+
       await user.click(screen.getByText(mockSearchSuggestions[0]))
-      
+
       expect(mockOnSearch).toHaveBeenCalledWith(mockSearchSuggestions[0], "all")
     })
 
@@ -225,20 +223,23 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "acme")
       await waitFor(() => {
         expect(screen.getByText(mockSearchSuggestions[0])).toBeInTheDocument()
       })
-      
+
       // Click outside to blur
       await user.click(document.body)
-      
-      await waitFor(() => {
-        mockSearchSuggestions.forEach((suggestion) => {
-          expect(screen.queryByText(suggestion)).not.toBeInTheDocument()
-        })
-      }, { timeout: 500 })
+
+      await waitFor(
+        () => {
+          mockSearchSuggestions.forEach((suggestion) => {
+            expect(screen.queryByText(suggestion)).not.toBeInTheDocument()
+          })
+        },
+        { timeout: 500 }
+      )
     })
   })
 
@@ -269,7 +270,7 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "test")
       const clearButton = screen.getAllByRole("button")[0]
       expect(clearButton).toHaveAttribute("type", "button")
@@ -283,14 +284,14 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "test")
       await user.clear(input)
       await user.type(input, "another")
       await user.clear(input)
       await user.type(input, "final")
       await user.keyboard("{Enter}")
-      
+
       expect(mockOnSearch).toHaveBeenCalledWith("final", "all")
       expect(mockOnSearch).toHaveBeenCalledTimes(1)
     })
@@ -301,28 +302,26 @@ describe("UnifiedSearchBar", () => {
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "test@example.com")
       await user.keyboard("{Enter}")
-      
+
       expect(mockOnSearch).toHaveBeenCalledWith("test@example.com", "all")
     })
 
     it("maintains search type across searches", async () => {
       const user = userEvent.setup()
-      const { rerender } = render(
-        <UnifiedSearchBar {...defaultProps} searchType="hubspot" />
-      )
+      const { rerender } = render(<UnifiedSearchBar {...defaultProps} searchType="hubspot" />)
       const input = screen.getByPlaceholderText(
         "Search by email, name, business name, or Dwolla ID..."
       )
-      
+
       await user.type(input, "first search")
       await user.keyboard("{Enter}")
       expect(mockOnSearch).toHaveBeenCalledWith("first search", "hubspot")
-      
+
       rerender(<UnifiedSearchBar {...defaultProps} searchType="dwolla" />)
-      
+
       await user.clear(input)
       await user.type(input, "second search")
       await user.keyboard("{Enter}")

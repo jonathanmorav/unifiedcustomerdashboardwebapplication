@@ -64,28 +64,28 @@ This document outlines the security measures implemented in the Unified Customer
 
 ### User Roles (RBAC)
 
-| Role | Permissions | Use Case |
-|------|-------------|----------|
-| ADMIN | Full system access, user management | System administrators |
-| SUPPORT | View/search customer data, export reports | Support team members |
-| TECHNICAL_SUPPORT | Extended data access, debug tools | Technical support staff |
-| USER | Basic read-only access | General users |
+| Role              | Permissions                               | Use Case                |
+| ----------------- | ----------------------------------------- | ----------------------- |
+| ADMIN             | Full system access, user management       | System administrators   |
+| SUPPORT           | View/search customer data, export reports | Support team members    |
+| TECHNICAL_SUPPORT | Extended data access, debug tools         | Technical support staff |
+| USER              | Basic read-only access                    | General users           |
 
 ### Implementation
 
 ```typescript
 // Protecting API routes
-import { withAuth } from '@/lib/auth/middleware'
+import { withAuth } from "@/lib/auth/middleware"
 
 export const GET = withAuth(
   async (request, { user }) => {
     // User is authenticated and authorized
-    if (user.role !== 'ADMIN') {
-      return new Response('Forbidden', { status: 403 })
+    if (user.role !== "ADMIN") {
+      return new Response("Forbidden", { status: 403 })
     }
     // Handle request
   },
-  { requiredRole: 'ADMIN' }
+  { requiredRole: "ADMIN" }
 )
 ```
 
@@ -110,12 +110,14 @@ sequenceDiagram
 ### API Signature Validation
 
 Required headers for API requests:
+
 - `X-API-Key`: Client API key
 - `X-Request-Signature`: HMAC-SHA256 signature
 - `X-Timestamp`: Request timestamp (±5 minutes)
 - `X-Body-Hash`: SHA256 hash of request body
 
 Signature format:
+
 ```
 HMAC-SHA256(apiKey, "METHOD:PATH:TIMESTAMP:BODY_HASH")
 ```
@@ -130,12 +132,12 @@ HMAC-SHA256(apiKey, "METHOD:PATH:TIMESTAMP:BODY_HASH")
 
 ### Configuration
 
-| Endpoint | Limit | Window | Burst Allowed |
-|----------|-------|---------|---------------|
-| Global | 60 req/min | 1 minute | Yes (150%) |
-| Authentication | 5 attempts | 15 minutes | No |
-| API | 100 req/min | 1 minute | Yes |
-| Search | 30 req/min | 1 minute | Yes |
+| Endpoint       | Limit       | Window     | Burst Allowed |
+| -------------- | ----------- | ---------- | ------------- |
+| Global         | 60 req/min  | 1 minute   | Yes (150%)    |
+| Authentication | 5 attempts  | 15 minutes | No            |
+| API            | 100 req/min | 1 minute   | Yes           |
+| Search         | 30 req/min  | 1 minute   | Yes           |
 
 ### Burst Handling
 
@@ -173,16 +175,22 @@ Retry-After: 30 (on 429 responses)
 
 ```typescript
 // 1. Generate MFA setup
-POST /api/auth/mfa/setup
-Response: { qrCode, backupCodes, warning }
+POST / api / auth / mfa / setup
+Response: {
+  ;(qrCode, backupCodes, warning)
+}
 
 // 2. Enable MFA
-POST /api/auth/mfa/enable
-Body: { code: "123456" }
+POST / api / auth / mfa / enable
+Body: {
+  code: "123456"
+}
 
 // 3. Verify during login
-POST /api/auth/mfa/verify
-Body: { code: "123456", sessionToken }
+POST / api / auth / mfa / verify
+Body: {
+  code: ("123456", sessionToken)
+}
 ```
 
 ### Backup Code Security
@@ -198,7 +206,7 @@ Body: { code: "123456", sessionToken }
 
 1. **Concurrent Session Limit**: 3 active sessions per user
 2. **Device Fingerprinting**: Track device characteristics
-3. **Anomaly Detection**: 
+3. **Anomaly Detection**:
    - New device detection
    - New location alerts
    - Impossible travel detection
@@ -206,12 +214,12 @@ Body: { code: "123456", sessionToken }
 
 ### Anomaly Severity Levels
 
-| Anomaly | Severity | Action |
-|---------|----------|---------|
-| New IP Address | Low | Log only |
-| New Device | Medium | Email notification |
-| Impossible Travel | High | Require MFA re-verification |
-| Session Hijacking | Critical | Immediate revocation |
+| Anomaly           | Severity | Action                      |
+| ----------------- | -------- | --------------------------- |
+| New IP Address    | Low      | Log only                    |
+| New Device        | Medium   | Email notification          |
+| Impossible Travel | High     | Require MFA re-verification |
+| Session Hijacking | Critical | Immediate revocation        |
 
 ### Session API
 
@@ -246,6 +254,7 @@ DELETE /api/auth/sessions/all
 ### Login Tracking
 
 All login attempts are tracked with:
+
 - Timestamp
 - IP address
 - User agent
@@ -374,12 +383,12 @@ base-uri 'self';
 
 ### Incident Classification
 
-| Level | Description | Response Time | Example |
-|-------|-------------|---------------|---------|
-| P1 | Critical security breach | < 15 minutes | Data breach, system compromise |
-| P2 | High security risk | < 1 hour | Suspicious activity, failed auth spike |
-| P3 | Medium security concern | < 4 hours | Policy violation, unusual patterns |
-| P4 | Low security issue | < 24 hours | Configuration drift, minor anomaly |
+| Level | Description              | Response Time | Example                                |
+| ----- | ------------------------ | ------------- | -------------------------------------- |
+| P1    | Critical security breach | < 15 minutes  | Data breach, system compromise         |
+| P2    | High security risk       | < 1 hour      | Suspicious activity, failed auth spike |
+| P3    | Medium security concern  | < 4 hours     | Policy violation, unusual patterns     |
+| P4    | Low security issue       | < 24 hours    | Configuration drift, minor anomaly     |
 
 ### Response Procedures
 
@@ -435,12 +444,12 @@ base-uri 'self';
 
 ### Alerting Thresholds
 
-| Metric | Warning | Critical |
-|--------|---------|----------|
-| Failed Logins | 10/hour | 50/hour |
-| API Errors | 5% | 10% |
-| Response Time | 3s | 5s |
-| Concurrent Sessions | 100 | 200 |
+| Metric              | Warning | Critical |
+| ------------------- | ------- | -------- |
+| Failed Logins       | 10/hour | 50/hour  |
+| API Errors          | 5%      | 10%      |
+| Response Time       | 3s      | 5s       |
+| Concurrent Sessions | 100     | 200      |
 
 ### Security Dashboards
 

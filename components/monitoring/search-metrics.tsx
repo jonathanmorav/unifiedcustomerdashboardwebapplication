@@ -22,11 +22,11 @@ export function SearchMetrics({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "healthy":
-        return <CheckCircleIcon className="text-cakewalk-success h-4 w-4" />
+        return <CheckCircleIcon className="h-4 w-4 text-cakewalk-success" />
       case "degraded":
-        return <AlertCircleIcon className="text-cakewalk-warning h-4 w-4" />
+        return <AlertCircleIcon className="h-4 w-4 text-cakewalk-warning" />
       case "error":
-        return <AlertCircleIcon className="text-cakewalk-error h-4 w-4" />
+        return <AlertCircleIcon className="h-4 w-4 text-cakewalk-error" />
       default:
         return null
     }
@@ -38,18 +38,18 @@ export function SearchMetrics({
         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
           {/* Response Time */}
           <div className="flex items-center gap-2">
-            <ClockIcon className="text-cakewalk-text-secondary h-4 w-4" />
+            <ClockIcon className="h-4 w-4 text-cakewalk-text-secondary" />
             <div>
-              <p className="text-cakewalk-text-secondary text-xs">Response</p>
+              <p className="text-xs text-cakewalk-text-secondary">Response</p>
               <p className="text-sm font-medium">{responseTime ? `${responseTime}ms` : "—"}</p>
             </div>
           </div>
 
           {/* HubSpot Status */}
           <div className="flex items-center gap-2">
-            <ActivityIcon className="text-cakewalk-text-secondary h-4 w-4" />
+            <ActivityIcon className="h-4 w-4 text-cakewalk-text-secondary" />
             <div>
-              <p className="text-cakewalk-text-secondary text-xs">HubSpot</p>
+              <p className="text-xs text-cakewalk-text-secondary">HubSpot</p>
               <div className="flex items-center gap-1">
                 {getStatusIcon(hubspotStatus)}
                 <span className="text-sm font-medium capitalize">{hubspotStatus}</span>
@@ -59,9 +59,9 @@ export function SearchMetrics({
 
           {/* Dwolla Status */}
           <div className="flex items-center gap-2">
-            <ActivityIcon className="text-cakewalk-text-secondary h-4 w-4" />
+            <ActivityIcon className="h-4 w-4 text-cakewalk-text-secondary" />
             <div>
-              <p className="text-cakewalk-text-secondary text-xs">Dwolla</p>
+              <p className="text-xs text-cakewalk-text-secondary">Dwolla</p>
               <div className="flex items-center gap-1">
                 {getStatusIcon(dwollaStatus)}
                 <span className="text-sm font-medium capitalize">{dwollaStatus}</span>
@@ -71,9 +71,9 @@ export function SearchMetrics({
 
           {/* Error Rate */}
           <div className="flex items-center gap-2">
-            <AlertCircleIcon className="text-cakewalk-text-secondary h-4 w-4" />
+            <AlertCircleIcon className="h-4 w-4 text-cakewalk-text-secondary" />
             <div>
-              <p className="text-cakewalk-text-secondary text-xs">Error Rate</p>
+              <p className="text-xs text-cakewalk-text-secondary">Error Rate</p>
               <p className={`text-sm font-medium ${errorRate > 5 ? "text-cakewalk-error" : ""}`}>
                 {errorRate.toFixed(1)}%
               </p>
@@ -82,9 +82,9 @@ export function SearchMetrics({
 
           {/* Rate Limit Status */}
           <div className="flex items-center gap-2">
-            <ZapIcon className="text-cakewalk-text-secondary h-4 w-4" />
+            <ZapIcon className="h-4 w-4 text-cakewalk-text-secondary" />
             <div>
-              <p className="text-cakewalk-text-secondary text-xs">Rate Limit</p>
+              <p className="text-xs text-cakewalk-text-secondary">Rate Limit</p>
               {isRateLimited ? (
                 <Badge variant="destructive" className="text-xs">
                   Limited

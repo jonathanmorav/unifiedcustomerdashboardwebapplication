@@ -216,7 +216,7 @@ model ListMetadata {
 model ACHTransaction {
   id                String    @id @default(cuid())
   dwollaId          String    @unique
-  status            String    // pending, processing, completed, failed, cancelled, returned
+  status            String    // pending, processing, processed, failed, cancelled, returned
   amount            Decimal   @db.Decimal(15,2)
   currency          String    @default("USD")
   direction         String    // credit or debit
@@ -260,6 +260,11 @@ model ACHTransaction {
   failureCode       String?
   returnCode        String?
   
+  // Webhook tracking
+  failureDetails    Json?     @default("{}")
+  webhookEvents     Json?     @default("[]")
+  lastWebhookAt     DateTime?
+  
   // Metadata
   metadata          Json?
   
@@ -275,4 +280,7 @@ model ACHTransaction {
   @@index([companyName])
   @@index([direction])
   @@index([amount])
+  @@index([failureCode])
+  @@index([returnCode])
+  @@index([lastWebhookAt])
 }

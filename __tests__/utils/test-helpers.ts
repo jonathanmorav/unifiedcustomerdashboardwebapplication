@@ -3,6 +3,7 @@ import React, { ReactElement } from "react"
 import { ThemeProvider } from "next-themes"
 import { SessionProvider } from "next-auth/react"
 import { Session } from "next-auth"
+import axe from "@axe-core/react"
 
 // Mock session for testing
 export const mockSession: Session = {
@@ -22,11 +23,13 @@ interface AllProvidersProps {
 }
 
 function AllProviders({ children, session = mockSession }: AllProvidersProps) {
-  return (
-    React.createElement(SessionProvider, { session },
-      React.createElement(ThemeProvider, { attribute: "class", defaultTheme: "light", enableSystem: false },
-        children
-      )
+  return React.createElement(
+    SessionProvider,
+    { session },
+    React.createElement(
+      ThemeProvider,
+      { attribute: "class", defaultTheme: "light", enableSystem: false },
+      children
     )
   )
 }
@@ -117,7 +120,6 @@ export function generateTestData(count: number, template: any) {
 
 // Assert accessibility
 export async function assertAccessibility(container: HTMLElement) {
-  const axe = require("@axe-core/react")
   const results = await axe(container)
   expect(results).toHaveNoViolations()
 }

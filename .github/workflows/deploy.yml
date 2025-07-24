@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Deployment environment'
+        description: "Deployment environment"
         required: true
         type: choice
         options:
@@ -15,7 +15,7 @@ on:
         default: staging
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: "20"
   DOCKER_REGISTRY: ghcr.io
   NEXT_TELEMETRY_DISABLED: 1
 
@@ -82,7 +82,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Vercel CLI
         run: npm i -g vercel
@@ -117,7 +117,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Vercel CLI
         run: npm i -g vercel
@@ -151,7 +151,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: |
@@ -276,7 +276,7 @@ jobs:
             text="Production deployment failed"
             color="danger"
           fi
-          
+
           if [ -n "$SLACK_WEBHOOK" ]; then
             curl -X POST $SLACK_WEBHOOK \
               -H 'Content-Type: application/json' \

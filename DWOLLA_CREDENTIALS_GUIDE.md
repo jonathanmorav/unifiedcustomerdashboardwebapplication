@@ -1,15 +1,18 @@
 # Dwolla Credentials Guide
 
 ## Current Issue
+
 Your application expects **OAuth 2.0 Client Credentials** but you're seeing **API Keys** or **Webhook Keys**.
 
 ## What You Need vs What You Have
 
 ### ✅ What Your Application Needs:
+
 - **DWOLLA_KEY** - OAuth 2.0 Application Key
 - **DWOLLA_SECRET** - OAuth 2.0 Application Secret
 
 ### ✅ What Dwolla Provides:
+
 - **Key** - This IS the correct credential (not "Client ID")
 - **Secret** - This IS the correct credential (not "Client Secret")
 
@@ -18,9 +21,11 @@ Your application expects **OAuth 2.0 Client Credentials** but you're seeing **AP
 ### Step 1: Access Dwolla Developer Portal
 
 **For Sandbox (Testing):**
+
 - Go to: https://accounts-sandbox.dwolla.com/applications
 
 **For Production:**
+
 - Go to: https://accounts.dwolla.com/applications
 
 ### Step 2: Create or Access Your Application
@@ -57,16 +62,19 @@ DWOLLA_BASE_URL="https://api-sandbox.dwolla.com"  # or "https://api.dwolla.com"
 ## Different Types of Dwolla Credentials
 
 ### 1. OAuth 2.0 Client Credentials (What You Need)
+
 - Used for server-to-server authentication
 - Provides access to Dwolla API endpoints
 - Used by your application to make API calls
 
 ### 2. API Keys (What You Might Have)
+
 - Used for webhook authentication
 - Used to verify webhook signatures
 - Different from OAuth credentials
 
 ### 3. Webhook Keys
+
 - Used specifically for webhook endpoints
 - Used to verify webhook authenticity
 
@@ -119,6 +127,7 @@ npm run dev
 ## Support
 
 If you continue to have issues:
+
 1. Check Dwolla's official documentation: https://developers.dwolla.com/
 2. Contact Dwolla support for application configuration help
-3. Verify your Dwolla account has the necessary permissions 
+3. Verify your Dwolla account has the necessary permissions

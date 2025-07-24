@@ -36,7 +36,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <ThemeScript />
       </head>
-      <body className={`${dmSans.variable} ${spaceGrotesk.variable} antialiased bg-cakewalk-bg-alice-100 text-cakewalk-text-primary font-dm-sans`}>
+      <body
+        className={`${dmSans.variable} ${spaceGrotesk.variable} bg-cakewalk-bg-alice-100 font-dm-sans text-cakewalk-text-primary antialiased`}
+      >
         <ErrorProvider>
           <ThemeProvider>
             <SessionProvider>{children}</SessionProvider>

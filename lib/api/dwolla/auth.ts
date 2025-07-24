@@ -78,9 +78,7 @@ export class DwollaTokenManager {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${Buffer.from(`${this.key}:${this.secret}`).toString(
-            "base64"
-          )}`,
+          Authorization: `Basic ${Buffer.from(`${this.key}:${this.secret}`).toString("base64")}`,
         },
         body: new URLSearchParams({
           grant_type: "client_credentials",
@@ -96,7 +94,7 @@ export class DwollaTokenManager {
         // Log full error internally
         log.error("[DwollaAuth] Token refresh failed", new Error(errorText), {
           status: response.status,
-          operation: 'dwolla_token_refresh'
+          operation: "dwolla_token_refresh",
         })
 
         throw new DwollaAuthError(sanitizedError, response.status)
@@ -116,7 +114,7 @@ export class DwollaTokenManager {
         expiresIn: data.expires_in,
         bufferSeconds: this.tokenExpiryBufferMs / 1000,
         expiryTimestamp: new Date(this.tokenExpiryTimestamp).toISOString(),
-        operation: 'dwolla_token_success'
+        operation: "dwolla_token_success",
       })
 
       return this.accessToken
@@ -130,7 +128,7 @@ export class DwollaTokenManager {
 
       // Log network errors internally
       log.error("[DwollaAuth] Network error", error as Error, {
-        operation: 'dwolla_auth_network_error'
+        operation: "dwolla_auth_network_error",
       })
 
       throw new DwollaAuthError(

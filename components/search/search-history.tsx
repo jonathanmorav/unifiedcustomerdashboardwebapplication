@@ -98,7 +98,7 @@ export function SearchHistory() {
       </CardHeader>
       <CardContent>
         {history.length === 0 ? (
-          <p className="text-cakewalk-text-secondary py-8 text-center">
+          <p className="py-8 text-center text-cakewalk-text-secondary">
             No search history yet. Start searching to see your history here.
           </p>
         ) : (
@@ -114,10 +114,10 @@ export function SearchHistory() {
                     <Badge variant="secondary" className="text-xs">
                       {entry.searchType}
                     </Badge>
-                    <span className="text-cakewalk-text-secondary text-xs">
+                    <span className="text-xs text-cakewalk-text-secondary">
                       {new Date(entry.timestamp).toLocaleString()}
                     </span>
-                    <span className="text-cakewalk-text-secondary text-xs">
+                    <span className="text-xs text-cakewalk-text-secondary">
                       • {entry.duration}ms
                     </span>
                   </div>

@@ -7,17 +7,20 @@ This feature adds HubSpot Active Lists functionality to the Unified Customer Das
 ## Features
 
 ### 1. List Membership Display
+
 - View all active lists that a company's contacts belong to
 - Distinguish between DYNAMIC (auto-updating) and STATIC lists
 - See membership timestamps and list metadata
 
 ### 2. List Analytics Dashboard
+
 - Dedicated "List Analytics" tab in the main dashboard
 - Statistics cards showing total lists, dynamic lists, and static lists
 - Historical trend charts for member counts
 - Responsive grid layout for list membership cards
 
 ### 3. Trend Visualization
+
 - Area charts showing member count trends over time
 - Daily, weekly, and monthly view options
 - Percentage change indicators
@@ -26,6 +29,7 @@ This feature adds HubSpot Active Lists functionality to the Unified Customer Das
 ## API Integration
 
 ### Required HubSpot Scopes
+
 ```
 crm.objects.companies.read
 crm.objects.contacts.read
@@ -36,6 +40,7 @@ crm.objects.custom.read
 ### New API Methods
 
 #### HubSpot Client (`lib/api/hubspot/client.ts`)
+
 - `getAllLists()` - Get all lists with pagination
 - `getListById()` - Get specific list details
 - `getContactListMemberships()` - Get lists for a contact
@@ -43,12 +48,14 @@ crm.objects.custom.read
 - `getCompanyListMemberships()` - Aggregate lists for all company contacts
 
 #### HubSpot Service (`lib/api/hubspot/service.ts`)
+
 - Updated `searchCustomer()` to include list memberships
 - Updated `formatCustomerData()` to format list data
 
 ## UI Components
 
 ### New Components
+
 1. **ListAnalyticsDashboard** (`components/lists/list-analytics-dashboard.tsx`)
    - Main dashboard view for list analytics
    - Handles loading states and empty states
@@ -72,6 +79,7 @@ crm.objects.custom.read
 ## Design System Compliance
 
 All components follow the Cakewalk design system:
+
 - Colors: Primary blue (#005dfe), success green (#15cb94)
 - Typography: DM Sans font family with defined size scales
 - Spacing: 8px grid system
@@ -111,6 +119,7 @@ All components follow the Cakewalk design system:
 ## Testing
 
 Run the test suite:
+
 ```bash
 npm test -- __tests__/unit/lib/api/hubspot/lists.test.ts
 ```
@@ -118,6 +127,7 @@ npm test -- __tests__/unit/lib/api/hubspot/lists.test.ts
 ## Configuration
 
 Update your `.env` file with the required HubSpot API key and ensure it has the necessary scopes:
+
 ```
 HUBSPOT_API_KEY=your-api-key-with-list-scopes
 ```

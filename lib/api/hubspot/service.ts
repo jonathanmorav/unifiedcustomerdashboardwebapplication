@@ -24,9 +24,13 @@ export class HubSpotService {
    */
   async searchCustomer(params: HubSpotSearchParams): Promise<HubSpotCustomerData | null> {
     try {
-      console.log(`[CLARITY DEBUG] searchCustomer called with searchTerm=${params.searchTerm} searchType=${params.searchType}`)
-      log.debug(`HubSpotService.searchCustomer called with searchTerm=${params.searchTerm} searchType=${params.searchType}`)
-      
+      console.log(
+        `[CLARITY DEBUG] searchCustomer called with searchTerm=${params.searchTerm} searchType=${params.searchType}`
+      )
+      log.debug(
+        `HubSpotService.searchCustomer called with searchTerm=${params.searchTerm} searchType=${params.searchType}`
+      )
+
       // Map business_name to name for the API
       const apiSearchType = params.searchType === "business_name" ? "name" : params.searchType
 
@@ -50,7 +54,9 @@ export class HubSpotService {
         this.client.getCompanyListMemberships(company.id),
       ])
 
-      log.debug(`HubSpotService.searchCustomer: Fetched ${summaryOfBenefits.length} Summary of Benefits, ${monthlyInvoices.length} Monthly Invoices`)
+      log.debug(
+        `HubSpotService.searchCustomer: Fetched ${summaryOfBenefits.length} Summary of Benefits, ${monthlyInvoices.length} Monthly Invoices`
+      )
 
       // Get policies for each SOB in parallel
       const policiesPromises = summaryOfBenefits.map((sob) =>
@@ -69,39 +75,45 @@ export class HubSpotService {
         // First, get contacts associated with the company
         console.log(`[CLARITY DEBUG] Getting contacts for company ${company.id}`)
         const contacts = await this.client.getAssociations("companies", company.id, "contacts")
-        
-        console.log(`[CLARITY DEBUG] Found ${contacts.results?.length || 0} contacts:`, contacts.results)
-        
+
+        console.log(
+          `[CLARITY DEBUG] Found ${contacts.results?.length || 0} contacts:`,
+          contacts.results
+        )
+
         log.info(`Found ${contacts.results?.length || 0} contacts for company ${company.id}`, {
           companyName: company.properties.name,
-          contactIds: contacts.results?.map(c => c.id) || [],
-          operation: 'hubspot_get_contacts_for_clarity'
+          contactIds: contacts.results?.map((c) => c.id) || [],
+          operation: "hubspot_get_contacts_for_clarity",
         })
-        
+
         if (contacts.results && contacts.results.length > 0) {
           // For now, just get engagements for the first contact
           // In production, you might want to aggregate across all contacts
           const primaryContactId = contacts.results[0].id
           console.log(`[CLARITY DEBUG] Getting engagements for contact ${primaryContactId}`)
-          
+
           const engagements = await this.client.getContactEngagements(primaryContactId)
-          
+
           console.log(`[CLARITY DEBUG] Found ${engagements.length} engagements`)
-          console.log('[CLARITY DEBUG] Raw engagements:', JSON.stringify(engagements, null, 2))
-          
+          console.log("[CLARITY DEBUG] Raw engagements:", JSON.stringify(engagements, null, 2))
+
           log.info(`Found ${engagements.length} engagements for contact ${primaryContactId}`, {
-            engagementTypes: engagements.map(e => e.type || 'unknown'),
-            operation: 'hubspot_get_engagements'
+            engagementTypes: engagements.map((e) => e.type || "unknown"),
+            operation: "hubspot_get_engagements",
           })
-          
+
           claritySessions = this.client.parseClaritySessionsFromEngagements(engagements)
-          
+
           console.log(`[CLARITY DEBUG] Parsed ${claritySessions.length} Clarity sessions`)
-          
-          log.info(`HubSpotService.searchCustomer: Found ${claritySessions.length} Clarity sessions`, {
-            sessionIds: claritySessions.map(s => s.id),
-            operation: 'hubspot_clarity_sessions_parsed'
-          })
+
+          log.info(
+            `HubSpotService.searchCustomer: Found ${claritySessions.length} Clarity sessions`,
+            {
+              sessionIds: claritySessions.map((s) => s.id),
+              operation: "hubspot_clarity_sessions_parsed",
+            }
+          )
         } else {
           console.log(`[CLARITY DEBUG] No contacts found for company`)
         }
@@ -110,7 +122,7 @@ export class HubSpotService {
         log.warn("Failed to fetch Clarity sessions", {
           companyId: company.id,
           error: error instanceof Error ? error.message : String(error),
-          operation: 'hubspot_fetch_clarity_sessions'
+          operation: "hubspot_fetch_clarity_sessions",
         })
       }
 
@@ -122,15 +134,19 @@ export class HubSpotService {
         activeLists: listMemberships.lists,
         claritySessions,
       }
-      
-      console.log(`[CLARITY DEBUG] Returning result with ${claritySessions.length} Clarity sessions`)
-      log.debug(`HubSpotService.searchCustomer: Returning complete customer data for company ${company.id} with ${listMemberships.total} active lists and ${claritySessions.length} Clarity sessions`)
+
+      console.log(
+        `[CLARITY DEBUG] Returning result with ${claritySessions.length} Clarity sessions`
+      )
+      log.debug(
+        `HubSpotService.searchCustomer: Returning complete customer data for company ${company.id} with ${listMemberships.total} active lists and ${claritySessions.length} Clarity sessions`
+      )
       return result
     } catch (error) {
       log.error("Error searching HubSpot customer", error as Error, {
         searchTerm: params.searchTerm,
         searchType: params.searchType,
-        operation: 'hubspot_search_customer'
+        operation: "hubspot_search_customer",
       })
       throw error
     }
@@ -145,7 +161,15 @@ export class HubSpotService {
       const companyObject = await this.client.getObjectById<HubSpotCompany["properties"]>(
         "companies",
         companyId,
-        ["name", "domain", "email___owner", "dwolla_customer_id", "onboarding_status", "onboarding_step", "hs_object_id"]
+        [
+          "name",
+          "domain",
+          "email___owner",
+          "dwolla_customer_id",
+          "onboarding_status",
+          "onboarding_step",
+          "hs_object_id",
+        ]
       )
 
       // Convert to HubSpotCompany format
@@ -171,7 +195,7 @@ export class HubSpotService {
       let claritySessions = []
       try {
         const contacts = await this.client.getAssociations("companies", companyId, "contacts")
-        
+
         if (contacts.results && contacts.results.length > 0) {
           const primaryContactId = contacts.results[0].id
           const engagements = await this.client.getContactEngagements(primaryContactId)
@@ -181,7 +205,7 @@ export class HubSpotService {
         log.warn("Failed to fetch Clarity sessions", {
           companyId,
           error: error instanceof Error ? error.message : String(error),
-          operation: 'hubspot_fetch_clarity_sessions'
+          operation: "hubspot_fetch_clarity_sessions",
         })
       }
 
@@ -196,7 +220,7 @@ export class HubSpotService {
     } catch (error) {
       log.error("Error getting HubSpot customer data", error as Error, {
         companyId,
-        operation: 'hubspot_get_customer_data'
+        operation: "hubspot_get_customer_data",
       })
       throw error
     }

@@ -5,7 +5,7 @@ import type { DwollaCustomerData } from "./dwolla"
 export type SearchType = "email" | "name" | "business_name" | "dwolla_id" | "auto"
 
 export type CustomerStatus = "active" | "inactive" | "verified" | "unverified" | "suspended"
-export type TransferStatus = "completed" | "pending" | "failed" | "cancelled" | "processed"
+export type TransferStatus = "processed" | "pending" | "failed" | "cancelled"
 export type FundingSourceStatus = "verified" | "unverified"
 
 // Date range for filtering
@@ -22,12 +22,12 @@ export interface AmountRange {
 }
 
 // Sort options
-export type SortField = 
-  | "relevance" 
-  | "date_created" 
-  | "date_modified" 
-  | "amount" 
-  | "customer_name" 
+export type SortField =
+  | "relevance"
+  | "date_created"
+  | "date_modified"
+  | "amount"
+  | "customer_name"
   | "company_name"
   | "status"
 
@@ -51,23 +51,23 @@ export interface SearchFilters {
   customerStatus?: CustomerStatus[]
   transferStatus?: TransferStatus[]
   fundingSourceStatus?: FundingSourceStatus[]
-  
+
   // Date filters
   createdDateRange?: DateRange
   modifiedDateRange?: DateRange
   transferDateRange?: DateRange
-  
+
   // Amount filters
   transferAmountRange?: AmountRange
   benefitAmountRange?: AmountRange
-  
+
   // Other filters
   hasFailedTransfers?: boolean
   hasUnverifiedFunding?: boolean
   hasPendingInvoices?: boolean
-  
+
   // Data source filters
-  searchIn?: ("hubspot" | "dwolla" | "both")
+  searchIn?: "hubspot" | "dwolla" | "both"
 }
 
 // Enhanced search parameters
@@ -86,10 +86,10 @@ export interface AdvancedSearchResult {
   searchType: SearchType
   timestamp: Date
   duration: number
-  
+
   // Applied filters summary
   appliedFilters?: SearchFilters
-  
+
   // Pagination info
   pagination?: {
     currentPage: number
@@ -97,7 +97,7 @@ export interface AdvancedSearchResult {
     totalResults: number
     totalPages: number
   }
-  
+
   // Results from each system
   hubspot: {
     success: boolean
@@ -106,7 +106,7 @@ export interface AdvancedSearchResult {
     duration: number
     totalCount?: number
   }
-  
+
   dwolla: {
     success: boolean
     data?: DwollaCustomerData[]
@@ -114,7 +114,7 @@ export interface AdvancedSearchResult {
     duration: number
     totalCount?: number
   }
-  
+
   // Aggregated statistics
   statistics?: {
     totalCustomers: number

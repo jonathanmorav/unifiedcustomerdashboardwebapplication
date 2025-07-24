@@ -1,7 +1,12 @@
 "use client"
 
 import { Button } from "./ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import Image from "next/image"
 import { Moon, Sun, LogOut, Settings, User, LayoutDashboard, Receipt } from "lucide-react"
@@ -21,28 +26,30 @@ export function Header() {
   }
 
   return (
-    <header className="bg-background border-b border-cakewalk-border shadow-cakewalk-light transition-colors duration-300">
-      <div className="container mx-auto px-4 py-4 max-w-7xl">
+    <header className="border-b border-cakewalk-border bg-background shadow-cakewalk-light transition-colors duration-300">
+      <div className="container mx-auto max-w-7xl px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image 
-              src="/images/cakewalk-logo.png" 
-              alt="Cakewalk Benefits" 
-              width={200} 
+            <Image
+              src="/images/cakewalk-logo.png"
+              alt="Cakewalk Benefits"
+              width={200}
               height={50}
               className="h-12 w-auto"
               priority
             />
             <div>
-              <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">Customer Support Dashboard</p>
+              <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
+                Customer Support Dashboard
+              </p>
             </div>
           </div>
-          
+
           {/* Navigation Links */}
           <nav className="flex items-center gap-2">
             <Link href="/dashboard">
-              <Button 
-                variant={pathname === '/dashboard' ? 'default' : 'ghost'}
+              <Button
+                variant={pathname === "/dashboard" ? "default" : "ghost"}
                 size="sm"
                 className="flex items-center gap-2"
               >
@@ -51,8 +58,8 @@ export function Header() {
               </Button>
             </Link>
             <Link href="/billing">
-              <Button 
-                variant={pathname === '/billing' ? 'default' : 'ghost'}
+              <Button
+                variant={pathname === "/billing" ? "default" : "ghost"}
                 size="sm"
                 className="flex items-center gap-2"
               >
@@ -78,7 +85,11 @@ export function Header() {
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={session?.user?.image || undefined} alt="User" />
                     <AvatarFallback className="bg-cakewalk-primary text-white">
-                      {session?.user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                      {session?.user?.name
+                        ?.split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -86,8 +97,12 @@ export function Header() {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium text-cakewalk-body-xs">{session?.user?.name || 'User'}</p>
-                    <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">{session?.user?.email || ''}</p>
+                    <p className="text-cakewalk-body-xs font-medium">
+                      {session?.user?.name || "User"}
+                    </p>
+                    <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
+                      {session?.user?.email || ""}
+                    </p>
                   </div>
                 </div>
                 <DropdownMenuItem>

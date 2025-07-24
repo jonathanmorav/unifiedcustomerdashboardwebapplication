@@ -44,7 +44,7 @@ export function SortingControls({ currentSort, onSortChange, className }: Sortin
     }
   }
 
-  const currentField = sortFields.find(f => f.value === currentSort?.field)
+  const currentField = sortFields.find((f) => f.value === currentSort?.field)
   const sortIcon = currentSort?.order === "asc" ? ArrowUp : ArrowDown
 
   return (
@@ -67,10 +67,9 @@ export function SortingControls({ currentSort, onSortChange, className }: Sortin
               <span>{field.label}</span>
               {currentSort?.field === field.value && (
                 <span className="ml-2">
-                  {React.createElement(
-                    currentSort.order === "asc" ? ArrowUp : ArrowDown,
-                    { className: "h-4 w-4" }
-                  )}
+                  {React.createElement(currentSort.order === "asc" ? ArrowUp : ArrowDown, {
+                    className: "h-4 w-4",
+                  })}
                 </span>
               )}
             </DropdownMenuItem>

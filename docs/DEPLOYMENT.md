@@ -3,6 +3,7 @@
 This guide covers deploying the Unified Customer Dashboard to various platforms.
 
 ## Table of Contents
+
 1. [Prerequisites](#prerequisites)
 2. [Environment Setup](#environment-setup)
 3. [Vercel Deployment](#vercel-deployment)
@@ -24,6 +25,7 @@ Before deploying, ensure you have:
 5. ✅ SSL certificates (for non-Vercel deployments)
 
 Run the environment check:
+
 ```bash
 npm run check:env
 ```
@@ -58,16 +60,19 @@ npm run start
 ### Initial Setup
 
 1. **Install Vercel CLI**:
+
 ```bash
 npm i -g vercel
 ```
 
 2. **Login to Vercel**:
+
 ```bash
 vercel login
 ```
 
 3. **Link Project**:
+
 ```bash
 vercel link
 ```
@@ -80,6 +85,7 @@ vercel link
 4. Add all variables from `.env.production`
 
 **Important Variables**:
+
 - Set different values for Production, Preview, and Development
 - Sensitive values should only be in Production
 
@@ -131,6 +137,7 @@ docker-compose down
 #### AWS ECS
 
 1. **Build and Push to ECR**:
+
 ```bash
 # Login to ECR
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin [your-ecr-uri]
@@ -184,38 +191,44 @@ az container create \
 ### Using PM2
 
 1. **Install dependencies**:
+
 ```bash
 npm ci --production
 npx prisma generate
 ```
 
 2. **Build application**:
+
 ```bash
 npm run build
 ```
 
 3. **Create PM2 ecosystem file**:
+
 ```javascript
 // ecosystem.config.js
 module.exports = {
-  apps: [{
-    name: 'unified-customer-dashboard',
-    script: 'npm',
-    args: 'start',
-    env: {
-      NODE_ENV: 'production',
-      PORT: 3000
+  apps: [
+    {
+      name: "unified-customer-dashboard",
+      script: "npm",
+      args: "start",
+      env: {
+        NODE_ENV: "production",
+        PORT: 3000,
+      },
+      instances: "max",
+      exec_mode: "cluster",
+      autorestart: true,
+      watch: false,
+      max_memory_restart: "1G",
     },
-    instances: 'max',
-    exec_mode: 'cluster',
-    autorestart: true,
-    watch: false,
-    max_memory_restart: '1G'
-  }]
+  ],
 }
 ```
 
 4. **Start with PM2**:
+
 ```bash
 pm2 start ecosystem.config.js
 pm2 save
@@ -257,16 +270,19 @@ server {
 ### Production Database Checklist
 
 1. **Create Production Database**:
+
 ```sql
 CREATE DATABASE unified_customer_dashboard_prod;
 ```
 
 2. **Run Migrations**:
+
 ```bash
 DATABASE_URL=your-production-db-url npx prisma migrate deploy
 ```
 
 3. **Verify Schema**:
+
 ```bash
 DATABASE_URL=your-production-db-url npx prisma db pull
 ```
@@ -297,11 +313,13 @@ Run through this checklist:
 ### 2. Configure Monitoring
 
 #### Uptime Monitoring
+
 - Set up monitoring for `/api/health/live`
 - Alert on downtime
 - Check every 1-5 minutes
 
 #### Error Tracking (Sentry)
+
 ```bash
 # Install Sentry
 npm install @sentry/nextjs
@@ -310,6 +328,7 @@ npm install @sentry/nextjs
 ```
 
 #### Application Monitoring
+
 - New Relic
 - DataDog
 - Or similar APM tool
@@ -317,6 +336,7 @@ npm install @sentry/nextjs
 ### 3. Set up Logging
 
 Configure centralized logging:
+
 - AWS CloudWatch
 - Google Cloud Logging
 - LogDNA
@@ -371,6 +391,7 @@ Configure centralized logging:
 ### Application Won't Start
 
 1. **Check logs**:
+
 ```bash
 # Vercel
 vercel logs
@@ -383,11 +404,13 @@ pm2 logs
 ```
 
 2. **Verify environment variables**:
+
 ```bash
 npm run check:env
 ```
 
 3. **Test database connection**:
+
 ```bash
 npx prisma db pull
 ```
@@ -421,14 +444,17 @@ npx prisma db pull
 1. **Check connection string format**
 2. **Verify network connectivity**
 3. **Check SSL requirements**:
+
 ```
 ?sslmode=require
 ```
+
 4. **Verify connection limits not exceeded**
 
 ## Rollback Procedure
 
 ### Vercel
+
 ```bash
 # List deployments
 vercel ls
@@ -438,6 +464,7 @@ vercel rollback [deployment-url]
 ```
 
 ### Docker
+
 ```bash
 # Tag current version before deploying
 docker tag app:latest app:rollback
@@ -448,7 +475,9 @@ docker-compose up -d
 ```
 
 ### Database
+
 Always backup before migrations:
+
 ```bash
 # Backup
 pg_dump $DATABASE_URL > backup-$(date +%Y%m%d-%H%M%S).sql
@@ -460,6 +489,7 @@ psql $DATABASE_URL < backup-file.sql
 ## Support
 
 For deployment issues:
+
 1. Check application logs
 2. Review this guide's troubleshooting section
 3. Check [Next.js deployment docs](https://nextjs.org/docs/deployment)

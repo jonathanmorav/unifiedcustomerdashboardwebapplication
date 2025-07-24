@@ -141,7 +141,6 @@ export class UnifiedSearchEngine {
     if (result.dwolla.success && result.dwolla.data) foundIn.push("dwolla")
 
     const display: any = {
-      // eslint-disable-line @typescript-eslint/no-explicit-any
       summary: {
         found: foundIn.length > 0,
         foundIn: foundIn.length === 2 ? ["both"] : foundIn,
@@ -153,13 +152,19 @@ export class UnifiedSearchEngine {
     // Add HubSpot data if available
     if (result.hubspot.success && result.hubspot.data) {
       const formatted = this.hubspotService.formatCustomerData(result.hubspot.data)
-      
+
       // Debug logging
-      console.log('UnifiedSearch formatForDisplay - Raw HubSpot data:', result.hubspot.data)
-      console.log('UnifiedSearch formatForDisplay - Formatted company:', formatted.company)
-      console.log('UnifiedSearch formatForDisplay - onboardingStatus:', formatted.company.onboardingStatus)
-      console.log('UnifiedSearch formatForDisplay - onboardingStep:', formatted.company.onboardingStep)
-      
+      console.log("UnifiedSearch formatForDisplay - Raw HubSpot data:", result.hubspot.data)
+      console.log("UnifiedSearch formatForDisplay - Formatted company:", formatted.company)
+      console.log(
+        "UnifiedSearch formatForDisplay - onboardingStatus:",
+        formatted.company.onboardingStatus
+      )
+      console.log(
+        "UnifiedSearch formatForDisplay - onboardingStep:",
+        formatted.company.onboardingStep
+      )
+
       display.hubspot = {
         company: formatted.company,
         summaryOfBenefits: formatted.summaryOfBenefits,

@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/db'
-import { getEnv } from '@/lib/env'
-import { EmailService } from '@/lib/services/email'
+import { prisma } from "@/lib/db"
+import { getEnv } from "@/lib/env"
+import { EmailService } from "@/lib/services/email"
 
 export interface LoginAttemptData {
   email: string
@@ -20,7 +20,7 @@ export class AccountSecurity {
   private static readonly DEFAULT_CONFIG: AccountLockoutConfig = {
     maxFailedAttempts: 5,
     lockoutDuration: 30, // 30 minutes
-    resetWindow: 15 // Reset counter after 15 minutes
+    resetWindow: 15, // Reset counter after 15 minutes
   }
 
   /**
@@ -29,7 +29,7 @@ export class AccountSecurity {
   static async recordLoginAttempt(data: LoginAttemptData): Promise<void> {
     const user = await prisma.user.findUnique({
       where: { email: data.email },
-      select: { id: true }
+      select: { id: true },
     })
 
     await prisma.loginAttempt.create({
@@ -39,8 +39,8 @@ export class AccountSecurity {
         success: data.success,
         ipAddress: data.ipAddress,
         userAgent: data.userAgent,
-        reason: data.reason
-      }
+        reason: data.reason,
+      },
     })
 
     if (user && !data.success) {
@@ -48,8 +48,8 @@ export class AccountSecurity {
       await prisma.user.update({
         where: { id: user.id },
         data: {
-          failedLoginAttempts: { increment: 1 }
-        }
+          failedLoginAttempts: { increment: 1 },
+        },
       })
 
       // Check if account should be locked
@@ -61,8 +61,8 @@ export class AccountSecurity {
         data: {
           failedLoginAttempts: 0,
           lastLoginAt: new Date(),
-          lastLoginIp: data.ipAddress
-        }
+          lastLoginIp: data.ipAddress,
+        },
       })
     }
   }
@@ -70,17 +70,14 @@ export class AccountSecurity {
   /**
    * Check if account should be locked and lock if necessary
    */
-  private static async checkAndLockAccount(
-    userId: string,
-    ipAddress?: string
-  ): Promise<void> {
+  private static async checkAndLockAccount(userId: string, ipAddress?: string): Promise<void> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         failedLoginAttempts: true,
         email: true,
-        role: true
-      }
+        role: true,
+      },
     })
 
     if (!user) return
@@ -88,36 +85,30 @@ export class AccountSecurity {
     const config = this.getConfigForRole(user.role)
 
     if (user.failedLoginAttempts >= config.maxFailedAttempts) {
-      const lockoutUntil = new Date(
-        Date.now() + config.lockoutDuration * 60 * 1000
-      )
+      const lockoutUntil = new Date(Date.now() + config.lockoutDuration * 60 * 1000)
 
       await prisma.user.update({
         where: { id: userId },
-        data: { lockedUntil: lockoutUntil }
+        data: { lockedUntil: lockoutUntil },
       })
 
       // Log account lockout
       await prisma.auditLog.create({
         data: {
           userId,
-          action: 'ACCOUNT_LOCKED',
-          resource: 'auth',
+          action: "ACCOUNT_LOCKED",
+          resource: "auth",
           ipAddress,
           metadata: {
             failedAttempts: user.failedLoginAttempts,
             lockoutDuration: config.lockoutDuration,
-            lockedUntil: lockoutUntil.toISOString()
-          }
-        }
+            lockedUntil: lockoutUntil.toISOString(),
+          },
+        },
       })
 
       // Send email notification about account lockout
-      await EmailService.sendAccountLockoutNotification(
-        user.email,
-        lockoutUntil,
-        ipAddress
-      )
+      await EmailService.sendAccountLockoutNotification(user.email, lockoutUntil, ipAddress)
     }
   }
 
@@ -133,8 +124,8 @@ export class AccountSecurity {
       where: { email },
       select: {
         lockedUntil: true,
-        isActive: true
-      }
+        isActive: true,
+      },
     })
 
     if (!user) {
@@ -142,17 +133,17 @@ export class AccountSecurity {
     }
 
     if (!user.isActive) {
-      return { 
-        locked: true, 
-        reason: 'Account is deactivated. Please contact support.' 
+      return {
+        locked: true,
+        reason: "Account is deactivated. Please contact support.",
       }
     }
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      return { 
-        locked: true, 
+      return {
+        locked: true,
         lockedUntil: user.lockedUntil,
-        reason: `Account is locked due to multiple failed login attempts. Try again after ${user.lockedUntil.toLocaleTimeString()}.`
+        reason: `Account is locked due to multiple failed login attempts. Try again after ${user.lockedUntil.toLocaleTimeString()}.`,
       }
     }
 
@@ -173,14 +164,14 @@ export class AccountSecurity {
       where: {
         email,
         success: false,
-        createdAt: { gte: resetWindowStart }
-      }
+        createdAt: { gte: resetWindowStart },
+      },
     })
 
     if (recentFailedAttempts === 0) {
       await prisma.user.update({
         where: { email },
-        data: { failedLoginAttempts: 0 }
+        data: { failedLoginAttempts: 0 },
       })
     }
   }
@@ -188,31 +179,27 @@ export class AccountSecurity {
   /**
    * Unlock account (admin action)
    */
-  static async unlockAccount(
-    userId: string,
-    unlockedBy: string,
-    reason: string
-  ): Promise<void> {
+  static async unlockAccount(userId: string, unlockedBy: string, reason: string): Promise<void> {
     await prisma.user.update({
       where: { id: userId },
       data: {
         lockedUntil: null,
-        failedLoginAttempts: 0
-      }
+        failedLoginAttempts: 0,
+      },
     })
 
     await prisma.auditLog.create({
       data: {
         userId: unlockedBy,
-        action: 'ACCOUNT_UNLOCKED',
-        resource: 'auth',
+        action: "ACCOUNT_UNLOCKED",
+        resource: "auth",
         resourceId: userId,
         metadata: {
           targetUserId: userId,
           reason,
-          timestamp: new Date().toISOString()
-        }
-      }
+          timestamp: new Date().toISOString(),
+        },
+      },
     })
   }
 
@@ -228,21 +215,18 @@ export class AccountSecurity {
   /**
    * Get recent login attempts for a user
    */
-  static async getRecentLoginAttempts(
-    email: string,
-    limit: number = 10
-  ) {
+  static async getRecentLoginAttempts(email: string, limit: number = 10) {
     return prisma.loginAttempt.findMany({
       where: { email },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit,
       select: {
         success: true,
         ipAddress: true,
         userAgent: true,
         reason: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     })
   }
 
@@ -263,31 +247,31 @@ export class AccountSecurity {
       where: {
         userId,
         success: true,
-        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Last 24 hours
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }, // Last 24 hours
       },
       select: {
         ipAddress: true,
-        createdAt: true
+        createdAt: true,
       },
-      orderBy: { createdAt: 'desc' },
-      take: 10
+      orderBy: { createdAt: "desc" },
+      take: 10,
     })
 
     // Check for rapid login attempts from different IPs
-    const uniqueIps = new Set(recentLogins.map(l => l.ipAddress).filter(Boolean))
+    const uniqueIps = new Set(recentLogins.map((l) => l.ipAddress).filter(Boolean))
     if (uniqueIps.size > 3) {
-      reasons.push('Multiple IP addresses in short time period')
+      reasons.push("Multiple IP addresses in short time period")
     }
 
     // Check for login from new location
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { lastLoginIp: true }
+      select: { lastLoginIp: true },
     })
 
     if (user?.lastLoginIp && user.lastLoginIp !== currentIp) {
       // In production, you'd want to use a geolocation service here
-      reasons.push('Login from new IP address')
+      reasons.push("Login from new IP address")
     }
 
     // Check for impossible travel (would need geolocation)
@@ -295,7 +279,7 @@ export class AccountSecurity {
 
     return {
       suspicious: reasons.length > 0,
-      reasons
+      reasons,
     }
   }
 
@@ -310,14 +294,14 @@ export class AccountSecurity {
     await prisma.auditLog.create({
       data: {
         userId,
-        action: 'SECURITY_EVENT_ESCALATED',
-        resource: 'auth',
+        action: "SECURITY_EVENT_ESCALATED",
+        resource: "auth",
         metadata: {
           event,
           details,
-          escalatedAt: new Date().toISOString()
-        }
-      }
+          escalatedAt: new Date().toISOString(),
+        },
+      },
     })
 
     // Send notification to security team

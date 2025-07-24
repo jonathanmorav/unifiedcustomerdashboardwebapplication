@@ -1,7 +1,7 @@
 /**
  * Theme telemetry for monitoring and analytics
  */
-import { log } from '@/lib/logger'
+import { log } from "@/lib/logger"
 
 interface ThemeEvent {
   event: string
@@ -80,7 +80,7 @@ class ThemeTelemetry {
       log.debug("[Theme Telemetry]", {
         event,
         eventData,
-        operation: 'theme_telemetry'
+        operation: "theme_telemetry",
       })
     }
   }

@@ -1,5 +1,5 @@
-import { log } from '@/lib/logger'
-import { CorrelationTracking } from '@/lib/security/correlation'
+import { log } from "@/lib/logger"
+import { CorrelationTracking } from "@/lib/security/correlation"
 
 // Base error interface
 export interface ErrorContext {
@@ -11,15 +11,15 @@ export interface ErrorContext {
 
 // Error categories
 export enum ErrorCategory {
-  AUTHENTICATION = 'AUTHENTICATION',
-  AUTHORIZATION = 'AUTHORIZATION',
-  VALIDATION = 'VALIDATION',
-  BUSINESS_LOGIC = 'BUSINESS_LOGIC',
-  EXTERNAL_SERVICE = 'EXTERNAL_SERVICE',
-  DATABASE = 'DATABASE',
-  RATE_LIMIT = 'RATE_LIMIT',
-  SECURITY = 'SECURITY',
-  SYSTEM = 'SYSTEM',
+  AUTHENTICATION = "AUTHENTICATION",
+  AUTHORIZATION = "AUTHORIZATION",
+  VALIDATION = "VALIDATION",
+  BUSINESS_LOGIC = "BUSINESS_LOGIC",
+  EXTERNAL_SERVICE = "EXTERNAL_SERVICE",
+  DATABASE = "DATABASE",
+  RATE_LIMIT = "RATE_LIMIT",
+  SECURITY = "SECURITY",
+  SYSTEM = "SYSTEM",
 }
 
 // Base application error class
@@ -72,8 +72,9 @@ export abstract class ApplicationError extends Error {
 
   // Log the error with context
   async logError(): Promise<void> {
-    const correlationId = this.context.correlationId || await CorrelationTracking.getCorrelationId()
-    
+    const correlationId =
+      this.context.correlationId || (await CorrelationTracking.getCorrelationId())
+
     await log.error(this.message, {
       error: {
         name: this.name,
@@ -87,7 +88,7 @@ export abstract class ApplicationError extends Error {
         ...this.context,
         correlationId,
       },
-      operation: this.context.operation || 'unknown',
+      operation: this.context.operation || "unknown",
     })
   }
 }
@@ -99,25 +100,25 @@ export class AuthenticationError extends ApplicationError {
   }
 
   protected getClientMessage(): string {
-    return 'Authentication failed. Please check your credentials and try again.'
+    return "Authentication failed. Please check your credentials and try again."
   }
 
   protected getErrorCode(): string {
-    return 'AUTH_FAILED'
+    return "AUTH_FAILED"
   }
 }
 
 export class SessionExpiredError extends ApplicationError {
   constructor(context?: ErrorContext) {
-    super('Session has expired', ErrorCategory.AUTHENTICATION, 401, true, context)
+    super("Session has expired", ErrorCategory.AUTHENTICATION, 401, true, context)
   }
 
   protected getClientMessage(): string {
-    return 'Your session has expired. Please sign in again.'
+    return "Your session has expired. Please sign in again."
   }
 
   protected getErrorCode(): string {
-    return 'SESSION_EXPIRED'
+    return "SESSION_EXPIRED"
   }
 }
 
@@ -128,11 +129,11 @@ export class AuthorizationError extends ApplicationError {
   }
 
   protected getClientMessage(): string {
-    return 'You do not have permission to perform this action.'
+    return "You do not have permission to perform this action."
   }
 
   protected getErrorCode(): string {
-    return 'FORBIDDEN'
+    return "FORBIDDEN"
   }
 }
 
@@ -152,13 +153,13 @@ export class ValidationError extends ApplicationError {
   protected getClientMessage(): string {
     const errorCount = Object.keys(this.validationErrors).length
     if (errorCount === 0) {
-      return 'The request contains invalid data.'
+      return "The request contains invalid data."
     }
     return `Validation failed: ${errorCount} error(s) found.`
   }
 
   protected getErrorCode(): string {
-    return 'VALIDATION_ERROR'
+    return "VALIDATION_ERROR"
   }
 
   toClientResponse() {
@@ -182,7 +183,7 @@ export class BusinessLogicError extends ApplicationError {
   }
 
   protected getErrorCode(): string {
-    return 'BUSINESS_ERROR'
+    return "BUSINESS_ERROR"
   }
 }
 
@@ -206,7 +207,7 @@ export class RateLimitError extends ApplicationError {
   }
 
   protected getErrorCode(): string {
-    return 'RATE_LIMIT_EXCEEDED'
+    return "RATE_LIMIT_EXCEEDED"
   }
 
   toClientResponse() {
@@ -226,11 +227,11 @@ export class SecurityError extends ApplicationError {
 
   protected getClientMessage(): string {
     // Never expose security details to the client
-    return 'Security validation failed.'
+    return "Security validation failed."
   }
 
   protected getErrorCode(): string {
-    return 'SECURITY_ERROR'
+    return "SECURITY_ERROR"
   }
 }
 
@@ -241,11 +242,11 @@ export class DatabaseError extends ApplicationError {
   }
 
   protected getClientMessage(): string {
-    return 'A database error occurred. Please try again later.'
+    return "A database error occurred. Please try again later."
   }
 
   protected getErrorCode(): string {
-    return 'DATABASE_ERROR'
+    return "DATABASE_ERROR"
   }
 }
 
@@ -261,13 +262,7 @@ export class ExternalServiceError extends ApplicationError {
     originalError?: any,
     context?: ErrorContext
   ) {
-    super(
-      `${service} error: ${message}`,
-      ErrorCategory.EXTERNAL_SERVICE,
-      statusCode,
-      true,
-      context
-    )
+    super(`${service} error: ${message}`, ErrorCategory.EXTERNAL_SERVICE, statusCode, true, context)
     this.service = service
     this.originalError = originalError
   }
@@ -288,11 +283,11 @@ export class SystemError extends ApplicationError {
   }
 
   protected getClientMessage(): string {
-    return 'An unexpected error occurred. Please try again later.'
+    return "An unexpected error occurred. Please try again later."
   }
 
   protected getErrorCode(): string {
-    return 'SYSTEM_ERROR'
+    return "SYSTEM_ERROR"
   }
 }
 
@@ -300,7 +295,7 @@ export class SystemError extends ApplicationError {
 export class ErrorFactory {
   static createFromError(
     error: unknown,
-    defaultMessage: string = 'An unexpected error occurred',
+    defaultMessage: string = "An unexpected error occurred",
     context?: ErrorContext
   ): ApplicationError {
     // If it's already an ApplicationError, return it
@@ -309,17 +304,17 @@ export class ErrorFactory {
     }
 
     // Handle Prisma errors
-    if (error && typeof error === 'object' && 'code' in error) {
+    if (error && typeof error === "object" && "code" in error) {
       const prismaError = error as any
-      if (prismaError.code === 'P2002') {
+      if (prismaError.code === "P2002") {
         return new ValidationError(
-          'A record with this value already exists',
-          { unique: ['This value must be unique'] },
+          "A record with this value already exists",
+          { unique: ["This value must be unique"] },
           context
         )
       }
-      if (prismaError.code === 'P2025') {
-        return new BusinessLogicError('Record not found', 404, context)
+      if (prismaError.code === "P2025") {
+        return new BusinessLogicError("Record not found", 404, context)
       }
       // Add more Prisma error mappings as needed
     }
@@ -333,10 +328,7 @@ export class ErrorFactory {
     return new SystemError(defaultMessage, context)
   }
 
-  static async handleError(
-    error: unknown,
-    context?: ErrorContext
-  ): Promise<ApplicationError> {
+  static async handleError(error: unknown, context?: ErrorContext): Promise<ApplicationError> {
     const appError = this.createFromError(error, undefined, context)
     await appError.logError()
     return appError

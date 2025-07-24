@@ -1,10 +1,10 @@
 import { HubSpotService } from "@/lib/api/hubspot/service"
 import { HubSpotClient } from "@/lib/api/hubspot/client"
-import { 
-  HubSpotCompany, 
-  HubSpotSummaryOfBenefits, 
+import {
+  HubSpotCompany,
+  HubSpotSummaryOfBenefits,
   HubSpotPolicy,
-  HubSpotSearchParams 
+  HubSpotSearchParams,
 } from "@/lib/types/hubspot"
 
 // Mock the HubSpot client
@@ -30,18 +30,18 @@ describe("HubSpotService", () => {
         email: "test@company.com",
         business_name: "Test Business",
         createdate: "2024-01-01",
-        hs_lastmodifieddate: "2024-01-15"
-      }
+        hs_lastmodifieddate: "2024-01-15",
+      },
     }
 
     it("should search company by email", async () => {
       mockClient.searchCompanies.mockResolvedValueOnce({
         results: [mockCompany],
-        paging: { next: null }
+        paging: { next: null },
       })
 
       const params: HubSpotSearchParams = {
-        email: "test@company.com"
+        email: "test@company.com",
       }
 
       const result = await service.searchCompany(params)
@@ -51,79 +51,87 @@ describe("HubSpotService", () => {
           company: mockCompany.properties,
           summaryOfBenefits: [],
           policies: [],
-          monthlyInvoices: []
+          monthlyInvoices: [],
         },
-        error: null
+        error: null,
       })
 
-      expect(mockClient.searchCompanies).toHaveBeenCalledWith([{
-        propertyName: "email",
-        operator: "EQ",
-        value: "test@company.com"
-      }])
+      expect(mockClient.searchCompanies).toHaveBeenCalledWith([
+        {
+          propertyName: "email",
+          operator: "EQ",
+          value: "test@company.com",
+        },
+      ])
     })
 
     it("should search company by dwolla ID", async () => {
       mockClient.searchCompanies.mockResolvedValueOnce({
         results: [mockCompany],
-        paging: { next: null }
+        paging: { next: null },
       })
 
       const params: HubSpotSearchParams = {
-        dwolla_id: "dwolla-123"
+        dwolla_id: "dwolla-123",
       }
 
       await service.searchCompany(params)
 
-      expect(mockClient.searchCompanies).toHaveBeenCalledWith([{
-        propertyName: "dwolla_customer_id",
-        operator: "EQ",
-        value: "dwolla-123"
-      }])
+      expect(mockClient.searchCompanies).toHaveBeenCalledWith([
+        {
+          propertyName: "dwolla_customer_id",
+          operator: "EQ",
+          value: "dwolla-123",
+        },
+      ])
     })
 
     it("should search company by name", async () => {
       mockClient.searchCompanies.mockResolvedValueOnce({
         results: [mockCompany],
-        paging: { next: null }
+        paging: { next: null },
       })
 
       const params: HubSpotSearchParams = {
-        name: "Test Company"
+        name: "Test Company",
       }
 
       await service.searchCompany(params)
 
-      expect(mockClient.searchCompanies).toHaveBeenCalledWith([{
-        propertyName: "name",
-        operator: "CONTAINS_TOKEN",
-        value: "Test Company"
-      }])
+      expect(mockClient.searchCompanies).toHaveBeenCalledWith([
+        {
+          propertyName: "name",
+          operator: "CONTAINS_TOKEN",
+          value: "Test Company",
+        },
+      ])
     })
 
     it("should search company by business name", async () => {
       mockClient.searchCompanies.mockResolvedValueOnce({
         results: [mockCompany],
-        paging: { next: null }
+        paging: { next: null },
       })
 
       const params: HubSpotSearchParams = {
-        business_name: "Test Business"
+        business_name: "Test Business",
       }
 
       await service.searchCompany(params)
 
-      expect(mockClient.searchCompanies).toHaveBeenCalledWith([{
-        propertyName: "business_name",
-        operator: "CONTAINS_TOKEN",
-        value: "Test Business"
-      }])
+      expect(mockClient.searchCompanies).toHaveBeenCalledWith([
+        {
+          propertyName: "business_name",
+          operator: "CONTAINS_TOKEN",
+          value: "Test Business",
+        },
+      ])
     })
 
     it("should handle no company found", async () => {
       mockClient.searchCompanies.mockResolvedValueOnce({
         results: [],
-        paging: { next: null }
+        paging: { next: null },
       })
 
       const result = await service.searchCompany({ email: "notfound@example.com" })
@@ -132,8 +140,8 @@ describe("HubSpotService", () => {
         data: null,
         error: {
           code: "COMPANY_NOT_FOUND",
-          message: "No company found with the provided search criteria"
-        }
+          message: "No company found with the provided search criteria",
+        },
       })
     })
 
@@ -146,8 +154,8 @@ describe("HubSpotService", () => {
         data: null,
         error: {
           code: "HUBSPOT_API_ERROR",
-          message: "Failed to search company: API Error"
-        }
+          message: "Failed to search company: API Error",
+        },
       })
     })
 
@@ -155,13 +163,10 @@ describe("HubSpotService", () => {
       const abortController = new AbortController()
       mockClient.searchCompanies.mockResolvedValueOnce({
         results: [mockCompany],
-        paging: { next: null }
+        paging: { next: null },
       })
 
-      await service.searchCompany(
-        { email: "test@company.com" },
-        abortController.signal
-      )
+      await service.searchCompany({ email: "test@company.com" }, abortController.signal)
 
       expect(mockClient.searchCompanies).toHaveBeenCalledWith(
         expect.any(Array),
@@ -177,63 +182,62 @@ describe("HubSpotService", () => {
         name: "Test SOB",
         pdf_document_url: "https://example.com/sob.pdf",
         effective_date: "2024-01-01",
-        status: "active"
+        status: "active",
       },
       associations: {
         companies: {
-          results: [{ id: "123", type: "company_to_summary_of_benefits" }]
-        }
-      }
+          results: [{ id: "123", type: "company_to_summary_of_benefits" }],
+        },
+      },
     }
 
     it("should get summary of benefits for company", async () => {
       mockClient.getSummaryOfBenefits.mockResolvedValueOnce({
         results: [mockSOB],
-        paging: { next: null }
+        paging: { next: null },
       })
 
       const result = await service.getSummaryOfBenefits("123")
 
-      expect(result).toEqual([{
-        id: "sob-123",
-        name: "Test SOB",
-        pdf_url: "https://example.com/sob.pdf",
-        effective_date: "2024-01-01",
-        status: "active"
-      }])
+      expect(result).toEqual([
+        {
+          id: "sob-123",
+          name: "Test SOB",
+          pdf_url: "https://example.com/sob.pdf",
+          effective_date: "2024-01-01",
+          status: "active",
+        },
+      ])
 
-      expect(mockClient.getSummaryOfBenefits).toHaveBeenCalledWith(
-        "123",
-        undefined
-      )
+      expect(mockClient.getSummaryOfBenefits).toHaveBeenCalledWith("123", undefined)
     })
 
     it("should handle missing associations", async () => {
       const sobWithoutAssoc = {
         ...mockSOB,
-        associations: undefined
+        associations: undefined,
       }
 
       mockClient.getSummaryOfBenefits.mockResolvedValueOnce({
         results: [sobWithoutAssoc],
-        paging: { next: null }
+        paging: { next: null },
       })
 
       const result = await service.getSummaryOfBenefits("123")
 
-      expect(result).toEqual([{
-        id: "sob-123",
-        name: "Test SOB",
-        pdf_url: "https://example.com/sob.pdf",
-        effective_date: "2024-01-01",
-        status: "active"
-      }])
+      expect(result).toEqual([
+        {
+          id: "sob-123",
+          name: "Test SOB",
+          pdf_url: "https://example.com/sob.pdf",
+          effective_date: "2024-01-01",
+          status: "active",
+        },
+      ])
     })
 
     it("should handle API errors", async () => {
-      mockClient.getSummaryOfBenefits.mockRejectedValueOnce(
-        new Error("API Error")
-      )
+      mockClient.getSummaryOfBenefits.mockRejectedValueOnce(new Error("API Error"))
 
       const result = await service.getSummaryOfBenefits("123")
 
@@ -251,33 +255,35 @@ describe("HubSpotService", () => {
         policy_type: "Health",
         effective_date: "2024-01-01",
         termination_date: "2024-12-31",
-        status: "active"
+        status: "active",
       },
       associations: {
         companies: {
-          results: [{ id: "123", type: "company_to_policy" }]
-        }
-      }
+          results: [{ id: "123", type: "company_to_policy" }],
+        },
+      },
     }
 
     it("should get policies for company", async () => {
       mockClient.getPolicies.mockResolvedValueOnce({
         results: [mockPolicy],
-        paging: { next: null }
+        paging: { next: null },
       })
 
       const result = await service.getPolicies("123")
 
-      expect(result).toEqual([{
-        id: "policy-123",
-        policy_number: "POL-123",
-        policy_name: "Test Policy",
-        carrier_name: "Test Carrier",
-        policy_type: "Health",
-        effective_date: "2024-01-01",
-        termination_date: "2024-12-31",
-        status: "active"
-      }])
+      expect(result).toEqual([
+        {
+          id: "policy-123",
+          policy_number: "POL-123",
+          policy_name: "Test Policy",
+          carrier_name: "Test Carrier",
+          policy_type: "Health",
+          effective_date: "2024-01-01",
+          termination_date: "2024-12-31",
+          status: "active",
+        },
+      ])
 
       expect(mockClient.getPolicies).toHaveBeenCalledWith("123", undefined)
     })
@@ -285,7 +291,7 @@ describe("HubSpotService", () => {
     it("should handle empty policy list", async () => {
       mockClient.getPolicies.mockResolvedValueOnce({
         results: [],
-        paging: { next: null }
+        paging: { next: null },
       })
 
       const result = await service.getPolicies("123")
@@ -312,11 +318,11 @@ describe("HubSpotService", () => {
               invoice_number: "INV-001",
               amount: 1000,
               due_date: "2024-02-01",
-              status: "paid"
-            }
-          }
+              status: "paid",
+            },
+          },
         ],
-        paging: { next: null }
+        paging: { next: null },
       })
 
       const result = await service.getMonthlyInvoices("123")
@@ -325,7 +331,7 @@ describe("HubSpotService", () => {
       expect(result[0]).toMatchObject({
         invoice_number: "INV-001",
         amount: 1000,
-        status: "paid"
+        status: "paid",
       })
     })
   })
@@ -334,7 +340,7 @@ describe("HubSpotService", () => {
     it("should handle network errors", async () => {
       const networkError = new Error("Network error")
       ;(networkError as any).code = "ECONNREFUSED"
-      
+
       mockClient.searchCompanies.mockRejectedValueOnce(networkError)
 
       const result = await service.searchCompany({ email: "test@example.com" })
@@ -346,7 +352,7 @@ describe("HubSpotService", () => {
     it("should handle rate limit errors", async () => {
       const rateLimitError = new Error("Rate limit exceeded")
       ;(rateLimitError as any).response = { status: 429 }
-      
+
       mockClient.searchCompanies.mockRejectedValueOnce(rateLimitError)
 
       const result = await service.searchCompany({ email: "test@example.com" })

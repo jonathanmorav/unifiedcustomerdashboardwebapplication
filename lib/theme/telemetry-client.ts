@@ -79,7 +79,7 @@ class ThemeTelemetry {
       console.debug("[Theme Telemetry]", {
         event,
         eventData,
-        operation: 'theme_telemetry'
+        operation: "theme_telemetry",
       })
     }
   }

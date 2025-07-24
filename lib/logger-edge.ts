@@ -3,36 +3,36 @@
  * Uses console methods instead of Winston to avoid Node.js APIs
  */
 
-export type LogLevel = 'error' | 'warn' | 'info' | 'debug'
+export type LogLevel = "error" | "warn" | "info" | "debug"
 
 export interface LogContext {
   [key: string]: any
 }
 
 class EdgeLogger {
-  private isDevelopment = process.env.NODE_ENV === 'development'
+  private isDevelopment = process.env.NODE_ENV === "development"
 
   private formatMessage(level: string, message: string, context?: LogContext): string {
     const timestamp = new Date().toISOString()
-    const contextStr = context ? ` ${JSON.stringify(context)}` : ''
+    const contextStr = context ? ` ${JSON.stringify(context)}` : ""
     return `[${timestamp}] [${level.toUpperCase()}] ${message}${contextStr}`
   }
 
   error(message: string, context?: LogContext) {
-    console.error(this.formatMessage('error', message, context))
+    console.error(this.formatMessage("error", message, context))
   }
 
   warn(message: string, context?: LogContext) {
-    console.warn(this.formatMessage('warn', message, context))
+    console.warn(this.formatMessage("warn", message, context))
   }
 
   info(message: string, context?: LogContext) {
-    console.info(this.formatMessage('info', message, context))
+    console.info(this.formatMessage("info", message, context))
   }
 
   debug(message: string, context?: LogContext) {
     if (this.isDevelopment) {
-      console.debug(this.formatMessage('debug', message, context))
+      console.debug(this.formatMessage("debug", message, context))
     }
   }
 }

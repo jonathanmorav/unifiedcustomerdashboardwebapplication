@@ -1,23 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { MFAService } from '@/lib/security/mfa'
-import { AccountSecurity } from '@/lib/security/account-security'
-import { rateLimiter } from '@/lib/security/rate-limit'
-import { z } from 'zod'
-import { prisma } from '@/lib/db'
-import { log } from '@/lib/logger'
+import { NextRequest, NextResponse } from "next/server"
+import { MFAService } from "@/lib/security/mfa"
+import { AccountSecurity } from "@/lib/security/account-security"
+import { rateLimiter } from "@/lib/security/rate-limit"
+import { z } from "zod"
+import { prisma } from "@/lib/db"
+import { log } from "@/lib/logger"
 
 // Input validation
 const verifySchema = z.object({
   email: z.string().email(),
   code: z.string().min(6).max(8), // 6 digits for TOTP, 8 for backup codes
-  sessionToken: z.string() // Temporary token from first auth step
+  sessionToken: z.string(), // Temporary token from first auth step
 })
 
 // Rate limit configuration - very strict for MFA verification
 const mfaVerifyRateLimitConfig = {
-  name: 'mfa-login-verify',
+  name: "mfa-login-verify",
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5 // Only 5 attempts per 15 minutes
+  max: 5, // Only 5 attempts per 15 minutes
 }
 
 export async function POST(request: NextRequest) {
@@ -27,16 +27,15 @@ export async function POST(request: NextRequest) {
 
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid request' }, // Generic error
+        { error: "Invalid request" }, // Generic error
         { status: 400 }
       )
     }
 
     const { email, code, sessionToken } = validation.data
-    const ipAddress = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     undefined
-    const userAgent = request.headers.get('user-agent') || undefined
+    const ipAddress =
+      request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || undefined
+    const userAgent = request.headers.get("user-agent") || undefined
 
     // Apply rate limiting by email
     const rateLimitResult = await rateLimiter.limit(request, {
@@ -46,32 +45,28 @@ export async function POST(request: NextRequest) {
         // Escalate repeated failures
         const user = await prisma.user.findUnique({
           where: { email },
-          select: { id: true }
+          select: { id: true },
         })
-        
+
         if (user) {
-          await AccountSecurity.escalateSecurityEvent(
-            user.id,
-            'MFA_LOGIN_RATE_LIMITED',
-            { 
-              email,
-              ipAddress,
-              timestamp: new Date().toISOString()
-            }
-          )
+          await AccountSecurity.escalateSecurityEvent(user.id, "MFA_LOGIN_RATE_LIMITED", {
+            email,
+            ipAddress,
+            timestamp: new Date().toISOString(),
+          })
         }
-      }
+      },
     })
 
     if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: 'Too many attempts. Please try again later.' },
-        { 
+        { error: "Too many attempts. Please try again later." },
+        {
           status: 429,
           headers: {
-            'Retry-After': rateLimitResult.retryAfter?.toString() || '900',
-            'Cache-Control': 'no-store'
-          }
+            "Retry-After": rateLimitResult.retryAfter?.toString() || "900",
+            "Cache-Control": "no-store",
+          },
         }
       )
     }
@@ -81,11 +76,11 @@ export async function POST(request: NextRequest) {
     // For now, we'll validate the user exists and has MFA enabled
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { 
-        id: true, 
+      select: {
+        id: true,
         mfaEnabled: true,
-        lockedUntil: true
-      }
+        lockedUntil: true,
+      },
     })
 
     if (!user || !user.mfaEnabled) {
@@ -95,11 +90,11 @@ export async function POST(request: NextRequest) {
         success: false,
         ipAddress,
         userAgent,
-        reason: 'MFA verification attempted for invalid account'
+        reason: "MFA verification attempted for invalid account",
       })
 
       return NextResponse.json(
-        { error: 'Authentication failed' }, // Generic
+        { error: "Authentication failed" }, // Generic
         { status: 401 }
       )
     }
@@ -107,7 +102,7 @@ export async function POST(request: NextRequest) {
     // Check if account is locked
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       return NextResponse.json(
-        { error: 'Account temporarily unavailable' }, // Generic
+        { error: "Account temporarily unavailable" }, // Generic
         { status: 403 }
       )
     }
@@ -117,21 +112,12 @@ export async function POST(request: NextRequest) {
     // Determine if it's a TOTP code or backup code
     if (code.length === 6 && /^\d+$/.test(code)) {
       // TOTP code
-      verificationResult = await MFAService.verifyTOTP(
-        user.id,
-        code,
-        ipAddress
-      )
+      verificationResult = await MFAService.verifyTOTP(user.id, code, ipAddress)
     } else if (code.length === 8) {
       // Backup code
-      verificationResult = await MFAService.verifyBackupCode(
-        user.id,
-        code,
-        ipAddress,
-        userAgent
-      )
+      verificationResult = await MFAService.verifyBackupCode(user.id, code, ipAddress, userAgent)
     } else {
-      verificationResult = { success: false, reason: 'Invalid code format' }
+      verificationResult = { success: false, reason: "Invalid code format" }
     }
 
     if (!verificationResult.success) {
@@ -141,29 +127,25 @@ export async function POST(request: NextRequest) {
         success: false,
         ipAddress,
         userAgent,
-        reason: `MFA verification failed: ${verificationResult.reason}`
+        reason: `MFA verification failed: ${verificationResult.reason}`,
       })
 
       // Check for suspicious patterns
       const suspiciousActivity = await AccountSecurity.detectSuspiciousActivity(
         user.id,
-        ipAddress || 'unknown'
+        ipAddress || "unknown"
       )
 
       if (suspiciousActivity.suspicious) {
-        await AccountSecurity.escalateSecurityEvent(
-          user.id,
-          'SUSPICIOUS_MFA_ACTIVITY',
-          {
-            reasons: suspiciousActivity.reasons,
-            ipAddress,
-            timestamp: new Date().toISOString()
-          }
-        )
+        await AccountSecurity.escalateSecurityEvent(user.id, "SUSPICIOUS_MFA_ACTIVITY", {
+          reasons: suspiciousActivity.reasons,
+          ipAddress,
+          timestamp: new Date().toISOString(),
+        })
       }
 
       return NextResponse.json(
-        { error: 'Authentication failed' }, // Always generic
+        { error: "Authentication failed" }, // Always generic
         { status: 401 }
       )
     }
@@ -174,7 +156,7 @@ export async function POST(request: NextRequest) {
       success: true,
       ipAddress,
       userAgent,
-      reason: 'MFA verification successful'
+      reason: "MFA verification successful",
     })
 
     // Generate auth token (this would integrate with NextAuth)
@@ -182,34 +164,34 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       // In production, return a session token here
-      message: 'Authentication successful'
+      message: "Authentication successful",
     })
 
     // Security headers
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
-    response.headers.set('Pragma', 'no-cache')
-    response.headers.set('X-Content-Type-Options', 'nosniff')
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate")
+    response.headers.set("Pragma", "no-cache")
+    response.headers.set("X-Content-Type-Options", "nosniff")
 
     return response
   } catch (error) {
-    log.error('MFA verification error', error as Error, {
-      operation: 'mfa_login_verification'
+    log.error("MFA verification error", error as Error, {
+      operation: "mfa_login_verification",
     })
-    
+
     // Log error internally
     await prisma.auditLog.create({
       data: {
-        action: 'MFA_VERIFICATION_ERROR',
-        resource: 'auth',
+        action: "MFA_VERIFICATION_ERROR",
+        resource: "auth",
         metadata: {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toISOString()
-        }
-      }
+          error: error instanceof Error ? error.message : "Unknown error",
+          timestamp: new Date().toISOString(),
+        },
+      },
     })
 
     return NextResponse.json(
-      { error: 'Authentication failed' }, // Always generic
+      { error: "Authentication failed" }, // Always generic
       { status: 500 }
     )
   }

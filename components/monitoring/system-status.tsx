@@ -4,19 +4,11 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { 
-  Activity, 
-  Database, 
-  Globe, 
-  Server, 
-  AlertCircle,
-  CheckCircle,
-  XCircle
-} from "lucide-react"
+import { Activity, Database, Globe, Server, AlertCircle, CheckCircle, XCircle } from "lucide-react"
 import { toast } from "sonner"
 
 interface HealthData {
-  status: 'healthy' | 'degraded' | 'unhealthy'
+  status: "healthy" | "degraded" | "unhealthy"
   timestamp: string
   version: string
   uptime: number
@@ -29,7 +21,7 @@ interface HealthData {
 }
 
 interface ComponentHealth {
-  status: 'up' | 'down' | 'degraded'
+  status: "up" | "down" | "degraded"
   responseTime?: number
   message?: string
   details?: Record<string, any>
@@ -48,39 +40,39 @@ export function SystemStatus() {
 
   const fetchHealth = async () => {
     try {
-      const response = await fetch('/api/health')
+      const response = await fetch("/api/health")
       if (!response.ok) {
-        throw new Error('Failed to fetch health data')
+        throw new Error("Failed to fetch health data")
       }
       const data = await response.json()
       setHealth(data)
       setError(null)
     } catch (err) {
-      setError('Failed to load system status')
-      toast.error('Failed to load system status')
+      setError("Failed to load system status")
+      toast.error("Failed to load system status")
     } finally {
       setLoading(false)
     }
   }
 
-  const getStatusIcon = (status: 'up' | 'down' | 'degraded') => {
+  const getStatusIcon = (status: "up" | "down" | "degraded") => {
     switch (status) {
-      case 'up':
+      case "up":
         return <CheckCircle className="h-5 w-5 text-green-500" />
-      case 'degraded':
+      case "degraded":
         return <AlertCircle className="h-5 w-5 text-yellow-500" />
-      case 'down':
+      case "down":
         return <XCircle className="h-5 w-5 text-red-500" />
     }
   }
 
-  const getStatusBadge = (status: 'healthy' | 'degraded' | 'unhealthy') => {
+  const getStatusBadge = (status: "healthy" | "degraded" | "unhealthy") => {
     switch (status) {
-      case 'healthy':
+      case "healthy":
         return <Badge className="bg-green-500">Healthy</Badge>
-      case 'degraded':
+      case "degraded":
         return <Badge className="bg-yellow-500">Degraded</Badge>
-      case 'unhealthy':
+      case "unhealthy":
         return <Badge className="bg-red-500">Unhealthy</Badge>
     }
   }
@@ -89,13 +81,13 @@ export function SystemStatus() {
     const days = Math.floor(seconds / 86400)
     const hours = Math.floor((seconds % 86400) / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
-    
+
     const parts = []
     if (days > 0) parts.push(`${days}d`)
     if (hours > 0) parts.push(`${hours}h`)
     if (minutes > 0) parts.push(`${minutes}m`)
-    
-    return parts.join(' ') || '< 1m'
+
+    return parts.join(" ") || "< 1m"
   }
 
   if (loading) {
@@ -126,8 +118,8 @@ export function SystemStatus() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            {error || 'No data available'}
+          <div className="py-8 text-center text-muted-foreground">
+            {error || "No data available"}
           </div>
         </CardContent>
       </Card>
@@ -150,14 +142,12 @@ export function SystemStatus() {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Database Status */}
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+        <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
           <div className="flex items-center gap-3">
             <Database className="h-5 w-5" />
             <div>
               <div className="font-medium">Database</div>
-              <div className="text-sm text-muted-foreground">
-                {health.checks.database.message}
-              </div>
+              <div className="text-sm text-muted-foreground">{health.checks.database.message}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -171,14 +161,12 @@ export function SystemStatus() {
         </div>
 
         {/* HubSpot Status */}
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+        <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
           <div className="flex items-center gap-3">
             <Globe className="h-5 w-5" />
             <div>
               <div className="font-medium">HubSpot API</div>
-              <div className="text-sm text-muted-foreground">
-                {health.checks.hubspot.message}
-              </div>
+              <div className="text-sm text-muted-foreground">{health.checks.hubspot.message}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -192,14 +180,12 @@ export function SystemStatus() {
         </div>
 
         {/* Dwolla Status */}
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+        <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
           <div className="flex items-center gap-3">
             <Globe className="h-5 w-5" />
             <div>
               <div className="font-medium">Dwolla API</div>
-              <div className="text-sm text-muted-foreground">
-                {health.checks.dwolla.message}
-              </div>
+              <div className="text-sm text-muted-foreground">{health.checks.dwolla.message}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -213,21 +199,19 @@ export function SystemStatus() {
         </div>
 
         {/* Memory Status */}
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+        <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
           <div className="flex items-center gap-3">
             <Server className="h-5 w-5" />
             <div>
               <div className="font-medium">Memory</div>
-              <div className="text-sm text-muted-foreground">
-                {health.checks.memory.message}
-              </div>
+              <div className="text-sm text-muted-foreground">{health.checks.memory.message}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {health.checks.memory.details && (
               <span className="text-sm text-muted-foreground">
-                {health.checks.memory.details.heapUsed}MB / {health.checks.memory.details.heapTotal}MB
-                ({health.checks.memory.details.percentUsed}%)
+                {health.checks.memory.details.heapUsed}MB / {health.checks.memory.details.heapTotal}
+                MB ({health.checks.memory.details.percentUsed}%)
               </span>
             )}
             {getStatusIcon(health.checks.memory.status)}
@@ -235,7 +219,7 @@ export function SystemStatus() {
         </div>
 
         {/* Last Updated */}
-        <div className="text-xs text-muted-foreground text-center pt-2">
+        <div className="pt-2 text-center text-xs text-muted-foreground">
           Last updated: {new Date(health.timestamp).toLocaleString()}
         </div>
       </CardContent>

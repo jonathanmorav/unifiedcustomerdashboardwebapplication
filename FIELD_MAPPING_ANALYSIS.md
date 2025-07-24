@@ -7,6 +7,7 @@ After analyzing the field mappings between HubSpot API responses and UI componen
 ## Field Mapping Details
 
 ### 1. Company Fields
+
 ```typescript
 // API Structure: HubSpotObject<HubSpotCompany["properties"]>
 company: {
@@ -28,6 +29,7 @@ company: {
 ```
 
 ### 2. Summary of Benefits Fields
+
 ```typescript
 // API Structure: HubSpotObject<HubSpotSummaryOfBenefits["properties"]>
 summaryOfBenefits: [{
@@ -51,60 +53,71 @@ summaryOfBenefits: [{
 ```
 
 ### 3. Policy Fields
+
 ```typescript
 // API Structure: HubSpotObject<HubSpotPolicy["properties"]>
-policies: [{
-  id: "pol_001",
-  properties: {
-    policy_number: "POL-2025-001",
-    policy_holder_name: "John Doe",
-    coverage_type: "Health Insurance",
-    premium_amount: 450.0,
-    effective_date: "2025-01-01",
-    expiration_date: "2025-12-31",
-    status: "active"
-  }
-}]
+policies: [
+  {
+    id: "pol_001",
+    properties: {
+      policy_number: "POL-2025-001",
+      policy_holder_name: "John Doe",
+      coverage_type: "Health Insurance",
+      premium_amount: 450.0,
+      effective_date: "2025-01-01",
+      expiration_date: "2025-12-31",
+      status: "active",
+    },
+  },
+]
 
 // UI Structure (after formatCustomerData):
-policies: [{
-  id: "pol_001",                          // From policy.id
-  policyNumber: "POL-2025-001",           // From policy.properties.policy_number
-  policyHolderName: "John Doe",           // From policy.properties.policy_holder_name
-  coverageType: "Health Insurance",       // From policy.properties.coverage_type
-  premiumAmount: 450,                     // From policy.properties.premium_amount
-  effectiveDate: "2025-01-01",            // From policy.properties.effective_date
-  expirationDate: "2025-12-31",           // From policy.properties.expiration_date
-  status: "active"                        // From policy.properties.status
-}]
+policies: [
+  {
+    id: "pol_001", // From policy.id
+    policyNumber: "POL-2025-001", // From policy.properties.policy_number
+    policyHolderName: "John Doe", // From policy.properties.policy_holder_name
+    coverageType: "Health Insurance", // From policy.properties.coverage_type
+    premiumAmount: 450, // From policy.properties.premium_amount
+    effectiveDate: "2025-01-01", // From policy.properties.effective_date
+    expirationDate: "2025-12-31", // From policy.properties.expiration_date
+    status: "active", // From policy.properties.status
+  },
+]
 ```
 
 ### 4. Monthly Invoice Fields
+
 ```typescript
 // API Structure: HubSpotObject<HubSpotMonthlyInvoice["properties"]>
-monthlyInvoices: [{
-  id: "inv_001",
-  properties: {
-    invoice_number: "INV-2025-001",
-    invoice_date: "2025-01-01",
-    total_amount: 2625.0,
-    status: "paid"
-  }
-}]
+monthlyInvoices: [
+  {
+    id: "inv_001",
+    properties: {
+      invoice_number: "INV-2025-001",
+      invoice_date: "2025-01-01",
+      total_amount: 2625.0,
+      status: "paid",
+    },
+  },
+]
 
 // UI Structure (after formatCustomerData):
-monthlyInvoices: [{
-  id: "inv_001",                          // From invoice.id
-  invoiceNumber: "INV-2025-001",          // From invoice.properties.invoice_number
-  invoiceDate: "2025-01-01",              // From invoice.properties.invoice_date
-  totalAmount: 2625,                      // From invoice.properties.total_amount
-  status: "paid"                          // From invoice.properties.status
-}]
+monthlyInvoices: [
+  {
+    id: "inv_001", // From invoice.id
+    invoiceNumber: "INV-2025-001", // From invoice.properties.invoice_number
+    invoiceDate: "2025-01-01", // From invoice.properties.invoice_date
+    totalAmount: 2625, // From invoice.properties.total_amount
+    status: "paid", // From invoice.properties.status
+  },
+]
 ```
 
 ## Data Safety Features
 
 ### Null/Undefined Handling
+
 - **Company fields**: Uses optional chaining (`?.`) and appropriate defaults
   - `name`: Defaults to empty string `""`
   - `ownerEmail`: Allows null
@@ -114,12 +127,13 @@ monthlyInvoices: [{
 - **Optional fields**: Properly handled with ternary operators (e.g., `expirationDate`)
 
 ### Type Conversions
+
 ```typescript
 // Examples from formatCustomerData:
 amountToDraft: Number(sob.properties.amount_to_draft) || 0,
 policyNumber: String(policy.properties.policy_number || ""),
-expirationDate: policy.properties.expiration_date 
-  ? String(policy.properties.expiration_date) 
+expirationDate: policy.properties.expiration_date
+  ? String(policy.properties.expiration_date)
   : null,
 ```
 
@@ -143,6 +157,7 @@ expirationDate: policy.properties.expiration_date
 ## Recommendations
 
 The current implementation is robust and handles all field mappings correctly. No changes are needed to fix field mapping issues. The system properly:
+
 - Transforms API field names to UI field names
 - Handles null/undefined values
 - Ensures type safety
