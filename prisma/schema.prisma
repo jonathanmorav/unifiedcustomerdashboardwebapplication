@@ -284,3 +284,370 @@ model ACHTransaction {
   @@index([returnCode])
   @@index([lastWebhookAt])
 }
+
+// ============= WEBHOOK ANALYTICS SYSTEM =============
+
+// Webhook event processing states
+enum WebhookEventState {
+  received
+  queued
+  processing
+  completed
+  failed
+  quarantined
+}
+
+// Validation status for events
+enum ValidationStatus {
+  valid
+  invalid
+  warning
+}
+
+// Journey lifecycle status
+enum JourneyStatus {
+  active
+  completed
+  failed
+  abandoned
+  stuck
+  rolled_back
+}
+
+// Alert status tracking
+enum AlertStatus {
+  active
+  acknowledged
+  investigating
+  resolved
+  suppressed
+}
+
+// Main webhook event storage
+model WebhookEvent {
+  id                String              @id @default(cuid())
+  provider          String              @default("dwolla")
+  eventId           String              @unique
+  eventType         String
+  resourceId        String?
+  resourceType      String?
+  resourceUri       String?
+  topic             String
+  
+  // Timing
+  eventTimestamp    DateTime
+  receivedAt        DateTime            @default(now())
+  processedAt       DateTime?
+  
+  // Content
+  headers           Json                @default("{}")
+  payload           Json
+  payloadSize       Int                 @default(0)
+  
+  // Verification
+  signature         String?
+  signatureValid    Boolean             @default(false)
+  verificationMethod String?
+  sourceIp          String?
+  
+  // Processing
+  processingState   WebhookEventState   @default(received)
+  processingAttempts Int                @default(0)
+  lastProcessingError String?           @db.Text
+  processingDurationMs Int?
+  
+  // Deduplication
+  isDuplicate       Boolean             @default(false)
+  originalEventId   String?
+  duplicateCount    Int                 @default(0)
+  
+  // Ordering
+  eventSequence     BigInt?
+  isOutOfOrder      Boolean             @default(false)
+  expectedSequence  BigInt?
+  
+  // Recovery
+  source            String              @default("webhook")
+  recoveryMetadata  Json?
+  
+  // Validation
+  schemaVersion     String?
+  validationStatus  ValidationStatus    @default(valid)
+  validationErrors  Json?
+  
+  // Quarantine
+  quarantined       Boolean             @default(false)
+  quarantineReason  String?
+  quarantinedAt     DateTime?
+  quarantineReviewedAt DateTime?
+  quarantineReviewedBy String?
+  
+  // System
+  partitionKey      String
+  ttl               Int?
+  archived          Boolean             @default(false)
+  archivedAt        DateTime?
+  
+  // Timestamps
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relations
+  relations         WebhookEventRelation[]
+  journeyStarts     JourneyInstance[]    @relation("StartEvent")
+  journeySteps      JourneyStep[]
+  
+  @@index([eventType])
+  @@index([resourceId])
+  @@index([resourceType])
+  @@index([eventTimestamp])
+  @@index([processingState])
+  @@index([partitionKey])
+  @@index([createdAt])
+}
+
+// Event relationships to business entities
+model WebhookEventRelation {
+  id              String        @id @default(cuid())
+  webhookEventId  String
+  relationType    String
+  relationId      String
+  relationTable   String
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  
+  webhookEvent    WebhookEvent  @relation(fields: [webhookEventId], references: [id], onDelete: Cascade)
+  
+  @@index([webhookEventId])
+  @@index([relationId])
+  @@index([relationType])
+}
+
+// Journey definitions (configured journeys)
+model EventJourneyDefinition {
+  id              String              @id @default(cuid())
+  name            String
+  description     String?
+  category        String
+  config          Json
+  thresholds      Json?
+  version         Int                 @default(1)
+  active          Boolean             @default(true)
+  tags            String[]
+  createdBy       String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  instances       JourneyInstance[]
+  analytics       JourneyAnalytics[]
+  
+  @@index([category])
+  @@index([active])
+}
+
+// Journey instances (actual journey occurrences)
+model JourneyInstance {
+  id                    String                  @id @default(cuid())
+  definitionId          String
+  definitionVersion     Int
+  resourceId            String
+  resourceType          String
+  resourceMetadata      Json?
+  
+  // State
+  status                JourneyStatus           @default(active)
+  currentStepIndex      Int                     @default(0)
+  completedSteps        String[]
+  skippedSteps          String[]
+  
+  // Timing
+  startEventId          String
+  startTime             DateTime
+  endEventId            String?
+  endTime               DateTime?
+  lastEventTime         DateTime
+  totalDurationMs       BigInt?
+  businessDurationMs    BigInt?
+  
+  // Progress
+  progressPercentage    Int                     @default(0)
+  estimatedCompletionTime DateTime?
+  confidenceScore       Int?
+  
+  // Risk
+  riskScore             Int?
+  riskFactors           String[]
+  isOutlier             Boolean                 @default(false)
+  outlierReasons        String[]
+  
+  // Metadata
+  context               Json?
+  tags                  String[]
+  notes                 String?                 @db.Text
+  
+  // System
+  partitionKey          String
+  version               Int                     @default(1)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  
+  // Relations
+  definition            EventJourneyDefinition  @relation(fields: [definitionId], references: [id])
+  startEvent            WebhookEvent            @relation("StartEvent", fields: [startEventId], references: [id])
+  steps                 JourneyStep[]
+  
+  @@index([definitionId])
+  @@index([resourceId])
+  @@index([status])
+  @@index([startTime])
+  @@index([partitionKey])
+}
+
+// Individual steps in a journey
+model JourneyStep {
+  id                    String            @id @default(cuid())
+  journeyInstanceId     String
+  sequence              Int
+  stepName              String
+  eventId               String
+  eventType             String
+  timestamp             DateTime
+  durationFromStartMs   BigInt
+  durationFromPreviousMs BigInt?
+  expected              Boolean           @default(true)
+  onTime                Boolean           @default(true)
+  retryCount            Int               @default(0)
+  eventMetadata         Json?
+  createdAt             DateTime          @default(now())
+  
+  // Relations
+  journeyInstance       JourneyInstance   @relation(fields: [journeyInstanceId], references: [id], onDelete: Cascade)
+  event                 WebhookEvent      @relation(fields: [eventId], references: [id])
+  
+  @@index([journeyInstanceId])
+  @@index([eventId])
+}
+
+// Real-time metrics storage
+model RealTimeMetrics {
+  id              String      @id @default(cuid())
+  timestamp       DateTime
+  window          String
+  volume          Json
+  performance     Json
+  journeys        Json
+  health          Json
+  resources       Json
+  createdAt       DateTime    @default(now())
+  
+  @@index([timestamp])
+  @@index([window])
+}
+
+// Journey analytics aggregations
+model JourneyAnalytics {
+  id              String                  @id @default(cuid())
+  definitionId    String
+  period          DateTime
+  periodType      String
+  metrics         Json
+  segments        Json?
+  outliers        Json?
+  predictions     Json?
+  createdAt       DateTime                @default(now())
+  
+  definition      EventJourneyDefinition  @relation(fields: [definitionId], references: [id])
+  
+  @@index([definitionId])
+  @@index([period])
+  @@index([periodType])
+}
+
+// Alert rule definitions
+model AlertRule {
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  category        String
+  enabled         Boolean           @default(true)
+  priority        String
+  condition       Json
+  actions         Json
+  suppression     Json
+  tags            String[]
+  owner           String
+  runbook         String?           @db.Text
+  documentation   String?           @db.Text
+  createdBy       String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  lastTriggeredAt DateTime?
+  triggerCount    Int               @default(0)
+  
+  instances       AlertInstance[]
+  
+  @@index([category])
+  @@index([enabled])
+}
+
+// Alert instances (triggered alerts)
+model AlertInstance {
+  id                String        @id @default(cuid())
+  ruleId            String
+  ruleName          String
+  status            AlertStatus   @default(active)
+  severity          String
+  triggeredAt       DateTime
+  acknowledgedAt    DateTime?
+  investigatingAt   DateTime?
+  resolvedAt        DateTime?
+  duration          BigInt?
+  triggerContext    Json
+  actionsTaken      Json?
+  escalationLevel   Int           @default(0)
+  resolution        Json?
+  parentAlertId     String?
+  childAlertIds     String[]
+  relatedIncidentId String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  rule              AlertRule     @relation(fields: [ruleId], references: [id])
+  
+  @@index([ruleId])
+  @@index([status])
+  @@index([triggeredAt])
+}
+
+// System health tracking
+model SystemHealth {
+  id              String      @id @default(cuid())
+  timestamp       DateTime
+  components      Json
+  overallStatus   String
+  activeIssues    Json?
+  metrics         Json
+  capacity        Json
+  createdAt       DateTime    @default(now())
+  
+  @@index([timestamp])
+  @@index([overallStatus])
+}
+
+// Reconciliation job tracking
+model ReconciliationJob {
+  id              String      @id @default(cuid())
+  type            String
+  config          Json
+  status          String      @default("pending")
+  startedAt       DateTime?
+  completedAt     DateTime?
+  results         Json?
+  errors          Json?
+  createdBy       String
+  createdAt       DateTime    @default(now())
+  
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
