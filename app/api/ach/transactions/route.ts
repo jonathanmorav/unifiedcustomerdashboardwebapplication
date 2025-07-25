@@ -160,6 +160,33 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // Calculate amount breakdowns by status
+    const statusAmounts = await prisma.aCHTransaction.groupBy({
+      by: ["status"],
+      where,
+      _sum: {
+        amount: true,
+      },
+    })
+
+    // Calculate today's transactions count
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const todayCount = await prisma.aCHTransaction.count({
+      where: {
+        ...where,
+        created: {
+          gte: today,
+        },
+      },
+    })
+
+    // Prepare status amounts mapping
+    const statusAmountMap = statusAmounts.reduce((acc: any, item) => {
+      acc[item.status] = item._sum.amount ? parseFloat(item._sum.amount.toString()) : 0
+      return acc
+    }, {})
+
     const response = {
       transactions: transformedTransactions,
       pagination: {
@@ -173,10 +200,17 @@ export async function GET(request: NextRequest) {
         totalFees: metrics._sum.fees ? parseFloat(metrics._sum.fees.toString()) : 0,
         totalNetAmount: metrics._sum.netAmount ? parseFloat(metrics._sum.netAmount.toString()) : 0,
         totalCount: metrics._count._all,
+        todayCount: todayCount,
         statusCounts: statusCounts.reduce((acc: any, item) => {
           acc[item.status] = item._count._all
           return acc
         }, {}),
+        statusAmounts: {
+          pending: statusAmountMap.pending || 0,
+          processed: statusAmountMap.processed || 0,
+          failed: statusAmountMap.failed || 0,
+          returned: statusAmountMap.returned || 0,
+        },
       },
     }
 

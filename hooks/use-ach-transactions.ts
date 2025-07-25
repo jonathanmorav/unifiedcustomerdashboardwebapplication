@@ -117,37 +117,21 @@ export function useACHTransactions(
       setTotalCount(data.pagination?.total || 0)
       setTotalPages(data.pagination?.totalPages || 0)
 
-      // Calculate metrics from the API response
+      // Use server-side calculated metrics
       if (data.metrics) {
-        const { statusCounts = {} } = data.metrics
+        const { statusCounts = {}, statusAmounts = {} } = data.metrics
         const total = data.metrics.totalCount || 0
         const processed = statusCounts.processed || 0
-        const pending = statusCounts.pending || 0
-        const failed = statusCounts.failed || 0
-        const returned = statusCounts.returned || 0
-
-        // Get today's transactions count
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const todayTransactions = data.transactions.filter((t: any) => new Date(t.created) >= today)
 
         setMetrics({
           totalVolume: data.metrics.totalAmount || 0,
-          successRate: total > 0 ? (processed / total) * 100 : 0,
-          pendingAmount: data.transactions
-            .filter((t: any) => t.status === "pending")
-            .reduce((sum: number, t: any) => sum + t.amount, 0),
-          failedAmount: data.transactions
-            .filter((t: any) => t.status === "failed")
-            .reduce((sum: number, t: any) => sum + t.amount, 0),
-          todayCount: todayTransactions.length,
+          successRate: total > 0 ? Math.round((processed / total) * 100) : 0,
+          pendingAmount: statusAmounts.pending || 0,
+          failedAmount: statusAmounts.failed || 0,
+          todayCount: data.metrics.todayCount || 0,
           averageTransaction: total > 0 ? data.metrics.totalAmount / total : 0,
-          processedAmount: data.transactions
-            .filter((t: any) => t.status === "processed")
-            .reduce((sum: number, t: any) => sum + t.amount, 0),
-          returnedAmount: data.transactions
-            .filter((t: any) => t.status === "returned")
-            .reduce((sum: number, t: any) => sum + t.amount, 0),
+          processedAmount: statusAmounts.processed || 0,
+          returnedAmount: statusAmounts.returned || 0,
           totalFees: data.metrics.totalFees || 0,
           netAmount: data.metrics.totalNetAmount || 0,
         })
