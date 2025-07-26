@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import type { WebhookEvent, ReconciliationRun, ReconciliationDiscrepancy } from '@prisma/client'
+import type { WebhookEvent, ReconciliationJob, ReconciliationDiscrepancy } from '@prisma/client'
 import { DwollaClient } from '@/lib/api/dwolla/client'
 
 interface ReconciliationConfig {
@@ -106,7 +106,7 @@ export class ReconciliationEngine {
   async runReconciliation(
     configName?: string,
     forceRun: boolean = false
-  ): Promise<ReconciliationRun> {
+  ): Promise<ReconciliationJob> {
     if (this.isRunning) {
       throw new Error('Reconciliation already in progress')
     }
@@ -124,7 +124,7 @@ export class ReconciliationEngine {
       }
       
       // Create reconciliation run
-      const run = await prisma.reconciliationRun.create({
+      const run = await prisma.reconciliationJob.create({
         data: {
           status: 'running',
           startTime: new Date(),
@@ -147,7 +147,7 @@ export class ReconciliationEngine {
       }
       
       // Update run status
-      const finalRun = await prisma.reconciliationRun.update({
+      const finalRun = await prisma.reconciliationJob.update({
         where: { id: run.id },
         data: {
           status: 'completed',
@@ -224,7 +224,7 @@ export class ReconciliationEngine {
         })
         
         // Update error count
-        await prisma.reconciliationRun.update({
+        await prisma.reconciliationJob.update({
           where: { id: runId },
           data: {
             metrics: {
@@ -282,7 +282,7 @@ export class ReconciliationEngine {
       )
       
       // Update metrics
-      await prisma.reconciliationRun.update({
+      await prisma.reconciliationJob.update({
         where: { id: runId },
         data: {
           metrics: {
@@ -538,7 +538,7 @@ export class ReconciliationEngine {
       })
       
       // Update metrics
-      await prisma.reconciliationRun.update({
+      await prisma.reconciliationJob.update({
         where: { id: discrepancy.runId },
         data: {
           metrics: {
@@ -562,7 +562,7 @@ export class ReconciliationEngine {
     }
   }
   
-  private async sendAlerts(run: ReconciliationRun): Promise<void> {
+  private async sendAlerts(run: ReconciliationJob): Promise<void> {
     const criticalDiscrepancies = run.discrepancies?.filter(
       d => d.severity === 'critical' && !d.resolved
     ) || []
@@ -653,8 +653,8 @@ export class ReconciliationEngine {
   // Get reconciliation history
   async getReconciliationHistory(
     hours: number = 24
-  ): Promise<ReconciliationRun[]> {
-    return await prisma.reconciliationRun.findMany({
+  ): Promise<ReconciliationJob[]> {
+    return await prisma.reconciliationJob.findMany({
       where: {
         startTime: { gte: new Date(Date.now() - hours * 60 * 60 * 1000) }
       },

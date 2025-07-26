@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import type { ReconciliationRun, ReconciliationDiscrepancy } from '@prisma/client'
+import type { ReconciliationJob, ReconciliationDiscrepancy } from '@prisma/client'
 
 interface ReconciliationReport {
   summary: {
@@ -37,7 +37,7 @@ interface ReconciliationReport {
 
 export class ReconciliationReporter {
   async generateReport(runId: string): Promise<ReconciliationReport> {
-    const run = await prisma.reconciliationRun.findUnique({
+    const run = await prisma.reconciliationJob.findUnique({
       where: { id: runId },
       include: {
         discrepancies: true
@@ -139,10 +139,10 @@ export class ReconciliationReporter {
   }
   
   private async calculateTrends(
-    currentRun: ReconciliationRun
+    currentRun: ReconciliationJob
   ): Promise<ReconciliationReport['trends']> {
     // Get previous run
-    const previousRun = await prisma.reconciliationRun.findFirst({
+    const previousRun = await prisma.reconciliationJob.findFirst({
       where: {
         id: { not: currentRun.id },
         startTime: { lt: currentRun.startTime },
@@ -251,7 +251,7 @@ export class ReconciliationReporter {
     }>
   }> {
     // Get all runs in date range
-    const runs = await prisma.reconciliationRun.findMany({
+    const runs = await prisma.reconciliationJob.findMany({
       where: {
         startTime: { gte: startDate, lte: endDate },
         status: 'completed'
@@ -335,7 +335,7 @@ export class ReconciliationReporter {
   
   async exportReportToCSV(runId: string): Promise<string> {
     const report = await this.generateReport(runId)
-    const run = await prisma.reconciliationRun.findUnique({
+    const run = await prisma.reconciliationJob.findUnique({
       where: { id: runId },
       include: {
         discrepancies: true

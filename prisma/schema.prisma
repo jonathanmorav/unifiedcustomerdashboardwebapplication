@@ -485,16 +485,22 @@ model SystemHealth {
 }
 
 model ReconciliationJob {
-  id          String    @id @default(cuid())
-  type        String
-  config      Json
-  status      String    @default("pending")
-  startedAt   DateTime?
-  completedAt DateTime?
-  results     Json?
-  errors      Json?
-  createdBy   String
-  createdAt   DateTime  @default(now())
+  id            String    @id @default(cuid())
+  type          String
+  config        Json
+  status        String    @default("pending")
+  startedAt     DateTime?
+  completedAt   DateTime?
+  startTime     DateTime? // Added for backward compatibility
+  endTime       DateTime? // Added for backward compatibility
+  metrics       Json?     // Added to store reconciliation metrics
+  results       Json?
+  errors        Json?
+  createdBy     String
+  createdAt     DateTime  @default(now())
+  
+  // Added relation to discrepancies
+  discrepancies ReconciliationDiscrepancy[] @relation("JobDiscrepancies")
 
   @@index([type])
   @@index([status])
@@ -572,6 +578,7 @@ model ReconciliationCheck {
 model ReconciliationDiscrepancy {
   id            String   @id @default(cuid())
   checkId       String
+  runId         String?  // Added for ReconciliationJob relationship
   resourceId    String
   resourceType  String
   field         String
@@ -581,11 +588,16 @@ model ReconciliationDiscrepancy {
   resolvedAt    DateTime?
   resolvedBy    String?
   notes         String?
+  severity      String?  // Added severity field
+  checkName     String?  // Added checkName field
+  details       Json?    // Added details field
   createdAt     DateTime @default(now())
   
   check         ReconciliationCheck @relation(fields: [checkId], references: [id])
+  job           ReconciliationJob?  @relation("JobDiscrepancies", fields: [runId], references: [id])
   
   @@index([checkId])
+  @@index([runId])
   @@index([resolved])
 }
 
