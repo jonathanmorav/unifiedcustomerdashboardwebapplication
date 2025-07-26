@@ -103,7 +103,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
       }
 
       // Apply date filters
-      if (filters.createdDateRange) {
+      if (filters.createdDateRange && customer.company) {
         const createdDate = new Date(customer.company.createdAt)
         if (!this.isInDateRange(createdDate, filters.createdDateRange)) {
           return false
@@ -113,7 +113,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
       // Apply benefit amount filter
       if (filters.benefitAmountRange && customer.summaryOfBenefits) {
         const totalAmount = customer.summaryOfBenefits.reduce(
-          (sum, sob) => sum + (sob.amountToDraft || 0),
+          (sum, sob) => sum + (sob.amount_to_draft || 0),
           0
         )
         if (!this.isInAmountRange(totalAmount, filters.benefitAmountRange)) {
@@ -123,7 +123,11 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       // Apply pending invoices filter
       if (filters.hasPendingInvoices !== undefined) {
-        const hasPending = customer.monthlyInvoices?.some((invoice) => invoice.status === "pending")
+        const hasPending = customer.monthlyInvoices?.some((invoice) => {
+          // Access status through HubSpot object structure
+          const invoiceData = invoice as any
+          return invoiceData.status === "pending"
+        })
         if (filters.hasPendingInvoices !== hasPending) {
           return false
         }
@@ -222,21 +226,27 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       switch (sort.field) {
         case "date_created":
-          compareValue =
-            new Date(a.company.createdAt).getTime() - new Date(b.company.createdAt).getTime()
+          if (a.company && b.company) {
+            compareValue =
+              new Date(a.company.createdAt).getTime() - new Date(b.company.createdAt).getTime()
+          }
           break
         case "date_modified":
-          compareValue =
-            new Date(a.company.updatedAt).getTime() - new Date(b.company.updatedAt).getTime()
+          if (a.company && b.company) {
+            compareValue =
+              new Date(a.company.updatedAt).getTime() - new Date(b.company.updatedAt).getTime()
+          }
           break
         case "company_name":
-          compareValue = a.company.name.localeCompare(b.company.name)
+          if (a.company && b.company) {
+            compareValue = a.company.name.localeCompare(b.company.name)
+          }
           break
         case "amount":
           const amountA =
-            a.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amountToDraft || 0), 0) || 0
+            a.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amount_to_draft || 0), 0) || 0
           const amountB =
-            b.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amountToDraft || 0), 0) || 0
+            b.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amount_to_draft || 0), 0) || 0
           compareValue = amountA - amountB
           break
         default:
@@ -366,9 +376,10 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
    * Helper: Get HubSpot customer status
    */
   private getHubSpotCustomerStatus(customer: HubSpotCustomerData): "active" | "inactive" {
-    // This is a simplified status determination
-    // In reality, you'd check specific HubSpot properties
-    return customer.company.lifecycleStage === "customer" ? "active" : "inactive"
+    if (!customer.company) return "inactive"
+    // Access lifecycleStage through HubSpot object structure
+    const companyData = customer.company as any
+    return companyData.lifecycleStage === "customer" ? "active" : "inactive"
   }
 
   /**

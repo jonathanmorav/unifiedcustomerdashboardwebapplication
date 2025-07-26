@@ -42,7 +42,7 @@ class TransferEventProcessor implements EventProcessor {
     // Update transaction based on event type
     const updateData = await this.getUpdateData(event.eventType, payload)
     
-    if (Object.keys(updateData).length > 0) {
+    if (Object.keys(updateData).length > 0 && transaction) {
       transaction = await prisma.aCHTransaction.update({
         where: { id: transaction.id },
         data: {
@@ -61,22 +61,24 @@ class TransferEventProcessor implements EventProcessor {
     }
     
     // Create relationship
-    await prisma.webhookEventRelation.create({
-      data: {
-        webhookEventId: event.id,
-        relationType: 'transaction',
-        relationId: transaction.id,
-        relationTable: 'ACHTransaction',
-        metadata: {
-          transferId,
-          status: transaction.status
+    if (transaction) {
+      await prisma.webhookEventRelation.create({
+        data: {
+          webhookEventId: event.id,
+          relationType: 'transaction',
+          relationId: transaction.id,
+          relationTable: 'ACHTransaction',
+          metadata: {
+            transferId,
+            status: transaction.status
+          }
         }
-      }
-    })
-    
-    // Add to context for journey tracking
-    context.set('transaction', transaction)
-    context.set('customerId', transaction.customerId)
+      })
+      
+      // Add to context for journey tracking
+      context.set('transaction', transaction)
+      context.set('customerId', transaction.customerId)
+    }
   }
   
   private extractTransferId(resourceUrl?: string): string | null {
@@ -92,7 +94,7 @@ class TransferEventProcessor implements EventProcessor {
       data: {
         dwollaId: transferId,
         status: this.mapEventToStatus(event.eventType),
-        amount: new Prisma.Decimal(0), // Will be updated when we get more info
+        amount: 0, // Will be updated when we get more info
         direction: 'unknown',
         created: event.eventTimestamp,
         correlationId: payload.correlationId,

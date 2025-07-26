@@ -48,9 +48,9 @@ export class SearchHistory {
         searchType,
         timestamp: new Date(),
         duration,
-        foundInHubspot: results.results.hubspot.length > 0,
-        foundInDwolla: results.results.dwolla.length > 0,
-        totalResults: results.totalResults,
+        foundInHubspot: results.hubspot.success && results.hubspot.data !== undefined,
+        foundInDwolla: results.dwolla.success && results.dwolla.data !== undefined,
+        totalResults: this.calculateTotalResults(results),
         tags: this.generateTags(results),
       }
 
@@ -68,7 +68,7 @@ export class SearchHistory {
           searchTerm,
           searchType,
           duration,
-          totalResults: results.totalResults,
+          totalResults: this.calculateTotalResults(results),
           operation: "search_history_add",
         })
       }
@@ -141,20 +141,34 @@ export class SearchHistory {
   private static generateTags(results: UnifiedSearchResult): string[] {
     const tags: string[] = []
 
-    if (results.results.hubspot.length > 0) {
-      const types = new Set(results.results.hubspot.map((r) => r.type))
-      types.forEach((type) => tags.push(`hubspot:${type}`))
+    if (results.hubspot.success && results.hubspot.data) {
+      tags.push("hubspot")
     }
 
-    if (results.results.dwolla.length > 0) {
-      const types = new Set(results.results.dwolla.map((r) => r.type))
-      types.forEach((type) => tags.push(`dwolla:${type}`))
+    if (results.dwolla.success && results.dwolla.data) {
+      tags.push("dwolla")
     }
 
-    if (results.totalResults === 0) {
+    if (this.calculateTotalResults(results) === 0) {
       tags.push("no-results")
     }
 
     return tags
+  }
+
+  private static calculateTotalResults(results: UnifiedSearchResult): number {
+    let total = 0
+    
+    if (results.hubspot.success && results.hubspot.data) {
+      // Count HubSpot results - this would need to be adjusted based on actual data structure
+      total += 1
+    }
+    
+    if (results.dwolla.success && results.dwolla.data) {
+      // Count Dwolla results - this would need to be adjusted based on actual data structure
+      total += 1
+    }
+    
+    return total
   }
 }

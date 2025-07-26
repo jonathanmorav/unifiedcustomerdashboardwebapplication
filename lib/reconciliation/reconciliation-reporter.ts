@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import type { ReconciliationRun, ReconciliationDiscrepancy } from '@prisma/client'
+import type { ReconciliationJob, ReconciliationDiscrepancy } from '@prisma/client'
 
 interface ReconciliationReport {
   summary: {
@@ -37,7 +37,7 @@ interface ReconciliationReport {
 
 export class ReconciliationReporter {
   async generateReport(runId: string): Promise<ReconciliationReport> {
-    const run = await prisma.reconciliationRun.findUnique({
+    const run = await prisma.reconciliationJob.findUnique({
       where: { id: runId },
       include: {
         discrepancies: true
@@ -45,34 +45,34 @@ export class ReconciliationReporter {
     })
     
     if (!run) {
-      throw new Error('Reconciliation run not found')
+      throw new Error('Reconciliation job not found')
     }
     
-    const metrics = run.metrics as any
-    const duration = run.endTime 
-      ? run.endTime.getTime() - run.startTime.getTime()
-      : Date.now() - run.startTime.getTime()
+    const results = run.results as any
+    const duration = run.completedAt 
+      ? run.completedAt.getTime() - run.startedAt!.getTime()
+      : Date.now() - run.startedAt!.getTime()
     
     // Calculate summary
     const summary = {
       runId: run.id,
-      startTime: run.startTime,
-      endTime: run.endTime || new Date(),
+      startTime: run.startedAt!,
+      endTime: run.completedAt || new Date(),
       duration,
       status: run.status,
-      totalChecks: metrics.totalChecks || 0,
-      totalDiscrepancies: metrics.discrepanciesFound || 0,
-      resolvedDiscrepancies: metrics.discrepanciesResolved || 0,
-      unresolvedDiscrepancies: (metrics.discrepanciesFound || 0) - (metrics.discrepanciesResolved || 0),
-      criticalIssues: run.discrepancies?.filter(d => d.severity === 'critical' && !d.resolved).length || 0,
-      errorRate: metrics.totalChecks > 0 
-        ? ((metrics.discrepanciesFound || 0) / metrics.totalChecks) * 100
+      totalChecks: results.totalChecks || 0,
+      totalDiscrepancies: results.discrepanciesFound || 0,
+      resolvedDiscrepancies: results.discrepanciesResolved || 0,
+      unresolvedDiscrepancies: (results.discrepanciesFound || 0) - (results.discrepanciesResolved || 0),
+      criticalIssues: run.discrepancies?.filter((d: any) => d.severity === 'critical' && !d.resolved).length || 0,
+      errorRate: results.totalChecks > 0 
+        ? ((results.discrepanciesFound || 0) / results.totalChecks) * 100
         : 0
     }
     
     // Group discrepancies
-    const discrepanciesByType = this.groupByField(run.discrepancies || [], 'checkName')
-    const discrepanciesBySeverity = this.groupByField(run.discrepancies || [], 'severity')
+    const discrepanciesByType = this.groupByField(run.discrepancies || [], 'field')
+    const discrepanciesBySeverity = this.groupByField(run.discrepancies || [], 'field')
     
     // Get top issues
     const topIssues = this.getTopIssues(run.discrepancies || [])
@@ -110,11 +110,11 @@ export class ReconciliationReporter {
   private getTopIssues(
     discrepancies: ReconciliationDiscrepancy[]
   ): ReconciliationReport['topIssues'] {
-    // Group by check name
+    // Group by field
     const issueGroups = new Map<string, ReconciliationDiscrepancy[]>()
     
     for (const discrepancy of discrepancies) {
-      const key = discrepancy.checkName
+      const key = discrepancy.field
       if (!issueGroups.has(key)) {
         issueGroups.set(key, [])
       }
@@ -123,13 +123,13 @@ export class ReconciliationReporter {
     
     // Convert to array and sort by count
     const topIssues = Array.from(issueGroups.entries())
-      .map(([checkName, items]) => ({
-        checkName,
+      .map(([field, items]) => ({
+        checkName: field,
         count: items.length,
-        severity: items[0].severity,
+        severity: 'medium', // Default severity since it's not in schema
         examples: items.slice(0, 3).map(item => ({
           resourceId: item.resourceId,
-          details: item.details
+          details: item.notes
         }))
       }))
       .sort((a, b) => b.count - a.count)
@@ -139,34 +139,34 @@ export class ReconciliationReporter {
   }
   
   private async calculateTrends(
-    currentRun: ReconciliationRun
+    currentRun: ReconciliationJob
   ): Promise<ReconciliationReport['trends']> {
     // Get previous run
-    const previousRun = await prisma.reconciliationRun.findFirst({
+    const previousRun = await prisma.reconciliationJob.findFirst({
       where: {
         id: { not: currentRun.id },
-        startTime: { lt: currentRun.startTime },
+        startedAt: { lt: currentRun.startedAt! },
         status: 'completed'
       },
-      orderBy: { startTime: 'desc' }
+      orderBy: { startedAt: 'desc' }
     })
     
-    const currentMetrics = currentRun.metrics as any
-    const previousMetrics = previousRun?.metrics as any
+    const currentResults = currentRun.results as any
+    const previousResults = previousRun?.results as any
     
     // Calculate current discrepancy rate
-    const currentDiscrepancyRate = currentMetrics.totalChecks > 0
-      ? (currentMetrics.discrepanciesFound / currentMetrics.totalChecks) * 100
+    const currentDiscrepancyRate = currentResults.totalChecks > 0
+      ? (currentResults.discrepanciesFound / currentResults.totalChecks) * 100
       : 0
     
     // Calculate previous discrepancy rate
-    const previousDiscrepancyRate = previousMetrics?.totalChecks > 0
-      ? (previousMetrics.discrepanciesFound / previousMetrics.totalChecks) * 100
+    const previousDiscrepancyRate = previousResults?.totalChecks > 0
+      ? (previousResults.discrepanciesFound / previousResults.totalChecks) * 100
       : 0
     
     // Calculate resolution rate
-    const resolutionRate = currentMetrics.discrepanciesFound > 0
-      ? (currentMetrics.discrepanciesResolved / currentMetrics.discrepanciesFound) * 100
+    const resolutionRate = currentResults.discrepanciesFound > 0
+      ? (currentResults.discrepanciesResolved / currentResults.discrepanciesFound) * 100
       : 100
     
     return {

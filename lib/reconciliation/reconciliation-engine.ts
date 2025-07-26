@@ -537,11 +537,11 @@ export class ReconciliationEngine {
         }
       })
       
-      // Update metrics
-      await prisma.reconciliationRun.update({
-        where: { id: discrepancy.runId },
+      // Update metrics - using reconciliationJob instead of reconciliationRun
+      await prisma.reconciliationJob.update({
+        where: { id: discrepancy.checkId },
         data: {
-          metrics: {
+          results: {
             update: {
               discrepanciesResolved: { increment: 1 }
             }
@@ -562,20 +562,20 @@ export class ReconciliationEngine {
     }
   }
   
-  private async sendAlerts(run: ReconciliationRun): Promise<void> {
+  private async sendAlerts(run: ReconciliationJob): Promise<void> {
     const criticalDiscrepancies = run.discrepancies?.filter(
-      d => d.severity === 'critical' && !d.resolved
+      (d: any) => d.severity === 'critical' && !d.resolved
     ) || []
     
     if (criticalDiscrepancies.length > 0) {
       log.error('Critical discrepancies found', {
         runId: run.id,
         count: criticalDiscrepancies.length,
-        discrepancies: criticalDiscrepancies.map(d => ({
+        discrepancies: criticalDiscrepancies.map((d: any) => ({
           resourceType: d.resourceType,
           resourceId: d.resourceId,
-          checkName: d.checkName,
-          details: d.details
+          field: d.field,
+          notes: d.notes
         }))
       })
       
@@ -641,11 +641,12 @@ export class ReconciliationEngine {
       data: {
         resolved: true,
         resolvedAt: new Date(),
-        resolutionType: resolution.type,
-        resolutionDetails: {
-          ...resolution.details,
+        resolvedBy: 'system',
+        notes: JSON.stringify({
+          resolutionType: resolution.type,
+          resolutionDetails: resolution.details,
           correctiveAction
-        }
+        })
       }
     })
   }
@@ -653,17 +654,17 @@ export class ReconciliationEngine {
   // Get reconciliation history
   async getReconciliationHistory(
     hours: number = 24
-  ): Promise<ReconciliationRun[]> {
-    return await prisma.reconciliationRun.findMany({
+  ): Promise<ReconciliationJob[]> {
+    return await prisma.reconciliationJob.findMany({
       where: {
-        startTime: { gte: new Date(Date.now() - hours * 60 * 60 * 1000) }
+        createdAt: { gte: new Date(Date.now() - hours * 60 * 60 * 1000) }
       },
       include: {
         discrepancies: {
           where: { resolved: false }
         }
       },
-      orderBy: { startTime: 'desc' }
+      orderBy: { createdAt: 'desc' }
     })
   }
   
