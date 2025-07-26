@@ -17,6 +17,30 @@ interface SearchResultsProps {
 }
 
 export function SearchResults({ result, isLoading, error, searchTerm }: SearchResultsProps) {
+  // React hooks must be called before any early returns
+  const [showDesktopView, setShowDesktopView] = useState(true)
+
+  useEffect(() => {
+    const checkViewport = () => {
+      setShowDesktopView(window.innerWidth >= 1024)
+      console.log(
+        "[SEARCH RESULTS DEBUG] Viewport check - showDesktopView:",
+        window.innerWidth >= 1024,
+        "Width:",
+        window.innerWidth
+      )
+    }
+
+    // Set initial value
+    checkViewport()
+
+    // Add listener
+    window.addEventListener("resize", checkViewport)
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkViewport)
+  }, [])
+
   // Debug logging
   if (result) {
     console.log("[SEARCH RESULTS DEBUG] Full result:", result)
@@ -43,25 +67,6 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
   if (result && !result.summary.found && !isLoading) {
     return <EmptyState type="no-results" searchTerm={searchTerm} />
   }
-
-  // Use a state to track viewport size for proper hydration
-  const [showDesktopView, setShowDesktopView] = useState(true)
-
-  useEffect(() => {
-    const checkViewport = () => {
-      setShowDesktopView(window.innerWidth >= 1024)
-      console.log(
-        "[SEARCH RESULTS DEBUG] Viewport check - showDesktopView:",
-        window.innerWidth >= 1024,
-        "Width:",
-        window.innerWidth
-      )
-    }
-
-    checkViewport()
-    window.addEventListener("resize", checkViewport)
-    return () => window.removeEventListener("resize", checkViewport)
-  }, [])
 
   // Mobile view - use tabs
   if (!showDesktopView) {

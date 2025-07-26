@@ -1,6 +1,40 @@
 import type { HubSpotCustomerData } from "./hubspot"
 import type { DwollaCustomerData } from "./dwolla"
 
+// Basic search result item
+export interface SearchResult {
+  id: string
+  type: "hubspot" | "dwolla"
+  title: string
+  subtitle?: string
+  description?: string
+  metadata?: Record<string, any>
+  relevanceScore?: number
+  lastActivity?: Date
+  data?: HubSpotCustomerData | DwollaCustomerData
+}
+
+// Unified search result structure
+export interface UnifiedSearchResult {
+  results: {
+    results: {
+      hubspot: SearchResult[]
+      dwolla: SearchResult[]
+    }
+  }
+  totalResults: number
+  searchTerm: string
+  timestamp: Date
+  duration: number
+  pagination?: {
+    page: number
+    pageSize: number
+    totalPages: number
+  }
+  success: boolean
+  errors?: string[]
+}
+
 // Extended search types for advanced filtering
 export type SearchType = "email" | "name" | "business_name" | "dwolla_id" | "auto"
 

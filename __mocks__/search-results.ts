@@ -1,4 +1,4 @@
-import type { SearchResult, AdvancedSearchResult } from "@/lib/types/search"
+import type { SearchResult, AdvancedSearchResult, UnifiedSearchResult } from "@/lib/types/search"
 import { mockHubSpotCustomerData } from "./hubspot-responses"
 import { mockDwollaCustomerData } from "./dwolla-responses"
 
@@ -47,59 +47,74 @@ export const mockSearchResults: SearchResult[] = [
 ]
 
 export const mockAdvancedSearchResult: AdvancedSearchResult = {
-  results: mockSearchResults,
-  totalCount: 25,
-  filteredCount: 3,
-  facets: {
-    type: [
-      { value: "hubspot", count: 15 },
-      { value: "dwolla", count: 10 },
-    ],
-    status: [
-      { value: "active", count: 20 },
-      { value: "pending", count: 3 },
-      { value: "inactive", count: 2 },
-    ],
+  searchTerm: "acme",
+  searchType: "auto",
+  timestamp: new Date("2024-01-15T10:30:00Z"),
+  duration: 245,
+  
+  pagination: {
+    currentPage: 1,
+    pageSize: 20,
+    totalResults: 25,
+    totalPages: 2,
   },
-  query: {
-    searchTerm: "acme",
-    filters: {
-      type: ["hubspot", "dwolla"],
-      status: ["active"],
-    },
-    sort: {
-      field: "score",
-      direction: "desc",
-    },
-    pagination: {
-      page: 1,
-      limit: 20,
-    },
+  
+  hubspot: {
+    success: true,
+    data: [mockHubSpotCustomerData],
+    duration: 120,
+    totalCount: 15,
   },
-  timing: {
-    total: 125,
-    hubspot: 80,
-    dwolla: 45,
+  
+  dwolla: {
+    success: true,
+    data: [mockDwollaCustomerData],
+    duration: 125,
+    totalCount: 10,
+  },
+  
+  statistics: {
+    totalCustomers: 25,
+    activeCustomers: 20,
+    totalTransferAmount: 125000,
+    failedTransfersCount: 3,
+    unverifiedFundingCount: 2,
   },
 }
 
 export const mockEmptySearchResult: AdvancedSearchResult = {
-  results: [],
-  totalCount: 0,
-  filteredCount: 0,
-  facets: {
-    type: [],
-    status: [],
+  searchTerm: "nonexistent",
+  searchType: "auto",
+  timestamp: new Date("2024-01-15T10:30:00Z"),
+  duration: 89,
+  
+  pagination: {
+    currentPage: 1,
+    pageSize: 20,
+    totalResults: 0,
+    totalPages: 0,
   },
-  query: {
-    searchTerm: "nonexistent",
-    pagination: {
-      page: 1,
-      limit: 20,
-    },
+  
+  hubspot: {
+    success: true,
+    data: [],
+    duration: 45,
+    totalCount: 0,
   },
-  timing: {
-    total: 50,
+  
+  dwolla: {
+    success: true,
+    data: [],
+    duration: 44,
+    totalCount: 0,
+  },
+  
+  statistics: {
+    totalCustomers: 0,
+    activeCustomers: 0,
+    totalTransferAmount: 0,
+    failedTransfersCount: 0,
+    unverifiedFundingCount: 0,
   },
 }
 
@@ -118,3 +133,42 @@ export const mockSearchSuggestions = [
   "acme invoices",
   "acme policies",
 ]
+
+// Unified search result mock for search history client
+export const mockUnifiedSearchResult: UnifiedSearchResult = {
+  results: {
+    results: {
+      hubspot: mockSearchResults.filter(r => r.type === "hubspot"),
+      dwolla: mockSearchResults.filter(r => r.type === "dwolla"),
+    }
+  },
+  totalResults: 25,
+  searchTerm: "acme corporation",
+  timestamp: new Date("2024-01-15T10:30:00Z"),
+  duration: 245,
+  pagination: {
+    page: 1,
+    pageSize: 20,
+    totalPages: 2,
+  },
+  success: true,
+}
+
+export const mockEmptyUnifiedSearchResult: UnifiedSearchResult = {
+  results: {
+    results: {
+      hubspot: [],
+      dwolla: [],
+    }
+  },
+  totalResults: 0,
+  searchTerm: "nonexistent",
+  timestamp: new Date("2024-01-15T10:30:00Z"),
+  duration: 89,
+  pagination: {
+    page: 1,
+    pageSize: 20,
+    totalPages: 0,
+  },
+  success: true,
+}
