@@ -10,6 +10,7 @@ export interface SearchResult {
   description?: string
   metadata?: Record<string, any>
   relevanceScore?: number
+  score?: number  // Added for mock compatibility
   lastActivity?: Date
   data?: HubSpotCustomerData | DwollaCustomerData
 }
