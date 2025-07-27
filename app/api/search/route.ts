@@ -47,6 +47,8 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     // Check for demo mode
     const isDemoMode = process.env.DEMO_MODE === "true" || !process.env.HUBSPOT_API_KEY
+    
+    console.log(`[DEBUG] Search request: term="${searchTerm}", type="${searchType}", demoMode=${isDemoMode}`)
 
     let result
     let displayResult
@@ -70,7 +72,14 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
         searchType,
         signal: controller.signal,
       })
-      displayResult = searchEngine.formatForDisplay(result)
+      console.log(`[DEBUG] Search completed, now formatting for display...`)
+      try {
+        displayResult = searchEngine.formatForDisplay(result)
+        console.log(`[DEBUG] Display formatting completed successfully`)
+      } catch (error) {
+        console.error(`[DEBUG] Error in formatForDisplay:`, error)
+        throw error
+      }
     }
 
     // Save to search history (non-blocking)

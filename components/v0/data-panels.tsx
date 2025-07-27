@@ -4,6 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import { Separator } from "./ui/separator"
+import { PoliciesPanel } from "@/components/policies/PoliciesPanel"
+import { TransactionDetailModal } from "@/components/billing/TransactionDetailModal"
+import { formatCurrency } from "@/utils/format-currency"
+import { useState } from "react"
 import {
   FileText,
   CreditCard,
@@ -12,6 +16,7 @@ import {
   Clock,
   AlertCircle,
   VideoIcon,
+  MousePointer,
 } from "lucide-react"
 
 interface DataPanelsProps {
@@ -23,6 +28,105 @@ interface DataPanelsProps {
 
 export function DataPanels({ data }: DataPanelsProps) {
   const { hubspot, dwolla } = data
+  
+  // State for transaction detail modal
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const mapTransferToTransaction = (transfer: any) => {
+    // Map Dwolla transfer data to TransactionDetailModal expected format
+    
+    // Convert amount to number (Dwolla sends as string)
+    const amountValue = parseFloat(transfer.amount?.value || transfer.amount || "0")
+    
+    // Helper function to find funding source by URL
+    const findFundingSourceByUrl = (url: string) => {
+      if (!url || !dwolla?.fundingSources) return null
+      const sourceId = url.split('/').pop()
+      return dwolla.fundingSources.find((fs: any) => fs.id === sourceId)
+    }
+    
+    // Get source and destination funding source details
+    const sourceFs = findFundingSourceByUrl(transfer._links?.source?.href)
+    const destinationFs = findFundingSourceByUrl(transfer._links?.destination?.href)
+    
+    const mappedTransaction = {
+      // Core transaction fields
+      dwollaId: transfer.id,
+      amount: amountValue,
+      currency: transfer.currency || transfer.amount?.currency || "USD",
+      status: transfer.status,
+      created: transfer.created,
+      
+      // Customer information (try multiple sources)
+      customerName: transfer.customerName || 
+                   dwolla?.customer?.name ||
+                   (dwolla?.customer?.firstName || dwolla?.customer?.lastName 
+                     ? `${dwolla?.customer?.firstName || ""} ${dwolla?.customer?.lastName || ""}`.trim()
+                     : dwolla?.customer?.businessName) ||
+                   hubspot?.company?.properties?.name || 
+                   null,
+      companyName: transfer.companyName || 
+                  dwolla?.customer?.businessName ||
+                  hubspot?.company?.properties?.name || 
+                  null,
+      customerEmail: transfer.customerEmail || 
+                    dwolla?.customer?.email ||
+                    hubspot?.company?.properties?.email___owner || 
+                    null,
+      customerId: transfer.customerId || dwolla?.customer?.id || null,
+      
+      // Bank/Source information (what the modal expects)
+      sourceName: transfer.sourceName || 
+                 sourceFs?.name || 
+                 transfer.sourceId || 
+                 (transfer._links?.source?.href ? 
+                   transfer._links.source.href.split('/').pop() : null),
+      destinationName: transfer.destinationName || 
+                      destinationFs?.name || 
+                      transfer.destinationId || 
+                      (transfer._links?.destination?.href ? 
+                        transfer._links.destination.href.split('/').pop() : null),
+      sourceBankName: transfer.sourceBankName || sourceFs?.bankName || "ACH Transfer",
+      destinationBankName: transfer.destinationBankName || destinationFs?.bankName || "Bank Account",
+      bankLastFour: transfer.bankLastFour || 
+                   sourceFs?.accountNumberMasked?.slice(-4) || 
+                   destinationFs?.accountNumberMasked?.slice(-4) || 
+                   null,
+      
+      // Transaction details
+      transactionType: transfer.transactionType || transfer.metadata?.transactionType || "Transfer",
+      invoiceNumber: transfer.invoiceNumber || transfer.metadata?.invoiceNumber || null,
+      correlationId: transfer.correlationId || null,
+      individualAchId: transfer.individualAchId || transfer.achId || `ACH_${transfer.id?.slice(-8) || Math.random().toString(36).slice(-8)}`,
+      description: transfer.description || transfer.metadata?.description || null,
+      
+      // Direction (convert to credit/debit for modal)
+      direction: transfer.direction === "inbound" ? "credit" : "debit",
+      
+      // Additional metadata
+      fees: transfer.fees ? parseFloat(transfer.fees) : 0,
+      netAmount: transfer.netAmount ? parseFloat(transfer.netAmount) : amountValue,
+      
+      // Failure information (if applicable)
+      returnCode: transfer.returnCode || null,
+      failureReason: transfer.failureReason || null,
+      failureCode: transfer.failureCode || null,
+    }
+    
+    return mappedTransaction
+  }
+
+  const handleTransactionClick = (transfer: any) => {
+    const mappedTransaction = mapTransferToTransaction(transfer)
+    setSelectedTransaction(mappedTransaction)
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setSelectedTransaction(null)
+  }
 
   // Defensive coding for data structure
   if (!hubspot || !dwolla) {
@@ -37,26 +141,36 @@ export function DataPanels({ data }: DataPanelsProps) {
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
+      // Success states - GREEN
       case "active":
       case "verified":
       case "completed":
+      case "processed":
         return (
           <Badge className="border-0 bg-cakewalk-success-light text-cakewalk-success-dark">
             <CheckCircle className="mr-1 h-3 w-3" />
             {status}
           </Badge>
         )
+      // Pending states - YELLOW  
       case "pending":
         return (
-          <Badge
-            variant="secondary"
-            className="border-0 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+          <Badge 
+            className="border-0"
+            style={{
+              backgroundColor: '#fef3c7', // yellow-100
+              color: '#92400e', // yellow-800
+            }}
           >
             <Clock className="mr-1 h-3 w-3" />
             {status}
           </Badge>
         )
+      // Failure states - RED
       case "failed":
+      case "cancelled":
+      case "returned":
+      case "reclaimed":
       case "unverified":
         return (
           <Badge variant="destructive" className="border-0">
@@ -69,8 +183,7 @@ export function DataPanels({ data }: DataPanelsProps) {
     }
   }
 
-  // Debug logging for clarity sessions
-  console.log("[DATA PANELS DEBUG] Clarity sessions:", hubspot?.data?.claritySessions)
+
 
   return (
     <div className="space-y-6">
@@ -190,6 +303,21 @@ export function DataPanels({ data }: DataPanelsProps) {
                           </span>
                         </div>
                       )}
+
+                      {/* Policies Section */}
+                      {sob.policies && sob.policies.length > 0 && (
+                        <>
+                          <Separator className="bg-cakewalk-border my-4" />
+                          <PoliciesPanel 
+                            policies={sob.policies}
+                            companyName={hubspot.company?.name}
+                            onPolicySelect={(policy) => {
+                              console.log('Policy selected:', policy)
+                              // TODO: Add policy selection handler
+                            }}
+                          />
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -254,12 +382,7 @@ export function DataPanels({ data }: DataPanelsProps) {
                       {dwolla.customer.name || "Not available"}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
-                      Status:
-                    </span>
-                    {getStatusBadge(dwolla.customer.status || "unknown")}
-                  </div>
+
                 </div>
               </div>
             )}
@@ -289,7 +412,7 @@ export function DataPanels({ data }: DataPanelsProps) {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
-                              Account:
+                              Account Number:
                             </span>
                             <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
                               {source.accountNumberMasked || source.name || "Not available"}
@@ -305,16 +428,7 @@ export function DataPanels({ data }: DataPanelsProps) {
                               </span>
                             </div>
                           )}
-                          {source.routingNumber && (
-                            <div className="flex justify-between">
-                              <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
-                                Routing Number:
-                              </span>
-                              <span className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                                {source.routingNumber}
-                              </span>
-                            </div>
-                          )}
+
                           <div className="flex items-center justify-between">
                             <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
                               Status:
@@ -341,16 +455,26 @@ export function DataPanels({ data }: DataPanelsProps) {
                     {dwolla.transfers.map((transfer: any) => (
                       <div
                         key={transfer.id}
-                        className="flex items-center justify-between rounded-xl bg-cakewalk-alice-200 p-3 transition-colors duration-300"
+                        className="group flex cursor-pointer items-center justify-between rounded-xl bg-cakewalk-alice-200 p-3 transition-all duration-200 hover:bg-cakewalk-alice-300 hover:shadow-sm"
+                        onClick={() => handleTransactionClick(transfer)}
+                        title="Click to view transaction details"
                       >
-                        <div>
-                          <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                            {transfer.amount || "No amount"}
-                          </p>
-                          <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
-                            {transfer.date || transfer.created || "Unknown date"} •{" "}
-                            {transfer.type || "Transfer"}
-                          </p>
+                        <div className="flex flex-1 items-center gap-2">
+                          <div className="flex-1">
+                            <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                              {(() => {
+                                // The formatter should now provide transfer.amount as a string
+                                const amountValue = transfer.amount || "0"
+                                const amount = parseFloat(amountValue)
+                                return amount > 0 ? formatCurrency(amount) : "No amount"
+                              })()}
+                            </p>
+                            <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
+                              {transfer.date || transfer.created || "Unknown date"} •{" "}
+                              {transfer.type || "Transfer"}
+                            </p>
+                          </div>
+                          <MousePointer className="h-4 w-4 text-cakewalk-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                         </div>
                         {getStatusBadge(transfer.status)}
                       </div>
@@ -372,9 +496,9 @@ export function DataPanels({ data }: DataPanelsProps) {
                     <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">
                       No recent notifications
                     </p>
-                  ) : (
+                  ) : dwolla.notifications && dwolla.notifications.length > 0 ? (
                     <div className="space-y-2">
-                      {dwolla.notifications?.map((notification: any) => (
+                      {dwolla.notifications.map((notification: any) => (
                         <div
                           key={notification.id}
                           className="rounded-xl bg-cakewalk-alice-200 p-3 transition-colors duration-300"
@@ -387,12 +511,12 @@ export function DataPanels({ data }: DataPanelsProps) {
                             {notification.type || "Notification"}
                           </p>
                         </div>
-                      )) || (
-                        <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">
-                          Notifications available but not loaded
-                        </p>
-                      )}
+                      ))}
                     </div>
+                  ) : (
+                    <p className="text-cakewalk-body-xs text-cakewalk-text-secondary">
+                      Notifications available but not loaded
+                    </p>
                   )}
                 </div>
               </>
@@ -401,158 +525,12 @@ export function DataPanels({ data }: DataPanelsProps) {
         </Card>
       </div>
 
-      {/* Clarity Sessions Panel - Full Width Below Both Panels */}
-      {(hubspot?.data?.claritySessions?.length > 0 || true) && (
-        <Card className="border-cakewalk-border shadow-cakewalk-medium transition-colors duration-300">
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-2">
-              <VideoIcon className="h-5 w-5 text-cakewalk-primary" />
-              <CardTitle className="text-cakewalk-h4 text-cakewalk-text-primary">
-                Microsoft Clarity Sessions
-              </CardTitle>
-            </div>
-            <CardDescription className="text-cakewalk-body-xs text-cakewalk-text-secondary">
-              Session recordings and user behavior analytics
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {hubspot?.data?.claritySessions?.length > 0 ? (
-              <div className="space-y-4">
-                <div className="text-cakewalk-body-xs text-cakewalk-text-secondary">
-                  Found {hubspot.data.claritySessions.length} session recording
-                  {hubspot.data.claritySessions.length !== 1 ? "s" : ""}
-                </div>
-
-                {hubspot.data.claritySessions.map((session: any, index: number) => (
-                  <div
-                    key={session.id || index}
-                    className="rounded-xl border bg-cakewalk-alice-200 p-4"
-                  >
-                    <div className="space-y-3">
-                      {/* Session Header */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <VideoIcon className="h-4 w-4 text-cakewalk-primary" />
-                          <span className="text-cakewalk-body-sm font-medium text-cakewalk-text-primary">
-                            Microsoft Clarity Session
-                          </span>
-                        </div>
-                        <span className="text-cakewalk-body-xs text-cakewalk-text-secondary">
-                          {new Date(session.timestamp).toLocaleDateString()}
-                        </span>
-                      </div>
-
-                      {/* Recording Link */}
-                      <div className="flex items-center justify-between">
-                        {session.recordingUrl ? (
-                          <a
-                            href={session.recordingUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-cakewalk-body-sm text-cakewalk-primary underline transition-colors duration-200 hover:text-cakewalk-primary-dark"
-                          >
-                            🎥 Click to view recording
-                          </a>
-                        ) : (
-                          <span className="text-cakewalk-body-sm text-cakewalk-text-secondary">
-                            No recording URL available (Session ID: {session.id})
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Session Details */}
-                      <div className="grid grid-cols-2 gap-4 text-cakewalk-body-xs md:grid-cols-4">
-                        {session.duration && (
-                          <div>
-                            <span className="text-cakewalk-text-secondary">Duration:</span>
-                            <div className="font-medium text-cakewalk-text-primary">
-                              {Math.floor(session.duration / 60)}m {session.duration % 60}s
-                            </div>
-                          </div>
-                        )}
-                        {session.deviceType && (
-                          <div>
-                            <span className="text-cakewalk-text-secondary">Device:</span>
-                            <div className="font-medium capitalize text-cakewalk-text-primary">
-                              {session.deviceType}
-                            </div>
-                          </div>
-                        )}
-                        {session.browser && (
-                          <div>
-                            <span className="text-cakewalk-text-secondary">Browser:</span>
-                            <div className="font-medium text-cakewalk-text-primary">
-                              {session.browser}
-                            </div>
-                          </div>
-                        )}
-                        {session.smartEvents && (
-                          <div>
-                            <span className="text-cakewalk-text-secondary">Events:</span>
-                            <div className="font-medium text-cakewalk-text-primary">
-                              {session.smartEvents.length} recorded
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Smart Events */}
-                      {session.smartEvents && session.smartEvents.length > 0 && (
-                        <div className="border-t border-cakewalk-border pt-3">
-                          <div className="mb-2 text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
-                            Smart Events:
-                          </div>
-                          <div className="space-y-1">
-                            {session.smartEvents
-                              .slice(0, 3)
-                              .map((event: any, eventIndex: number) => (
-                                <div
-                                  key={eventIndex}
-                                  className="flex items-center justify-between text-cakewalk-body-xs"
-                                >
-                                  <span className="text-cakewalk-text-primary">{event.event}</span>
-                                  <span className="text-cakewalk-text-secondary">
-                                    {event.startTime} • {event.type}
-                                  </span>
-                                </div>
-                              ))}
-                            {session.smartEvents.length > 3 && (
-                              <div className="text-cakewalk-body-xs italic text-cakewalk-text-secondary">
-                                ... and {session.smartEvents.length - 3} more events
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-cakewalk-text-secondary">
-                <VideoIcon className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                <p className="text-cakewalk-body-sm">No session recordings found</p>
-                <p className="mt-2 text-cakewalk-body-xs">
-                  Session recordings will appear here when available from Microsoft Clarity
-                </p>
-
-                {/* Debug Info */}
-                <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-                  <p className="text-cakewalk-body-xs font-medium text-yellow-800">Debug Info:</p>
-                  <p className="mt-1 text-cakewalk-body-xs text-yellow-700">
-                    Sessions in data: {hubspot?.data?.claritySessions?.length || 0}
-                  </p>
-                  {hubspot?.data?.claritySessions && (
-                    <pre className="mt-2 overflow-x-auto text-xs text-yellow-700">
-                      {JSON.stringify(hubspot.data.claritySessions, null, 2).substring(0, 200)}...
-                    </pre>
-                  )}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {/* Transaction Detail Modal */}
+      <TransactionDetailModal
+        transaction={selectedTransaction}
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+      />
     </div>
   )
 }

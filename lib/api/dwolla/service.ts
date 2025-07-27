@@ -1,11 +1,37 @@
 import { DwollaClient, DwollaAPIError } from "./client"
-import type { DwollaCustomerData, DwollaCustomer, MaskedFundingSource } from "@/lib/types/dwolla"
+import type { DwollaCustomerData, DwollaCustomer, MaskedFundingSource, DwollaTransfer, DwollaNotification } from "@/lib/types/dwolla"
+import { v4 as uuidv4 } from 'uuid'
 
 // Logger interface for pluggable logging
 export interface Logger {
   warn(message: string, meta?: any): void // eslint-disable-line @typescript-eslint/no-explicit-any
   error(message: string, meta?: any): void // eslint-disable-line @typescript-eslint/no-explicit-any
   info(message: string, meta?: any): void // eslint-disable-line @typescript-eslint/no-explicit-any
+}
+
+// Interface for notification input objects to reduce fallback complexity
+interface NotificationInput {
+  id?: string
+  _id?: string
+  resourceId?: string
+  message?: string
+  body?: string
+  description?: string
+  summary?: string
+  text?: string
+  subject?: string
+  title?: string
+  content?: string
+  type?: string
+  topic?: string
+  category?: string
+  event?: string
+  eventType?: string
+  created?: string
+  timestamp?: string
+  createdAt?: string
+  date?: string
+  createdDate?: string
 }
 
 // Service configuration
@@ -202,12 +228,7 @@ export class DwollaService {
   private async fetchCustomerDetails(
     customer: DwollaCustomer,
     signal?: AbortSignal
-  ): Promise<{
-    customer: DwollaCustomer
-    fundingSources: MaskedFundingSource[]
-    transfers: DwollaCustomerData["transfers"]
-    notifications: DwollaCustomerData["notifications"]
-  }> {
+  ): Promise<DwollaCustomerData> {
     try {
       const [fundingSources, transfers, notifications] = await Promise.all([
         this.client.getCustomerFundingSources(customer.id, signal),
@@ -215,12 +236,13 @@ export class DwollaService {
         this.client.getCustomerNotifications(customer.id, signal),
       ])
 
-      return {
+      // Use the formatter to return properly formatted data
+      return DwollaFormatter.format({
         customer,
         fundingSources,
         transfers,
         notifications,
-      }
+      })
     } catch (error) {
       // Preserve original abort errors
       if (error instanceof Error && error.name === "AbortError") {
@@ -255,49 +277,19 @@ export class DwollaFormatter {
   static format(data: {
     customer: DwollaCustomer
     fundingSources: MaskedFundingSource[]
-    transfers: DwollaCustomerData["transfers"]
-    notifications: DwollaCustomerData["notifications"]
-  }): {
-    customer: {
-      id: string
-      email: string
-      name: string
-      businessName: string | null
-      status: string
-      type: string
-      created: string
-    }
-    fundingSources: Array<{
-      id: string
-      name: string
-      type: string
-      bankAccountType: string | null
-      accountNumberMasked: string | null
-      routingNumber: string | null
-      status: string
-      verified: boolean
-    }>
-    transfers: Array<{
-      id: string
-      amount: string
-      currency: string
-      status: string
-      created: string
-      sourceId: string
-      destinationId: string
-      correlationId: string | null
-    }>
-    notificationCount: number
-  } {
+    transfers: DwollaTransfer[]
+    notifications: any[]
+  }): DwollaCustomerData {
     const { customer, fundingSources, transfers, notifications } = data
 
     return {
       customer: {
         id: customer.id,
         email: customer.email,
-        name: `${customer.firstName} ${customer.lastName}`.trim(),
+        name: customer.firstName && customer.lastName 
+          ? `${customer.firstName} ${customer.lastName}`.trim()
+          : customer.firstName || customer.lastName || customer.businessName || "Unknown Customer",
         businessName: customer.businessName || null,
-        status: customer.status,
         type: customer.type,
         created: customer.created,
       },
@@ -306,22 +298,67 @@ export class DwollaFormatter {
         name: source.name,
         type: source.type,
         bankAccountType: source.bankAccountType || null,
-        accountNumberMasked: source.accountNumberMasked || null,
-        routingNumber: source.routingNumber || null,
+        accountNumberMasked: source.accountNumberMasked || source.name || null,
+        bankName: source.bankName || null,
+
         status: source.status,
         verified: source.status === "verified",
       })),
-      transfers: transfers.map((transfer) => ({
-        id: transfer.id,
-        amount: transfer.amount.value,
-        currency: transfer.amount.currency,
-        status: transfer.status,
-        created: transfer.created,
-        sourceId: DwollaFormatter.extractIdFromUrl(transfer._links.source.href),
-        destinationId: DwollaFormatter.extractIdFromUrl(transfer._links.destination.href),
-        correlationId: transfer.correlationId || null,
-      })),
+      transfers: transfers.map((transfer) => {
+        // Defensive programming for amount handling
+        let amountValue = "0"
+        let currencyValue = "USD"
+        
+        if (transfer.amount) {
+          if (typeof transfer.amount === 'string') {
+            amountValue = transfer.amount
+          } else if (transfer.amount.value) {
+            amountValue = transfer.amount.value
+            currencyValue = transfer.amount.currency || "USD"
+          } else {
+            console.warn('DwollaFormatter - Unexpected amount structure:', transfer.amount)
+          }
+        } else {
+          console.warn('DwollaFormatter - No amount found for transfer:', transfer.id)
+        }
+        
+        return {
+          id: transfer.id,
+          amount: amountValue,
+          currency: currencyValue,
+          status: transfer.status,
+          created: transfer.created,
+          // Check if data is already formatted (has sourceId) or needs formatting (has _links)
+          sourceId: transfer.sourceId || (transfer._links?.source ? DwollaFormatter.extractIdFromUrl(transfer._links.source.href) : null),
+          destinationId: transfer.destinationId || (transfer._links?.destination ? DwollaFormatter.extractIdFromUrl(transfer._links.destination.href) : null),
+          correlationId: transfer.correlationId || null,
+        }
+      }),
       notificationCount: notifications.length,
+      notifications: notifications.map((notification: NotificationInput) => ({
+        id: notification.id || notification._id || notification.resourceId || `notif_${uuidv4()}`,
+        message: notification.message || 
+                notification.body || 
+                notification.description ||
+                notification.summary ||
+                notification.text ||
+                notification.subject ||
+                notification.title ||
+                notification.content ||
+                (notification.type || notification.topic ? `${notification.type || notification.topic} notification` : "New notification"),
+        type: notification.type || 
+             notification.topic || 
+             notification.category ||
+             notification.event ||
+             notification.eventType ||
+             "system",
+        created: notification.created || 
+                notification.timestamp || 
+                notification.createdAt ||
+                notification.date ||
+                notification.createdDate ||
+                new Date().toISOString(),
+      })),
     }
   }
 

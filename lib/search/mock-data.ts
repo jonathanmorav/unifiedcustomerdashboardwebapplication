@@ -165,53 +165,7 @@ export const mockSearchResult: UnifiedSearchResult = {
           membershipTimestamp: "2025-01-05T08:30:00Z",
         },
       ],
-      claritySessions: [
-        {
-          id: "clarity_session_001",
-          recordingUrl: "https://clarity.microsoft.com/projects/view/abc123/session/def456",
-          timestamp: new Date("2025-01-22T15:30:00Z"),
-          duration: 180,
-          deviceType: "desktop",
-          browser: "Chrome 120",
-          smartEvents: [
-            {
-              event: "Login",
-              type: "Auto",
-              startTime: "00:41",
-            },
-            {
-              event: "Submit form",
-              type: "Auto",
-              startTime: "00:41",
-            },
-          ],
-        },
-        {
-          id: "clarity_session_002",
-          recordingUrl: "https://clarity.microsoft.com/projects/view/abc123/session/ghi789",
-          timestamp: new Date("2025-01-21T10:15:00Z"),
-          duration: 420,
-          deviceType: "mobile",
-          browser: "Safari 17",
-          smartEvents: [
-            {
-              event: "Page view",
-              type: "Auto",
-              startTime: "00:05",
-            },
-            {
-              event: "Click button",
-              type: "Manual",
-              startTime: "01:23",
-            },
-            {
-              event: "Form error",
-              type: "Auto",
-              startTime: "02:45",
-            },
-          ],
-        },
-      ],
+
     },
   },
   dwolla: {
@@ -341,7 +295,32 @@ export const mockSearchResult: UnifiedSearchResult = {
           },
         },
       ],
-      notifications: [],
+      notifications: [
+        {
+          id: "notif_001",
+          message: "Transfer processed successfully",
+          type: "transfer_completed",
+          created: "2025-01-05T16:00:00.000Z",
+          timestamp: "2025-01-05T16:00:00.000Z",
+          topic: "transfer_completed",
+        },
+        {
+          id: "notif_002", 
+          message: "New funding source verified",
+          type: "funding_source_verified",
+          created: "2025-01-04T14:20:00.000Z",
+          timestamp: "2025-01-04T14:20:00.000Z",
+          topic: "funding_source_verified",
+        },
+        {
+          id: "notif_003",
+          message: "Customer information updated",
+          type: "customer_updated",
+          created: "2025-01-03T09:15:00.000Z",
+          timestamp: "2025-01-03T09:15:00.000Z", 
+          topic: "customer_updated",
+        },
+      ],
     },
   },
 }

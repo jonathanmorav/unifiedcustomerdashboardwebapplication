@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react"
 import type { SearchType } from "@/lib/search/unified-search"
 import { SearchHistory } from "@/lib/search/search-history-client"
+import type { UnifiedSearchResult } from "@/lib/search/unified-search"
 
 interface SearchResult {
   searchTerm?: string
@@ -62,20 +63,27 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         // Add to client-side search history
         const duration = Date.now() - startTime
 
-        // Create a UnifiedSearchResult-like object for the client-side history
-        const searchResult = {
-          results: {
-            hubspot: data.data.hubspot ? [data.data.hubspot] : [],
-            dwolla: data.data.dwolla ? [data.data.dwolla] : [],
-          },
-          totalResults: (data.data.hubspot ? 1 : 0) + (data.data.dwolla ? 1 : 0),
+        // Create a UnifiedSearchResult object for the client-side history
+        const searchResult: UnifiedSearchResult = {
           searchTerm,
           searchType,
           timestamp: new Date(),
           duration,
+          hubspot: {
+            success: !!data.data.hubspot,
+            data: data.data.hubspot || undefined,
+            // Individual service duration not available from API, set to 0
+            duration: 0
+          },
+          dwolla: {
+            success: !!data.data.dwolla,
+            data: data.data.dwolla || undefined,
+            // Individual service duration not available from API, set to 0
+            duration: 0
+          }
         }
 
-        SearchHistory.addEntry(searchTerm, searchType, searchResult as any, duration)
+        SearchHistory.addEntry(searchTerm, searchType, searchResult, duration)
 
         // Dispatch custom event to notify components
         window.dispatchEvent(new CustomEvent("searchHistoryUpdated"))

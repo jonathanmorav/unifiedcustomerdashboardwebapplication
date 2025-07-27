@@ -32,13 +32,7 @@ export interface UnifiedSearchResult {
     error?: string
     duration: number
   }
-  sessions?: {
-    success: boolean
-    data?: HubSpotCustomerData["claritySessions"]
-    error?: string
-    duration: number
-    totalCount?: number
-  }
+
 }
 
 // Search type detection patterns
@@ -73,22 +67,44 @@ export class UnifiedSearchEngine {
     })
 
     // Execute searches in parallel
+    console.log(`[DEBUG] Executing searches with searchType: ${searchType}`)
     const [hubspotResult, dwollaResult] = await Promise.allSettled([
       this.searchHubSpot(params.searchTerm, searchType, params.signal),
       this.searchDwolla(params.searchTerm, searchType, params.signal),
     ])
+    
+    console.log(`[DEBUG] Search results - HubSpot: ${hubspotResult.status}, Dwolla: ${dwollaResult.status}`)
 
     const endTime = Date.now()
     const duration = endTime - startTime
 
-    // Format results
+    // Format results with error catching
+    let hubspotFormatted, dwollaFormatted
+    try {
+      console.log(`[DEBUG] Formatting HubSpot result...`)
+      hubspotFormatted = this.formatHubSpotResult(hubspotResult)
+      console.log(`[DEBUG] HubSpot formatted successfully`)
+    } catch (error) {
+      console.error(`[DEBUG] Error formatting HubSpot result:`, error)
+      throw error
+    }
+    
+    try {
+      console.log(`[DEBUG] Formatting Dwolla result...`)
+      dwollaFormatted = this.formatDwollaResult(dwollaResult)
+      console.log(`[DEBUG] Dwolla formatted successfully`)
+    } catch (error) {
+      console.error(`[DEBUG] Error formatting Dwolla result:`, error)
+      throw error
+    }
+
     const result: UnifiedSearchResult = {
       searchTerm: params.searchTerm,
       searchType,
       timestamp: new Date(),
       duration,
-      hubspot: this.formatHubSpotResult(hubspotResult),
-      dwolla: this.formatDwollaResult(dwollaResult),
+      hubspot: hubspotFormatted,
+      dwolla: dwollaFormatted,
     }
 
     this.logger.info("UnifiedSearch: Search completed", {
@@ -133,6 +149,7 @@ export class UnifiedSearchEngine {
       fundingSources: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
       transfers: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
       notificationCount: number
+      notifications: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
       error?: string
     }
   } {
@@ -170,7 +187,7 @@ export class UnifiedSearchEngine {
         summaryOfBenefits: formatted.summaryOfBenefits,
         monthlyInvoices: formatted.monthlyInvoices,
         activeLists: formatted.activeLists,
-        data: result.hubspot.data, // Include raw data for accessing claritySessions
+        data: result.hubspot.data, // Include raw data
       }
     } else if (result.hubspot.error) {
       display.hubspot = { error: result.hubspot.error }
@@ -178,12 +195,21 @@ export class UnifiedSearchEngine {
 
     // Add Dwolla data if available
     if (result.dwolla.success && result.dwolla.data) {
-      const formatted = DwollaFormatter.format(result.dwolla.data)
-      display.dwolla = {
-        customer: formatted.customer,
-        fundingSources: formatted.fundingSources,
-        transfers: formatted.transfers,
-        notificationCount: formatted.notificationCount,
+      console.log(`[DEBUG] About to format Dwolla data...`)
+      try {
+        const formatted = DwollaFormatter.format(result.dwolla.data)
+        console.log(`[DEBUG] Dwolla data formatted successfully`)
+        display.dwolla = {
+          customer: formatted.customer,
+          fundingSources: formatted.fundingSources,
+          transfers: formatted.transfers,
+          notificationCount: formatted.notificationCount,
+          notifications: formatted.notifications, // ✅ Added missing notifications array
+        }
+      } catch (error) {
+        console.error(`[DEBUG] Error in DwollaFormatter.format:`, error)
+        console.error(`[DEBUG] Dwolla data that caused error:`, JSON.stringify(result.dwolla.data, null, 2))
+        throw error
       }
     } else if (result.dwolla.error) {
       display.dwolla = { error: result.dwolla.error }
@@ -239,11 +265,15 @@ export class UnifiedSearchEngine {
         throw new DOMException("The operation was aborted", "AbortError")
       }
 
+      const effectiveSearchType = searchType === "auto" ? "name" : searchType
+      console.log(`[DEBUG] HubSpot search: term="${searchTerm}", type="${effectiveSearchType}"`)
+      
       const data = await this.hubspotService.searchCustomer({
         searchTerm,
-        searchType: searchType === "auto" ? "name" : searchType,
+        searchType: effectiveSearchType,
       })
 
+      console.log(`[DEBUG] HubSpot result: ${data ? 'found data' : 'no data'}`)
       return {
         data: data || undefined,
         duration: Date.now() - startTime,
@@ -273,16 +303,22 @@ export class UnifiedSearchEngine {
       dwollaSearchType = "name"
     }
 
+    console.log(`[DEBUG] Dwolla search: term="${searchTerm}", type="${dwollaSearchType}"`)
+    
     const data = await this.dwollaService.searchCustomer({
       searchTerm,
       searchType: dwollaSearchType,
       signal,
     })
 
+    console.log(`[DEBUG] Dwolla result: ${data ? 'found data' : 'no data'}`)
     return {
       data: data || undefined,
       duration: Date.now() - startTime,
     }
+  } catch (error) {
+    console.error(`[DEBUG] Dwolla search error:`, error)
+    throw error
   }
 
   /**
