@@ -4,7 +4,7 @@ import { prisma } from '../lib/db'
 import { log } from '../lib/logger'
 
 async function testWebhookSystem() {
-  console.log('🔍 Testing Webhook Analytics System...\n')
+  console.log('🔍 Testing Webhook System...\n')
 
   try {
     // Test 1: Database Connection
@@ -28,15 +28,12 @@ async function testWebhookSystem() {
     }
     console.log()
 
-    // Test 3: Test API endpoints
-    console.log('3. Testing API endpoints...')
+    // Test 3: Test core webhook endpoints
+    console.log('3. Testing core webhook endpoints...')
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
     const endpoints = [
-      '/api/analytics/metrics',
-      '/api/analytics/events',
-      '/api/analytics/journeys',
-      '/api/analytics/anomalies',
-      '/api/analytics/reconciliation'
+      '/api/webhooks/dwolla',
+      '/api/health'
     ]
 
     console.log('⚠️  Note: API tests require authentication. Make sure you are logged in.\n')

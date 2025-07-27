@@ -178,17 +178,17 @@ export class ACHTransactionSync {
       let destinationFundingSource = null
 
       // Check if source is a customer (customer-initiated debit)
-      const sourceUrl = transfer._links.source.href
-      const destUrl = transfer._links.destination.href
+              const sourceUrl = transfer._links.source?.href
+        const destUrl = transfer._links.destination?.href
       
       // IMPORTANT: Only process customer-initiated transfers (customer is the source)
       // Skip transfers where Cakewalk is the source (credits to customers)
-      if (sourceUrl.includes(ourAccountId)) {
+      if (sourceUrl?.includes(ourAccountId)) {
         // This is a Cakewalk-initiated transfer, skip it
         return null
       }
 
-      if (sourceUrl.includes("/customers/")) {
+      if (sourceUrl?.includes("/customers/")) {
         // Customer is the source (ACH debit from customer)
         customerDetails = await this.fetchCustomerDetails(sourceUrl)
 
@@ -209,7 +209,7 @@ export class ACHTransactionSync {
           id: ourAccountId,
           name: "Cakewalk Benefits Inc.",
         }
-      } else if (destUrl.includes("/customers/")) {
+      } else if (destUrl?.includes("/customers/")) {
         // Customer is the destination (ACH credit to customer)
         customerDetails = await this.fetchCustomerDetails(destUrl)
 

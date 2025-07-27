@@ -55,9 +55,9 @@ await client.createWebhookSubscription(webhookUrl, secret)
 
 ### 4. Test Webhook Connection
 
-1. Navigate to **Analytics** → **Webhook Settings** in the dashboard
-2. Click **Sync Webhook Events** to import historical events
-3. Check the webhook status and recent activity
+1. Test webhook endpoints directly via API
+2. Monitor webhook events in application logs
+3. Verify webhook processing in transaction data
 
 ### 5. Verify Webhook Signature
 
@@ -75,17 +75,10 @@ The system captures and processes all Dwolla webhook events, including:
 
 ## Monitoring Webhooks
 
-### Real-time Monitoring
-- Navigate to **Analytics** → **Webhooks** → **Real-time** tab
-- View live webhook events as they arrive
-- Monitor processing status and latency
-
-### Event Analytics
-- **Overview**: Summary statistics and trends
-- **Events**: Detailed event log with filtering
-- **Journeys**: Track user journeys through events
-- **Reconciliation**: Verify data consistency
-- **Anomalies**: Detect unusual patterns
+Webhook events are processed automatically and can be monitored through:
+- Application logs for webhook processing status
+- Database records for successful event processing
+- Transaction data for business logic verification
 
 ## Troubleshooting
 

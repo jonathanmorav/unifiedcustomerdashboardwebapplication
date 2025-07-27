@@ -6,8 +6,9 @@ import { AccountSecurity } from "@/lib/security/account-security"
 
 // POST - Check for session anomalies (called during login or periodically)
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  
   try {
-    const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })

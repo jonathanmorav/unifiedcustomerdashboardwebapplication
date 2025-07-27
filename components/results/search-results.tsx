@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react"
 import { HubSpotResultPanel } from "./hubspot-result-panel"
 import { DwollaResultPanel } from "./dwolla-result-panel"
-import { ClarityResultPanel } from "./clarity-result-panel"
+
 import { EmptyState } from "./empty-state"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BuildingIcon, BanknoteIcon, VideoIcon } from "lucide-react"
+import { BuildingIcon, BanknoteIcon } from "lucide-react"
 
 interface SearchResultsProps {
   result: any // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -17,33 +17,7 @@ interface SearchResultsProps {
 }
 
 export function SearchResults({ result, isLoading, error, searchTerm }: SearchResultsProps) {
-  // Debug logging
-  if (result) {
-    console.log("[SEARCH RESULTS DEBUG] Full result:", result)
-    console.log("[SEARCH RESULTS DEBUG] HubSpot data:", result.hubspot)
-    console.log("[SEARCH RESULTS DEBUG] HubSpot data.data:", result.hubspot?.data)
-    console.log("[SEARCH RESULTS DEBUG] Clarity sessions:", result.hubspot?.data?.claritySessions)
-    console.log(
-      "[SEARCH RESULTS DEBUG] Clarity sessions count:",
-      result.hubspot?.data?.claritySessions?.length || 0
-    )
-  }
-
-  // Initial state - no search performed yet
-  if (!result && !isLoading && !error) {
-    return <EmptyState type="initial" />
-  }
-
-  // Error state
-  if (error) {
-    return <EmptyState type="error" errorMessage={error.message} />
-  }
-
-  // No results found
-  if (result && !result.summary.found && !isLoading) {
-    return <EmptyState type="no-results" searchTerm={searchTerm} />
-  }
-
+  // HOOKS MUST COME FIRST - before any early returns
   // Use a state to track viewport size for proper hydration
   const [showDesktopView, setShowDesktopView] = useState(true)
 
@@ -63,6 +37,30 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
     return () => window.removeEventListener("resize", checkViewport)
   }, [])
 
+  // Debug logging
+  if (result) {
+    console.log("[SEARCH RESULTS DEBUG] Full result:", result)
+    console.log("[SEARCH RESULTS DEBUG] HubSpot data:", result.hubspot)
+    console.log("[SEARCH RESULTS DEBUG] HubSpot data.data:", result.hubspot?.data)
+
+  }
+
+  // EARLY RETURNS COME AFTER ALL HOOKS
+  // Initial state - no search performed yet
+  if (!result && !isLoading && !error) {
+    return <EmptyState type="initial" />
+  }
+
+  // Error state
+  if (error) {
+    return <EmptyState type="error" errorMessage={error.message} />
+  }
+
+  // No results found
+  if (result && !result.summary.found && !isLoading) {
+    return <EmptyState type="no-results" searchTerm={searchTerm} />
+  }
+
   // Mobile view - use tabs
   if (!showDesktopView) {
     return (
@@ -77,7 +75,7 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
         </div>
 
         <Tabs defaultValue="hubspot" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="hubspot" className="flex items-center gap-2">
               <BuildingIcon className="h-4 w-4" />
               HubSpot
@@ -85,10 +83,6 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
             <TabsTrigger value="dwolla" className="flex items-center gap-2">
               <BanknoteIcon className="h-4 w-4" />
               Dwolla
-            </TabsTrigger>
-            <TabsTrigger value="sessions" className="flex items-center gap-2">
-              <VideoIcon className="h-4 w-4" />
-              Sessions
             </TabsTrigger>
           </TabsList>
           <TabsContent value="hubspot" className="mt-4">
@@ -103,13 +97,6 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
               data={result?.dwolla}
               isLoading={isLoading}
               error={result?.dwolla?.error}
-            />
-          </TabsContent>
-          <TabsContent value="sessions" className="mt-4">
-            <ClarityResultPanel
-              sessions={result?.hubspot?.data?.claritySessions}
-              isLoading={isLoading}
-              error={result?.sessions?.error}
             />
           </TabsContent>
         </Tabs>
@@ -156,20 +143,8 @@ export function SearchResults({ result, isLoading, error, searchTerm }: SearchRe
           />
         </div>
 
-        <Separator />
 
-        {/* Clarity Sessions Panel */}
-        <div>
-          <div className="mb-4 flex items-center gap-2">
-            <VideoIcon className="h-5 w-5 text-cakewalk-primary" />
-            <h2 className="text-xl font-semibold">Session Recordings</h2>
-          </div>
-          <ClarityResultPanel
-            sessions={result?.hubspot?.data?.claritySessions}
-            isLoading={isLoading}
-            error={result?.sessions?.error}
-          />
-        </div>
+
       </div>
     </div>
   )

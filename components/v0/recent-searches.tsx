@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
-import { Clock, Search, X } from "lucide-react"
+import { Clock, Search, X, PlayCircle, Loader2 } from "lucide-react"
 import { SearchHistory } from "@/lib/search/search-history-client"
 import { formatDistanceToNow } from "date-fns"
+import { useSearchContext } from "@/contexts/search-context"
 
 interface RecentSearch {
   id: string
@@ -16,6 +17,7 @@ interface RecentSearch {
 
 export function RecentSearches() {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([])
+  const { search, isLoading } = useSearchContext()
 
   useEffect(() => {
     const loadRecentSearches = () => {
@@ -49,6 +51,12 @@ export function RecentSearches() {
     SearchHistory.removeEntry(id)
     setRecentSearches((prev) => prev.filter((search) => search.id !== id))
   }
+
+  const handleRerunSearch = async (searchQuery: string, searchType: string) => {
+    if (search && !isLoading) {
+      await search(searchQuery, searchType as any)
+    }
+  }
   return (
     <Card className="border-cakewalk-border shadow-cakewalk-medium transition-colors duration-300">
       <CardHeader className="pb-3">
@@ -66,11 +74,17 @@ export function RecentSearches() {
           recentSearches.map((search) => (
             <div
               key={search.id}
-              className="flex items-center justify-between rounded-xl bg-cakewalk-alice-200 p-3 transition-colors duration-300"
+              className="group flex items-center justify-between rounded-xl bg-cakewalk-alice-200 p-3 transition-all duration-200 hover:bg-cakewalk-alice-300 hover:shadow-sm"
             >
-              <div className="flex items-center gap-2">
+              <div 
+                className={`flex flex-1 items-center gap-2 ${
+                  isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                }`}
+                onClick={() => !isLoading && handleRerunSearch(search.query, search.type)}
+                title={isLoading ? "Search in progress..." : `Click to re-run search: ${search.query}`}
+              >
                 <Search className="h-4 w-4 text-cakewalk-text-secondary" />
-                <div>
+                <div className="flex-1">
                   <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
                     {search.query}
                   </p>
@@ -78,12 +92,21 @@ export function RecentSearches() {
                     {search.timestamp}
                   </p>
                 </div>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 text-cakewalk-primary animate-spin" />
+                ) : (
+                  <PlayCircle className="h-4 w-4 text-cakewalk-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                )}
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6"
-                onClick={() => handleRemove(search.id)}
+                className="h-6 w-6 ml-2"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleRemove(search.id)
+                }}
+                title="Remove from recent searches"
               >
                 <X className="h-4 w-4" />
                 <span className="sr-only">Remove</span>

@@ -5,8 +5,7 @@ import { Header } from "./header"
 import { SearchSection } from "./search-section"
 import { DataPanels } from "./data-panels"
 import { RecentSearches } from "./recent-searches"
-import { ListAnalyticsDashboard } from "@/components/lists/list-analytics-dashboard"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
+
 import { useSearchContext } from "@/contexts/search-context"
 
 // Mock data for demonstration - matches HubSpot result panel structure
@@ -23,28 +22,64 @@ const mockData = {
         id: "SOB-001",
         amountToDraft: 12450.0,
         feeAmount: 125.0,
-        totalPolicies: 2,
+        totalPolicies: 4,
         pdfDocumentUrl: "https://example.com/sob-001.pdf",
         policies: [
           {
             id: "POL-001",
             policyNumber: "POL-2025-001",
             policyHolderName: "John Smith",
-            coverageType: "Health Insurance",
-            premiumAmount: 8500.0,
+            productName: "Health Insurance",
+            planName: "Enhanced",
+            costPerMonth: 8500.0,
+            policyStatus: "active",
             effectiveDate: "2025-01-01",
             expirationDate: "2025-12-31",
-            status: "active",
+            coverageAmount: 50000,
+            coverageLevel: "Family",
+            companyName: "Acme Corporation"
           },
           {
             id: "POL-002",
             policyNumber: "POL-2025-002",
             policyHolderName: "John Smith",
-            coverageType: "Dental Coverage",
-            premiumAmount: 2200.0,
+            productName: "Dental",
+            planName: "Standard",
+            costPerMonth: 2200.0,
+            policyStatus: "active",
             effectiveDate: "2025-01-01",
             expirationDate: "2025-12-31",
-            status: "active",
+            coverageAmount: 2500,
+            coverageLevel: "Individual",
+            companyName: "Acme Corporation"
+          },
+          {
+            id: "POL-003",
+            policyNumber: "POL-2025-003",
+            policyHolderName: "Jane Smith",
+            productName: "Vision",
+            planName: "Basic",
+            costPerMonth: 450.0,
+            policyStatus: "pending",
+            effectiveDate: "2025-02-01",
+            expirationDate: "2026-01-31",
+            coverageAmount: 1000,
+            coverageLevel: "Individual",
+            companyName: "Acme Corporation"
+          },
+          {
+            id: "POL-004",
+            policyNumber: "POL-2025-004",
+            policyHolderName: "Bob Johnson",
+            productName: "Short Term Disability",
+            planName: "Enhanced",
+            costPerMonth: 1300.0,
+            policyStatus: "payment-pending",
+            effectiveDate: "2025-01-15",
+            expirationDate: "2025-12-31",
+            coverageAmount: 75000,
+            coverageLevel: "Individual",
+            companyName: "Acme Corporation"
           },
         ],
       },
@@ -153,27 +188,14 @@ export function Dashboard() {
         <div className="space-y-6">
           <SearchSection />
 
-          <Tabs defaultValue="customer" className="w-full">
-            <TabsList className="mx-auto mb-6 grid max-w-md grid-cols-2">
-              <TabsTrigger value="customer">Customer Data</TabsTrigger>
-              <TabsTrigger value="lists">List Analytics</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="customer" className="space-y-6">
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-                <div className="lg:col-span-3">
-                  <DataPanels data={displayData} />
-                </div>
-                <div className="lg:col-span-1">
-                  <RecentSearches />
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="lists" className="space-y-6">
-              <ListAnalyticsDashboard />
-            </TabsContent>
-          </Tabs>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+            <div className="lg:col-span-3">
+              <DataPanels data={displayData} />
+            </div>
+            <div className="lg:col-span-1">
+              <RecentSearches />
+            </div>
+          </div>
         </div>
       </div>
     </main>

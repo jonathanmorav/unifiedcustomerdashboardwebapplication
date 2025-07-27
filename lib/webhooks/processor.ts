@@ -2,7 +2,6 @@ import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
 import type { WebhookEvent, Prisma } from '@prisma/client'
 import { getJourneyTracker } from './journey-tracker'
-import { getRealtimeAnalyticsEngine } from '@/lib/analytics/realtime-engine'
 import { ProcessingContext } from './processing-context'
 
 export { ProcessingContext }
@@ -39,6 +38,11 @@ class TransferEventProcessor implements EventProcessor {
       transaction = await this.createTransactionFromEvent(event, transferId)
     }
     
+    // Defensive null check
+    if (!transaction) {
+      throw new Error(`Failed to find or create transaction for transfer ID: ${transferId}`)
+    }
+
     // Update transaction based on event type
     const updateData = await this.getUpdateData(event.eventType, payload)
     
@@ -60,23 +64,25 @@ class TransferEventProcessor implements EventProcessor {
       })
     }
     
-    // Create relationship
-    await prisma.webhookEventRelation.create({
-      data: {
-        webhookEventId: event.id,
-        relationType: 'transaction',
-        relationId: transaction.id,
-        relationTable: 'ACHTransaction',
-        metadata: {
-          transferId,
-          status: transaction.status
+    // Create relationship - additional null check for safety
+    if (transaction) {
+      await prisma.webhookEventRelation.create({
+        data: {
+          webhookEventId: event.id,
+          relationType: 'transaction',
+          relationId: transaction.id,
+          relationTable: 'ACHTransaction',
+          metadata: {
+            transferId,
+            status: transaction.status || 'unknown'
+          }
         }
-      }
-    })
-    
-    // Add to context for journey tracking
-    context.set('transaction', transaction)
-    context.set('customerId', transaction.customerId)
+      })
+      
+      // Add to context for journey tracking
+      context.set('transaction', transaction)
+      context.set('customerId', transaction.customerId || null)
+    }
   }
   
   private extractTransferId(resourceUrl?: string): string | null {
@@ -189,7 +195,6 @@ class CustomerEventProcessor implements EventProcessor {
 export class EventProcessingPipeline {
   private processors: EventProcessor[] = []
   private journeyTracker = getJourneyTracker()
-  private analyticsEngine = getRealtimeAnalyticsEngine()
   
   constructor() {
     // Register processors
@@ -234,13 +239,10 @@ export class EventProcessingPipeline {
         })
       }
       
-      // Update journey tracking (will be implemented separately)
+      // Update journey tracking
       await this.updateJourneys(event, context)
       
-      // Update analytics (will be implemented separately)
-      await this.updateAnalytics(event, context)
-      
-      // Evaluate alerts (will be implemented separately)
+      // Evaluate alerts
       await this.evaluateAlerts(event, context)
       
       // Mark as completed
@@ -302,19 +304,9 @@ export class EventProcessingPipeline {
     }
   }
   
-  private async updateAnalytics(event: WebhookEvent, context: ProcessingContext): Promise<void> {
-    try {
-      await this.analyticsEngine.processEvent(event, context)
-    } catch (error) {
-      log.error('Analytics update failed', error as Error, {
-        eventId: event.id
-      })
-    }
-  }
-  
   private async evaluateAlerts(event: WebhookEvent, context: ProcessingContext): Promise<void> {
-    // Alert evaluation is handled within the analytics engine
-    // This method is kept for future expansion (e.g., business rule alerts)
+    // Alert evaluation placeholder for future expansion (e.g., business rule alerts)
+    // Currently no alerts are processed
   }
   
   private async handleProcessingError(event: WebhookEvent | null, error: Error): Promise<void> {

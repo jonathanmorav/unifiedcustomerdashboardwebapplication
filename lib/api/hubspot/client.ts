@@ -15,8 +15,7 @@ import type {
   HubSpotListsResponse,
   HubSpotListMembershipsResponse,
   HubSpotEngagement,
-  ClaritySession,
-  ClaritySessionEvent,
+
 } from "@/lib/types/hubspot"
 import { log } from "@/lib/logger"
 
@@ -423,13 +422,24 @@ export class HubSpotClient {
       "2-45586773",
       policyIds,
       [
-        "policy_number",
-        "policy_holder_name",
-        "coverage_type",
-        "premium_amount",
-        "effective_date",
-        "expiration_date",
-        "status",
+        "policyholder",
+        "product_name",
+        "plan_name",
+        "first_name",
+        "last_name",
+        "cost_per_month",
+
+        "policy_effective_date",
+        "policy_termination_date",
+        "coverage_level",
+        "coverage_level_display",
+        "coverage_amount",
+        "coverage_amount_spouse",
+        "coverage_amount_children",
+        "company_name",
+        "product_code",
+        "renewal_date",
+        "notes"
       ]
     )
 
@@ -747,189 +757,7 @@ export class HubSpotClient {
     }
   }
 
-  // Parse Clarity sessions from engagements
-  parseClaritySessionsFromEngagements(engagements: HubSpotEngagement[]): ClaritySession[] {
-    const sessions: ClaritySession[] = []
 
-    // Debug logging
-    log.info(`Parsing ${engagements.length} engagements for Clarity sessions`, {
-      totalEngagements: engagements.length,
-      operation: "parse_clarity_sessions",
-    })
 
-    // Log first engagement structure for debugging
-    if (engagements.length > 0) {
-      console.log("\n[CLARITY DEBUG] First engagement full structure:")
-      console.log(JSON.stringify(engagements[0], null, 2))
-      console.log("\n[CLARITY DEBUG] Engagement properties:")
-      console.log(JSON.stringify(engagements[0].properties, null, 2))
 
-      log.info("Sample engagement structure", {
-        engagement: JSON.stringify(engagements[0], null, 2),
-        operation: "sample_engagement_structure",
-      })
-    }
-
-    for (const engagement of engagements) {
-      // Log each engagement for debugging
-      log.info(`Checking engagement ${engagement.id}`, {
-        engagementType: engagement.properties?.hs_engagement_type,
-        activityType: engagement.properties?.hs_activity_type,
-        bodyPreview: engagement.properties?.hs_body_preview?.substring(0, 100),
-        bodyPreviewHtml: engagement.properties?.hs_body_preview_html?.substring(0, 100),
-        allPropertyKeys: Object.keys(engagement.properties || {}),
-        operation: "check_engagement_for_clarity",
-      })
-
-      // Check if this is a Clarity session engagement
-      // Updated to check properties field based on v3 API structure
-      const bodyPreview = engagement.properties?.hs_body_preview || ""
-      const bodyPreviewHtml = engagement.properties?.hs_body_preview_html || ""
-      const activityType = engagement.properties?.hs_activity_type || ""
-      const engagementType = engagement.properties?.hs_engagement_type || ""
-
-      // More comprehensive Clarity detection
-      const isClarity =
-        // Check for Clarity URL in body
-        bodyPreview.includes("clarity.microsoft.com") ||
-        bodyPreviewHtml.includes("clarity.microsoft.com") ||
-        // Check for Clarity in activity type
-        activityType.toLowerCase().includes("clarity") ||
-        // Check for custom Clarity properties
-        engagement.properties?.clarity_session_id ||
-        engagement.properties?.clarity_recording_url ||
-        // Check engagement type (if Clarity uses a specific type)
-        engagementType === "CLARITY_SESSION" ||
-        // Broader engagement type checks
-        engagementType === "NOTE" ||
-        engagementType === "EMAIL" ||
-        engagementType === "TASK" ||
-        // Check for common Clarity-related keywords in body
-        bodyPreview.toLowerCase().includes("session recording") ||
-        bodyPreview.toLowerCase().includes("user session") ||
-        bodyPreview.toLowerCase().includes("recording") ||
-        bodyPreviewHtml.toLowerCase().includes("session recording") ||
-        bodyPreviewHtml.toLowerCase().includes("user session") ||
-        bodyPreviewHtml.toLowerCase().includes("recording") ||
-        // Fallback: check any property value for Clarity URLs or keywords
-        Object.values(engagement.properties || {}).some((value) => {
-          if (typeof value === "string") {
-            const lowerValue = value.toLowerCase()
-            return (
-              lowerValue.includes("clarity.microsoft.com") ||
-              lowerValue.includes("session recording") ||
-              lowerValue.includes("user session")
-            )
-          }
-          return false
-        })
-
-      // Log detection decision for debugging
-      log.info(`Clarity detection for engagement ${engagement.id}`, {
-        isClarity,
-        hasBodyPreview: !!bodyPreview,
-        hasBodyPreviewHtml: !!bodyPreviewHtml,
-        engagementType,
-        activityType,
-        operation: "clarity_detection_decision",
-      })
-
-      if (isClarity) {
-        // Extract recording URL from various sources
-        const recordingUrl =
-          engagement.properties?.clarity_recording_url ||
-          this.extractUrlFromBody(bodyPreview) ||
-          this.extractUrlFromBody(bodyPreviewHtml) ||
-          ""
-
-        // Debug logging for URL extraction
-        console.log(`[CLARITY DEBUG] URL extraction for engagement ${engagement.id}:`)
-        console.log(
-          `  - clarity_recording_url property:`,
-          engagement.properties?.clarity_recording_url
-        )
-        console.log(`  - bodyPreview URL extraction:`, this.extractUrlFromBody(bodyPreview))
-        console.log(`  - bodyPreviewHtml URL extraction:`, this.extractUrlFromBody(bodyPreviewHtml))
-        console.log(`  - Final recordingUrl:`, recordingUrl)
-
-        // Parse the session data from the engagement
-        const session: ClaritySession = {
-          id: engagement.id,
-          recordingUrl,
-          timestamp: new Date(engagement.properties?.hs_timestamp || engagement.createdAt),
-          duration: engagement.properties?.clarity_duration,
-          smartEvents: this.parseSmartEvents(engagement),
-          deviceType: engagement.properties?.clarity_device_type,
-          browser: engagement.properties?.clarity_browser,
-        }
-
-        sessions.push(session)
-      }
-    }
-
-    return sessions
-  }
-
-  // Helper to extract URL from engagement body
-  private extractUrlFromBody(body: string): string {
-    if (!body) return ""
-
-    // Try multiple URL patterns
-    const patterns = [
-      /https:\/\/clarity\.microsoft\.com[^\s"'<>]*/g,
-      /clarity\.microsoft\.com[^\s"'<>]*/g,
-      /Recording URL:\s*([^\n\r]*)/g,
-    ]
-
-    for (const pattern of patterns) {
-      const matches = body.match(pattern)
-      if (matches && matches.length > 0) {
-        let url = matches[0].trim()
-        // Ensure https:// prefix
-        if (!url.startsWith("http")) {
-          url = "https://" + url
-        }
-        // Clean up any trailing punctuation or HTML
-        url = url.replace(/[<>"'\s]*$/, "")
-        if (url.includes("clarity.microsoft.com")) {
-          console.log(`[CLARITY DEBUG] URL extracted from body: ${url}`)
-          return url
-        }
-      }
-    }
-
-    return ""
-  }
-
-  // Helper to parse smart events from engagement
-  private parseSmartEvents(engagement: HubSpotEngagement): ClaritySessionEvent[] {
-    // Check if events are stored in custom properties
-    if (engagement.properties?.clarity_smart_events) {
-      try {
-        // If stored as JSON string
-        return JSON.parse(engagement.properties.clarity_smart_events)
-      } catch {
-        // If not valid JSON, continue to fallback
-      }
-    }
-
-    // Fallback: try to parse from engagement body
-    const events: ClaritySessionEvent[] = []
-    const body =
-      engagement.properties?.hs_body_preview || engagement.properties?.hs_body_preview_html || ""
-
-    // Look for event patterns in the body
-    const eventMatches = body.matchAll(
-      /Event:\s*([^\n]+)\s*Type:\s*([^\n]+)\s*Start Time:\s*([^\n]+)/g
-    )
-    for (const match of eventMatches) {
-      events.push({
-        event: match[1].trim(),
-        type: match[2].trim(),
-        startTime: match[3].trim(),
-      })
-    }
-
-    return events
-  }
 }

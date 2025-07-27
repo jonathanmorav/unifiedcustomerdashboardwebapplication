@@ -104,6 +104,10 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       // Apply date filters
       if (filters.createdDateRange) {
+        // Defensive null check for company
+        if (!customer.company?.createdAt) {
+          return false
+        }
         const createdDate = new Date(customer.company.createdAt)
         if (!this.isInDateRange(createdDate, filters.createdDateRange)) {
           return false
@@ -113,7 +117,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
       // Apply benefit amount filter
       if (filters.benefitAmountRange && customer.summaryOfBenefits) {
         const totalAmount = customer.summaryOfBenefits.reduce(
-          (sum, sob) => sum + (sob.amountToDraft || 0),
+          (sum, sob) => sum + (sob.amount_to_draft || 0),
           0
         )
         if (!this.isInAmountRange(totalAmount, filters.benefitAmountRange)) {
@@ -123,7 +127,15 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       // Apply pending invoices filter
       if (filters.hasPendingInvoices !== undefined) {
-        const hasPending = customer.monthlyInvoices?.some((invoice) => invoice.status === "pending")
+        // Note: invoice.status property doesn't exist according to schema
+        // Using a safer approach - check if invoice exists and has relevant data
+        const hasPending = customer.monthlyInvoices?.some((invoice) => 
+          invoice && typeof invoice === 'object' && 
+          // Check for common invoice status indicators
+          (invoice as any).hs_invoice_status === "pending" ||
+          (invoice as any).invoice_status === "pending" ||
+          (invoice as any).status === "pending"
+        )
         if (filters.hasPendingInvoices !== hasPending) {
           return false
         }
@@ -222,21 +234,28 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
 
       switch (sort.field) {
         case "date_created":
-          compareValue =
-            new Date(a.company.createdAt).getTime() - new Date(b.company.createdAt).getTime()
+          // Defensive access with fallback dates
+          const createdA = a.company?.createdAt ? new Date(a.company.createdAt).getTime() : 0
+          const createdB = b.company?.createdAt ? new Date(b.company.createdAt).getTime() : 0
+          compareValue = createdA - createdB
           break
         case "date_modified":
-          compareValue =
-            new Date(a.company.updatedAt).getTime() - new Date(b.company.updatedAt).getTime()
+          // Defensive access with fallback dates
+          const modifiedA = a.company?.updatedAt ? new Date(a.company.updatedAt).getTime() : 0
+          const modifiedB = b.company?.updatedAt ? new Date(b.company.updatedAt).getTime() : 0
+          compareValue = modifiedA - modifiedB
           break
         case "company_name":
-          compareValue = a.company.name.localeCompare(b.company.name)
+          // Defensive access with fallback
+          const nameA = a.company?.name || a.company?.companyname || (a.company as any)?.properties?.name || ""
+          const nameB = b.company?.name || b.company?.companyname || (b.company as any)?.properties?.name || ""
+          compareValue = nameA.localeCompare(nameB)
           break
         case "amount":
           const amountA =
-            a.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amountToDraft || 0), 0) || 0
+            a.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amount_to_draft || 0), 0) || 0
           const amountB =
-            b.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amountToDraft || 0), 0) || 0
+            b.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amount_to_draft || 0), 0) || 0
           compareValue = amountA - amountB
           break
         default:
@@ -368,7 +387,8 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
   private getHubSpotCustomerStatus(customer: HubSpotCustomerData): "active" | "inactive" {
     // This is a simplified status determination
     // In reality, you'd check specific HubSpot properties
-    return customer.company.lifecycleStage === "customer" ? "active" : "inactive"
+    // Defensive access with null check
+    return customer.company?.lifecycleStage === "customer" ? "active" : "inactive"
   }
 
   /**

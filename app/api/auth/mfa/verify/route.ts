@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
     // Apply rate limiting by email
     const rateLimitResult = await rateLimiter.limit(request, {
       ...mfaVerifyRateLimitConfig,
+      standardHeaders: true,
+      legacyHeaders: false,
       keyGenerator: () => `mfa-login:${email}`,
       onLimitReached: async () => {
         // Escalate repeated failures

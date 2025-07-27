@@ -18,8 +18,9 @@ const mfaRateLimitConfig = {
 
 // GET - Get MFA setup data
 export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  
   try {
-    const session = await getServerSession(authOptions)
 
     if (!session?.user?.id || !session?.user?.email) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
@@ -111,8 +112,9 @@ const verifySchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  
   try {
-    const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })

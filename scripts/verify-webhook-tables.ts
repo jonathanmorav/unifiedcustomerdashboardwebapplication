@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db"
 
 async function verifyTables() {
-  console.log("🔍 Verifying webhook analytics tables...\n")
+  console.log("🔍 Verifying webhook tables...\n")
 
   try {
     // Check each table by attempting a count query

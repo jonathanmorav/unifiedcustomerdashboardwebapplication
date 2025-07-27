@@ -32,7 +32,6 @@
     "seed:ach": "ts-node --project tsconfig.scripts.json scripts/seed-ach-transactions.ts",
     "webhook:test": "tsx scripts/test-webhook-sync.ts",
     "webhook:setup": "tsx scripts/setup-webhook-subscription.ts",
-    "analytics:test": "tsx scripts/test-analytics-api.ts",
     "webhook:system:test": "tsx scripts/test-webhook-system.ts",
     "webhook:worker": "tsx scripts/webhook-worker.ts",
     "webhook:worker:dev": "nodemon --watch 'lib/webhooks/**/*.ts' --exec 'tsx scripts/webhook-worker.ts'",
@@ -62,6 +61,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",
+    "@types/uuid": "^9.0.8",
     "autoprefixer": "^10.4.21",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
@@ -84,6 +84,7 @@
     "speakeasy": "^2.0.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
+    "uuid": "^9.0.1",
     "winston": "^3.17.0",
     "zod": "^4.0.5"
   },

@@ -53,6 +53,41 @@ export type HubSpotSummaryOfBenefits = HubSpotObject<{
   [key: string]: string | number | boolean | undefined
 }>
 
+export interface Policy {
+  id: string
+  policyNumber?: string
+  productName: string        // Main display name (e.g., "Dental", "Health Insurance")
+  planName?: string         // Plan variant (e.g., "Enhanced", "Standard")
+  policyHolderName: string
+  costPerMonth: number
+  effectiveDate: string
+  expirationDate?: string
+  terminationDate?: string
+  coverageLevel?: string
+  coverageAmount?: number
+  coverageAmountSpouse?: number
+  coverageAmountChildren?: number
+  companyName?: string
+  productCode?: string
+  renewalDate?: string
+  notes?: string
+}
+
+export interface SummaryOfBenefits {
+  id: string
+  amountToDraft: number
+  feeAmount?: number
+  totalPolicies: number
+  pdfDocumentUrl?: string
+  policies: Policy[]
+  coverageMonth?: string
+  billingPeriodStart?: string
+  billingPeriodEnd?: string
+  companyName?: string
+  sobStatus?: string
+  totalDue?: number
+}
+
 export type HubSpotPolicy = HubSpotObject<{
   policy_number: string
   policy_holder_name: string
@@ -63,6 +98,31 @@ export type HubSpotPolicy = HubSpotObject<{
   status: string
   [key: string]: string | number | boolean | undefined
 }>
+
+// Updated HubSpot Policy type matching the exact properties fetched from the API
+export interface HubSpotPolicyProperties {
+  policyholder?: string
+  product_name?: string
+  plan_name?: string
+  first_name?: string
+  last_name?: string
+  cost_per_month?: string | number
+  policy_status?: string
+  policy_effective_date?: string
+  policy_termination_date?: string
+  coverage_level?: string
+  coverage_level_display?: string
+  coverage_amount?: string | number
+  coverage_amount_spouse?: string | number
+  coverage_amount_children?: string | number
+  company_name?: string
+  product_code?: string
+  renewal_date?: string
+  notes?: string
+  [key: string]: string | number | boolean | undefined
+}
+
+export type HubSpotPolicyObject = HubSpotObject<HubSpotPolicyProperties>
 
 export type HubSpotMonthlyInvoice = HubSpotObject<{
   invoice_number: string
@@ -199,23 +259,7 @@ export type HubSpotObjectType =
   | "monthly_invoices"
   | "lists"
 
-// Clarity session types
-export interface ClaritySessionEvent {
-  event: string // "Login", "Submit form", etc.
-  type: string // "Auto", "Manual", etc.
-  startTime: string // "00:41" format
-  timestamp?: number
-}
 
-export interface ClaritySession {
-  id: string
-  recordingUrl: string
-  timestamp: Date
-  duration?: number
-  smartEvents: ClaritySessionEvent[]
-  deviceType?: string
-  browser?: string
-}
 
 // Engagement types - Updated to match HubSpot v3 API response
 export interface HubSpotEngagement {
@@ -232,8 +276,7 @@ export interface HubSpotEngagement {
     hs_lastmodifieddate?: string
     hs_object_id?: string
     // Custom properties that might contain Clarity data
-    clarity_session_id?: string
-    clarity_recording_url?: string
+
     [key: string]: any
   }
   createdAt: string
@@ -256,5 +299,5 @@ export interface HubSpotCustomerData {
   policies: HubSpotObject<HubSpotPolicy["properties"]>[]
   monthlyInvoices?: HubSpotObject<HubSpotMonthlyInvoice["properties"]>[]
   activeLists?: HubSpotListMembership[]
-  claritySessions?: ClaritySession[]
+
 }

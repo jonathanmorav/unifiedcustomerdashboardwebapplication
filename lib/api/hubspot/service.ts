@@ -4,6 +4,7 @@ import type {
   HubSpotObject,
   HubSpotCompany,
   HubSpotPolicy,
+  Policy,
 } from "@/lib/types/hubspot"
 import { log } from "@/lib/logger"
 
@@ -69,62 +70,7 @@ export class HubSpotService {
 
       log.debug(`HubSpotService.searchCustomer: Total policies fetched: ${allPolicies.length}`)
 
-      // Get Clarity sessions by searching for contacts associated with the company
-      let claritySessions = []
-      try {
-        // First, get contacts associated with the company
-        console.log(`[CLARITY DEBUG] Getting contacts for company ${company.id}`)
-        const contacts = await this.client.getAssociations("companies", company.id, "contacts")
 
-        console.log(
-          `[CLARITY DEBUG] Found ${contacts.results?.length || 0} contacts:`,
-          contacts.results
-        )
-
-        log.info(`Found ${contacts.results?.length || 0} contacts for company ${company.id}`, {
-          companyName: company.properties.name,
-          contactIds: contacts.results?.map((c) => c.id) || [],
-          operation: "hubspot_get_contacts_for_clarity",
-        })
-
-        if (contacts.results && contacts.results.length > 0) {
-          // For now, just get engagements for the first contact
-          // In production, you might want to aggregate across all contacts
-          const primaryContactId = contacts.results[0].id
-          console.log(`[CLARITY DEBUG] Getting engagements for contact ${primaryContactId}`)
-
-          const engagements = await this.client.getContactEngagements(primaryContactId)
-
-          console.log(`[CLARITY DEBUG] Found ${engagements.length} engagements`)
-          console.log("[CLARITY DEBUG] Raw engagements:", JSON.stringify(engagements, null, 2))
-
-          log.info(`Found ${engagements.length} engagements for contact ${primaryContactId}`, {
-            engagementTypes: engagements.map((e) => e.type || "unknown"),
-            operation: "hubspot_get_engagements",
-          })
-
-          claritySessions = this.client.parseClaritySessionsFromEngagements(engagements)
-
-          console.log(`[CLARITY DEBUG] Parsed ${claritySessions.length} Clarity sessions`)
-
-          log.info(
-            `HubSpotService.searchCustomer: Found ${claritySessions.length} Clarity sessions`,
-            {
-              sessionIds: claritySessions.map((s) => s.id),
-              operation: "hubspot_clarity_sessions_parsed",
-            }
-          )
-        } else {
-          console.log(`[CLARITY DEBUG] No contacts found for company`)
-        }
-      } catch (error) {
-        console.error(`[CLARITY DEBUG] Error fetching Clarity sessions:`, error)
-        log.warn("Failed to fetch Clarity sessions", {
-          companyId: company.id,
-          error: error instanceof Error ? error.message : String(error),
-          operation: "hubspot_fetch_clarity_sessions",
-        })
-      }
 
       const result = {
         company,
@@ -132,14 +78,10 @@ export class HubSpotService {
         policies: allPolicies,
         monthlyInvoices,
         activeLists: listMemberships.lists,
-        claritySessions,
       }
 
-      console.log(
-        `[CLARITY DEBUG] Returning result with ${claritySessions.length} Clarity sessions`
-      )
       log.debug(
-        `HubSpotService.searchCustomer: Returning complete customer data for company ${company.id} with ${listMemberships.total} active lists and ${claritySessions.length} Clarity sessions`
+        `HubSpotService.searchCustomer: Returning complete customer data for company ${company.id} with ${listMemberships.total} active lists`
       )
       return result
     } catch (error) {
@@ -191,23 +133,7 @@ export class HubSpotService {
       // Flatten all policies into a single array
       const allPolicies = policiesArrays.flat()
 
-      // Get Clarity sessions
-      let claritySessions = []
-      try {
-        const contacts = await this.client.getAssociations("companies", companyId, "contacts")
 
-        if (contacts.results && contacts.results.length > 0) {
-          const primaryContactId = contacts.results[0].id
-          const engagements = await this.client.getContactEngagements(primaryContactId)
-          claritySessions = this.client.parseClaritySessionsFromEngagements(engagements)
-        }
-      } catch (error) {
-        log.warn("Failed to fetch Clarity sessions", {
-          companyId,
-          error: error instanceof Error ? error.message : String(error),
-          operation: "hubspot_fetch_clarity_sessions",
-        })
-      }
 
       return {
         company,
@@ -215,7 +141,6 @@ export class HubSpotService {
         policies: allPolicies,
         monthlyInvoices,
         activeLists: listMemberships.lists,
-        claritySessions,
       }
     } catch (error) {
       log.error("Error getting HubSpot customer data", error as Error, {
@@ -244,16 +169,7 @@ export class HubSpotService {
       feeAmount: number
       pdfDocumentUrl: string | null
       totalPolicies: number
-      policies: Array<{
-        id: string
-        policyNumber: string
-        policyHolderName: string
-        coverageType: string
-        premiumAmount: number
-        effectiveDate: string
-        expirationDate: string | null
-        status: string
-      }>
+      policies: Policy[]
     }>
     monthlyInvoices: Array<{
       id: string
@@ -304,15 +220,44 @@ export class HubSpotService {
         totalPolicies: policiesBySob.get(sob.id)?.length || 0,
         policies: (policiesBySob.get(sob.id) || []).map((policy) => ({
           id: policy.id,
-          policyNumber: String(policy.properties.policy_number || ""),
-          policyHolderName: String(policy.properties.policy_holder_name || ""),
-          coverageType: String(policy.properties.coverage_type || ""),
-          premiumAmount: Number(policy.properties.premium_amount) || 0,
-          effectiveDate: String(policy.properties.effective_date || ""),
-          expirationDate: policy.properties.expiration_date
-            ? String(policy.properties.expiration_date)
-            : null,
-          status: String(policy.properties.status || ""),
+          policyNumber: String(policy.properties.policyholder || ""),
+          policyHolderName: policy.properties.first_name && policy.properties.last_name 
+            ? `${policy.properties.first_name} ${policy.properties.last_name}`
+            : String(policy.properties.policyholder || ""),
+          productName: String(policy.properties.product_name || ""),
+          planName: policy.properties.plan_name ? String(policy.properties.plan_name) : undefined,
+          costPerMonth: Number(policy.properties.cost_per_month) || 0,
+
+          effectiveDate: String(policy.properties.policy_effective_date || ""),
+          terminationDate: policy.properties.policy_termination_date
+            ? String(policy.properties.policy_termination_date)
+            : undefined,
+          coverageLevel: policy.properties.coverage_level_display 
+            ? String(policy.properties.coverage_level_display)
+            : policy.properties.coverage_level 
+              ? String(policy.properties.coverage_level)
+              : undefined,
+          coverageAmount: policy.properties.coverage_amount 
+            ? Number(policy.properties.coverage_amount)
+            : undefined,
+          coverageAmountSpouse: policy.properties.coverage_amount_spouse
+            ? Number(policy.properties.coverage_amount_spouse)
+            : undefined,
+          coverageAmountChildren: policy.properties.coverage_amount_children
+            ? Number(policy.properties.coverage_amount_children)
+            : undefined,
+          companyName: policy.properties.company_name 
+            ? String(policy.properties.company_name)
+            : undefined,
+          productCode: policy.properties.product_code
+            ? String(policy.properties.product_code)
+            : undefined,
+          renewalDate: policy.properties.renewal_date
+            ? String(policy.properties.renewal_date)
+            : undefined,
+          notes: policy.properties.notes
+            ? String(policy.properties.notes)
+            : undefined,
         })),
       })),
       monthlyInvoices: (data.monthlyInvoices || []).map((invoice) => ({
@@ -330,4 +275,6 @@ export class HubSpotService {
       })),
     }
   }
+
+
 }

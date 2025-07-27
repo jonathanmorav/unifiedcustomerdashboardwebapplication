@@ -70,12 +70,16 @@ export interface DwollaTransfer {
   }>
   correlationId?: string
   individualAchId?: string
-  _links: {
+  // For raw API data
+  _links?: {
     self: { href: string }
     source: { href: string }
     destination: { href: string }
     [key: string]: { href: string }
   }
+  // For already-formatted data
+  sourceId?: string
+  destinationId?: string
 }
 
 export interface DwollaNotification {
@@ -161,17 +165,57 @@ export interface DwollaSearchParams {
   offset?: number
 }
 
+// Formatted customer data (subset of DwollaCustomer)
+export interface FormattedDwollaCustomer {
+  id: string
+  email: string
+  name: string
+  businessName: string | null
+  type: "personal" | "business" | "receive-only"
+  created: string
+}
+
+// Formatted result types for display
+export interface FormattedFundingSource {
+  id: string
+  name: string
+  type: "balance" | "bank"
+  bankAccountType: "checking" | "savings" | null
+  accountNumberMasked: string | null
+  bankName: string | null
+  status: "removed" | "unverified" | "verified"
+  verified: boolean
+}
+
+export interface FormattedTransfer {
+  id: string
+  amount: string
+  currency: string
+  status: "pending" | "processed" | "failed" | "cancelled" | "reclaimed"
+  created: string
+  sourceId: string | null
+  destinationId: string | null
+  correlationId: string | null
+}
+
+export interface FormattedNotification {
+  id: string
+  message: string
+  type: string
+  created: string
+}
+
 // Consolidated result type for our dashboard
 export interface DwollaCustomerData {
-  customer: DwollaCustomer
-  fundingSources: MaskedFundingSource[]
-  transfers: DwollaTransfer[]
-  notifications: DwollaNotification[]
+  customer: FormattedDwollaCustomer
+  fundingSources: FormattedFundingSource[]
+  transfers: FormattedTransfer[]
+  notifications: FormattedNotification[]
+  notificationCount: number
 }
 
 // Masked funding source for display
 export interface MaskedFundingSource
   extends Omit<DwollaFundingSource, "accountNumber" | "routingNumber"> {
   accountNumberMasked?: string // Last 4 digits only
-  routingNumber?: string // Can show full routing number
 }

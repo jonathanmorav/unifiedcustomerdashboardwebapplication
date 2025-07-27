@@ -25,8 +25,9 @@ const disableSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  
   try {
-    const session = await getServerSession(authOptions)
 
     if (!session?.user?.id || !session?.user?.email) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })

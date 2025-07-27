@@ -42,15 +42,20 @@ export class SearchHistory {
     try {
       const history = this.getHistory()
 
+      // Calculate total results based on actual data structure
+      const hubspotResults = results.hubspot.success && results.hubspot.data ? 1 : 0
+      const dwollaResults = results.dwolla.success && results.dwolla.data ? 1 : 0
+      const totalResults = hubspotResults + dwollaResults
+
       const newEntry: SearchHistoryEntry = {
         id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         searchTerm,
         searchType,
         timestamp: new Date(),
         duration,
-        foundInHubspot: results.results.hubspot.length > 0,
-        foundInDwolla: results.results.dwolla.length > 0,
-        totalResults: results.totalResults,
+        foundInHubspot: results.hubspot.success && results.hubspot.data !== undefined,
+        foundInDwolla: results.dwolla.success && results.dwolla.data !== undefined,
+        totalResults,
         tags: this.generateTags(results),
       }
 
@@ -68,7 +73,7 @@ export class SearchHistory {
           searchTerm,
           searchType,
           duration,
-          totalResults: results.totalResults,
+          totalResults,
           operation: "search_history_add",
         })
       }
@@ -141,17 +146,35 @@ export class SearchHistory {
   private static generateTags(results: UnifiedSearchResult): string[] {
     const tags: string[] = []
 
-    if (results.results.hubspot.length > 0) {
-      const types = new Set(results.results.hubspot.map((r) => r.type))
-      types.forEach((type) => tags.push(`hubspot:${type}`))
+    // Add HubSpot tags if data exists
+    if (results.hubspot.success && results.hubspot.data) {
+      tags.push("hubspot:customer")
+      // Check for specific data types in HubSpot result
+      if (results.hubspot.data.summaryOfBenefits?.length > 0) {
+        tags.push("hubspot:benefits")
+      }
+      if (results.hubspot.data.monthlyInvoices?.length > 0) {
+        tags.push("hubspot:invoices")
+      }
+
     }
 
-    if (results.results.dwolla.length > 0) {
-      const types = new Set(results.results.dwolla.map((r) => r.type))
-      types.forEach((type) => tags.push(`dwolla:${type}`))
+    // Add Dwolla tags if data exists
+    if (results.dwolla.success && results.dwolla.data) {
+      tags.push("dwolla:customer")
+      if (results.dwolla.data.fundingSources?.length > 0) {
+        tags.push("dwolla:funding")
+      }
+      if (results.dwolla.data.transfers?.length > 0) {
+        tags.push("dwolla:transfers")
+      }
     }
 
-    if (results.totalResults === 0) {
+    // Calculate if we have results
+    const hasResults = (results.hubspot.success && results.hubspot.data) || 
+                      (results.dwolla.success && results.dwolla.data)
+
+    if (!hasResults) {
       tags.push("no-results")
     }
 

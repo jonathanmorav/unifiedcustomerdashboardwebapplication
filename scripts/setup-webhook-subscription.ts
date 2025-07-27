@@ -86,7 +86,7 @@ async function setupWebhookSubscription() {
     console.log('1. Add DWOLLA_WEBHOOK_SECRET to your .env file')
     console.log('2. Restart your application')
     console.log('3. Test the webhook by triggering an event in Dwolla')
-    console.log('4. Monitor events in the Analytics → Webhooks dashboard')
+    console.log('4. Monitor events in the application logs')
     
   } catch (error) {
     console.error('\n❌ Setup failed:', error)

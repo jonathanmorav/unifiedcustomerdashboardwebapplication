@@ -353,9 +353,15 @@ export class WebhookReceiver {
   }
   
   private async processEvent(eventId: string): Promise<void> {
-    // This will be implemented in the event processor
-    // Placeholder for now
-    log.info('Event queued for processing', { eventId })
+    // Import and use the event processing pipeline
+    const { getEventProcessingPipeline } = await import('./processor')
+    const pipeline = getEventProcessingPipeline()
+    
+    try {
+      await pipeline.processEvent(eventId)
+    } catch (error) {
+      log.error('Event processing failed', error as Error, { eventId })
+    }
   }
   
   private async updateMetrics(metrics: any): Promise<void> {

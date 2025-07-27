@@ -1,6 +1,15 @@
 import crypto from "crypto"
 import { getEnv } from "@/lib/env"
 
+// Type augmentation for GCM-specific methods
+interface CipherGCM extends crypto.Cipher {
+  getAuthTag(): Buffer
+}
+
+interface DecipherGCM extends crypto.Decipher {
+  setAuthTag(tag: Buffer): this
+}
+
 /**
  * Encryption utilities for sensitive data
  * Uses AES-256-GCM for authenticated encryption
@@ -28,10 +37,11 @@ export class Encryption {
     const key = this.deriveKey(secret, salt)
     const iv = crypto.randomBytes(this.ivLength)
 
-    const cipher = crypto.createCipheriv(this.algorithm, key, iv)
+    const cipher = crypto.createCipheriv(this.algorithm, key, iv) as CipherGCM
 
     const encrypted = Buffer.concat([cipher.update(data, "utf8"), cipher.final()])
 
+    // Use GCM-specific method with proper typing
     const tag = cipher.getAuthTag()
 
     // Combine salt, iv, tag, and encrypted data
@@ -57,7 +67,9 @@ export class Encryption {
     const encrypted = combined.slice(this.saltLength + this.ivLength + this.tagLength)
 
     const key = this.deriveKey(secret, salt)
-    const decipher = crypto.createDecipheriv(this.algorithm, key, iv)
+    const decipher = crypto.createDecipheriv(this.algorithm, key, iv) as DecipherGCM
+    
+    // Use GCM-specific method with proper typing
     decipher.setAuthTag(tag)
 
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()])

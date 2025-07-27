@@ -5,6 +5,8 @@ import { log } from '@/lib/logger'
 export class QueueProcessor {
   private isRunning = false
   private interval: NodeJS.Timeout | null = null
+  private processingCount = 0
+  private maxConcurrency = 5
   
   start(intervalMs: number = 5000): void {
     if (this.isRunning) {
@@ -13,7 +15,7 @@ export class QueueProcessor {
     }
     
     this.isRunning = true
-    log.info('Starting queue processor', { intervalMs })
+    log.info('Starting webhook queue processor', { intervalMs, maxConcurrency: this.maxConcurrency })
     
     // Process immediately
     this.processQueue()
@@ -33,11 +35,23 @@ export class QueueProcessor {
       this.interval = null
     }
     
-    log.info('Stopped queue processor')
+    log.info('Webhook queue processor stopped')
+  }
+  
+  isActive(): boolean {
+    return this.isRunning
+  }
+  
+  getStatus(): { isRunning: boolean; processingCount: number; maxConcurrency: number } {
+    return {
+      isRunning: this.isRunning,
+      processingCount: this.processingCount,
+      maxConcurrency: this.maxConcurrency
+    }
   }
   
   private async processQueue(): Promise<void> {
-    if (!this.isRunning) return
+    if (!this.isRunning || this.processingCount >= this.maxConcurrency) return
     
     try {
       // Get queued events (oldest first)
@@ -47,44 +61,79 @@ export class QueueProcessor {
           quarantined: false
         },
         orderBy: { createdAt: 'asc' },
-        take: 10 // Process in batches
+        take: Math.min(10, this.maxConcurrency - this.processingCount) // Process in batches
       })
       
       if (queuedEvents.length === 0) return
       
-      log.debug(`Processing ${queuedEvents.length} queued events`)
+      log.debug(`Processing ${queuedEvents.length} queued webhook events`)
       
       const pipeline = getEventProcessingPipeline()
       
-      // Process events in parallel (max 5 at a time)
-      const chunks = this.chunkArray(queuedEvents, 5)
+      // Process events with concurrency control
+      const promises = queuedEvents.map(async (event) => {
+        this.processingCount++
+        try {
+          await pipeline.processEvent(event.id)
+        } catch (error) {
+          log.error('Failed to process webhook event', error as Error, {
+            eventId: event.id,
+            eventType: event.eventType
+          })
+        } finally {
+          this.processingCount--
+        }
+      })
       
-      for (const chunk of chunks) {
-        await Promise.allSettled(
-          chunk.map(event => pipeline.processEvent(event.id))
-        )
-      }
+      await Promise.allSettled(promises)
       
     } catch (error) {
       log.error('Queue processing error', error as Error)
     }
   }
-  
-  private chunkArray<T>(array: T[], size: number): T[][] {
-    const chunks: T[][] = []
-    for (let i = 0; i < array.length; i += size) {
-      chunks.push(array.slice(i, i + size))
-    }
-    return chunks
-  }
 }
 
 // Singleton instance
-let processor: QueueProcessor | null = null
+let queueProcessor: QueueProcessor | null = null
 
 export function getQueueProcessor(): QueueProcessor {
-  if (!processor) {
-    processor = new QueueProcessor()
+  if (!queueProcessor) {
+    queueProcessor = new QueueProcessor()
   }
-  return processor
+  return queueProcessor
+}
+
+// Auto-start the queue processor in production
+// Auto-start the queue processor in production
+if (process.env.NODE_ENV === 'production' || process.env.AUTO_START_QUEUE_PROCESSOR === 'true') {
+  const processor = getQueueProcessor()
+  processor.start()
+
+  let shutdownInProgress = false
+
+  const gracefulShutdown = async (signal: string) => {
+    if (shutdownInProgress) return
+    shutdownInProgress = true
+
+    log.info(`${signal} received, stopping queue processor`)
+    processor.stop()
+
+    // Wait for active processing to complete (with timeout)
+    const timeout = setTimeout(() => {
+      log.warn('Shutdown timeout reached, forcing exit')
+      process.exit(0)
+    }, 30000) // 30 second timeout
+
+    // Wait for processing to complete
+    while (processor.getStatus().processingCount > 0) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    clearTimeout(timeout)
+    process.exit(0)
+  }
+
+  // Handle graceful shutdown
+  process.once('SIGTERM', () => gracefulShutdown('SIGTERM'))
+  process.once('SIGINT', () => gracefulShutdown('SIGINT'))
 }

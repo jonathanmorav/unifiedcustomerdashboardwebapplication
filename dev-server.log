@@ -19,3 +19,16 @@ Import trace for requested module:
  ○ Compiling /api/lists ...
  GET /api/lists 401 in 507ms
 [?25h
+
+> unified-customer-dashboard@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by process 1419, using available port 3001 instead.
+   ▲ Next.js 15.4.1
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.1.155:3001
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 1256ms
+[?25h

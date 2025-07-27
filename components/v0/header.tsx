@@ -67,16 +67,7 @@ export function Header() {
                 Billing
               </Button>
             </Link>
-            <Link href="/analytics/webhooks">
-              <Button
-                variant={pathname.startsWith("/analytics") ? "default" : "ghost"}
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Activity className="h-4 w-4" />
-                Analytics
-              </Button>
-            </Link>
+
           </nav>
 
           <div className="flex items-center gap-4">
