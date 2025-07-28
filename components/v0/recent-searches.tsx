@@ -77,15 +77,15 @@ export function RecentSearches() {
               className="group flex items-center justify-between rounded-xl bg-cakewalk-alice-200 p-3 transition-all duration-200 hover:bg-cakewalk-alice-300 hover:shadow-sm"
             >
               <div 
-                className={`flex flex-1 items-center gap-2 ${
+                className={`flex flex-1 items-center gap-2 min-w-0 ${
                   isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                 }`}
                 onClick={() => !isLoading && handleRerunSearch(search.query, search.type)}
                 title={isLoading ? "Search in progress..." : `Click to re-run search: ${search.query}`}
               >
-                <Search className="h-4 w-4 text-cakewalk-text-secondary" />
-                <div className="flex-1">
-                  <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary">
+                <Search className="h-4 w-4 text-cakewalk-text-secondary flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-cakewalk-body-xs font-medium text-cakewalk-text-primary truncate">
                     {search.query}
                   </p>
                   <p className="text-cakewalk-body-xxs text-cakewalk-text-secondary">
@@ -93,15 +93,15 @@ export function RecentSearches() {
                   </p>
                 </div>
                 {isLoading ? (
-                  <Loader2 className="h-4 w-4 text-cakewalk-primary animate-spin" />
+                  <Loader2 className="h-4 w-4 text-cakewalk-primary animate-spin flex-shrink-0" />
                 ) : (
-                  <PlayCircle className="h-4 w-4 text-cakewalk-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                  <PlayCircle className="h-4 w-4 text-cakewalk-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100 flex-shrink-0" />
                 )}
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 ml-2"
+                className="h-8 w-8 flex-shrink-0 hover:bg-cakewalk-alice-400"
                 onClick={(e) => {
                   e.stopPropagation()
                   handleRemove(search.id)
