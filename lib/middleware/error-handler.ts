@@ -59,7 +59,7 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<NextRespo
         appError = error
       } else {
         appError = ErrorFactory.createFromError(error, undefined, {
-          correlationId,
+          correlationId: correlationId || undefined,
           operation: `${request.method} ${request.nextUrl.pathname}`,
         })
       }
@@ -70,7 +70,7 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<NextRespo
       }
 
       // Track error metrics
-      metrics.incrementCounter("api_errors_total", {
+      metrics.incrementCounter("api_errors_total", 1, {
         method: request.method,
         path: request.nextUrl.pathname,
         category: appError.category,
@@ -78,7 +78,7 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<NextRespo
       })
 
       // Track error rate by category
-      metrics.incrementCounter("api_errors_by_category", {
+      metrics.incrementCounter("api_errors_by_category", 1, {
         category: appError.category,
       })
 
@@ -120,7 +120,7 @@ export async function globalErrorHandler(
 
   // Create a system error for unhandled cases
   const systemError = new SystemError("An unhandled error occurred", {
-    correlationId,
+    correlationId: correlationId || undefined,
     operation: `${request.method} ${request.nextUrl.pathname}`,
   })
 
@@ -136,12 +136,12 @@ export async function globalErrorHandler(
             stack: error.stack,
           }
         : error,
-    correlationId,
+    correlationId: correlationId || undefined,
     operation: "global_error_handler",
   })
 
   // Track unhandled errors
-  metrics.incrementCounter("api_unhandled_errors_total", {
+  metrics.incrementCounter("api_unhandled_errors_total", 1, {
     method: request.method,
     path: request.nextUrl.pathname,
   })
@@ -149,7 +149,7 @@ export async function globalErrorHandler(
   return NextResponse.json(systemError.toClientResponse(), {
     status: 500,
     headers: {
-      "X-Correlation-ID": correlationId,
+      "X-Correlation-ID": correlationId || "",
     },
   })
 }

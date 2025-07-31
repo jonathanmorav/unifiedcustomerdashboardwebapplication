@@ -5,16 +5,19 @@ import { SearchHistoryManager } from "@/lib/search/search-history"
 import { log } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
+  let session: any
+  let query = ""
+  
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     // Get query parameters
     const { searchParams } = new URL(request.url)
-    const query = searchParams.get("q") || ""
+    query = searchParams.get("q") || ""
     const limit = parseInt(searchParams.get("limit") || "5")
 
     // Validate parameters

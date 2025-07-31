@@ -17,6 +17,7 @@ export const mockHubSpotCompany = {
   },
   createdAt: "2024-01-15T10:30:00Z",
   updatedAt: "2024-12-20T14:45:00Z",
+  archived: false,
 }
 
 export const mockSummaryOfBenefits = {
@@ -28,7 +29,13 @@ export const mockSummaryOfBenefits = {
     status: "active",
     effective_date: "2024-01-01",
     pdf_document_url: "https://example.com/sob/q1-2024.pdf",
+    hs_object_id: "sob-001",
+    createdate: "2024-01-01T00:00:00Z",
+    hs_lastmodifieddate: "2024-01-01T00:00:00Z",
   },
+  createdAt: "2024-01-01T00:00:00Z",
+  updatedAt: "2024-01-01T00:00:00Z",
+  archived: false,
 }
 
 export const mockPolicies = [
@@ -36,21 +43,29 @@ export const mockPolicies = [
     id: "pol-001",
     properties: {
       policy_number: "POL-2024-001",
-      carrier: "Blue Shield",
+      policy_holder_name: "John Doe",
       coverage_type: "Health",
-      premium: 1200,
+      premium_amount: 1200,
+      effective_date: "2024-01-01",
       status: "active",
     },
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z",
+    archived: false,
   },
   {
     id: "pol-002",
     properties: {
       policy_number: "POL-2024-002",
-      carrier: "MetLife",
+      policy_holder_name: "John Doe",
       coverage_type: "Dental",
-      premium: 300,
+      premium_amount: 300,
+      effective_date: "2024-01-01",
       status: "active",
     },
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z",
+    archived: false,
   },
 ]
 
@@ -58,11 +73,15 @@ export const mockMonthlyInvoice = {
   id: "inv-001",
   properties: {
     invoice_number: "INV-2024-001",
-    amount: 5150,
+    invoice_date: "2024-01-01",
+    total_amount: 5150,
     due_date: "2024-02-01",
     status: "paid",
     payment_date: "2024-01-28",
   },
+  createdAt: "2024-01-01T00:00:00Z",
+  updatedAt: "2024-01-01T00:00:00Z",
+  archived: false,
 }
 
 export const mockHubSpotCustomerData: HubSpotCustomerData = {

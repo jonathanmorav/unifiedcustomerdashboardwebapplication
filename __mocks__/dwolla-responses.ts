@@ -1,4 +1,4 @@
-import type { DwollaCustomerData, DwollaTransfer } from "@/lib/types/dwolla"
+import type { DwollaCustomerData, DwollaTransfer, FormattedDwollaCustomer, FormattedFundingSource, FormattedTransfer } from "@/lib/types/dwolla"
 
 export const mockDwollaCustomer = {
   id: "cust_12345",
@@ -60,9 +60,6 @@ export const mockDwollaTransfer: DwollaTransfer = {
     currency: "USD",
   },
   created: "2024-12-15T10:30:00Z",
-  clearing: {
-    source: "standard",
-  },
   metadata: {
     invoice: "INV-2024-001",
     type: "premium_collection",
@@ -103,10 +100,44 @@ export const mockDwollaTransfers: DwollaTransfer[] = [
   },
 ]
 
+// Create formatted versions for the DwollaCustomerData type
+const formattedCustomer: FormattedDwollaCustomer = {
+  id: mockDwollaCustomer.id,
+  email: mockDwollaCustomer.email,
+  name: `${mockDwollaCustomer.firstName} ${mockDwollaCustomer.lastName}`,
+  businessName: mockDwollaCustomer.businessName || null,
+  type: mockDwollaCustomer.type as "business",
+  created: mockDwollaCustomer.created,
+}
+
+const formattedFundingSource: FormattedFundingSource = {
+  id: mockDwollaFundingSource.id,
+  name: mockDwollaFundingSource.name,
+  type: mockDwollaFundingSource.type as "bank",
+  bankAccountType: mockDwollaFundingSource.bankAccountType as "checking",
+  accountNumberMasked: "****6789",
+  bankName: mockDwollaFundingSource.bankName || null,
+  status: mockDwollaFundingSource.status as "verified",
+  verified: mockDwollaFundingSource.status === "verified",
+}
+
+const formattedTransfers: FormattedTransfer[] = mockDwollaTransfers.map(transfer => ({
+  id: transfer.id,
+  amount: transfer.amount.value,
+  currency: transfer.amount.currency,
+  status: transfer.status,
+  created: transfer.created,
+  sourceId: null,
+  destinationId: null,
+  correlationId: transfer.correlationId || null,
+}))
+
 export const mockDwollaCustomerData: DwollaCustomerData = {
-  customer: mockDwollaCustomer,
-  fundingSources: [mockDwollaFundingSource],
-  transfers: mockDwollaTransfers,
+  customer: formattedCustomer,
+  fundingSources: [formattedFundingSource],
+  transfers: formattedTransfers,
+  notifications: [],
+  notificationCount: 0,
 }
 
 export const mockDwollaError = {

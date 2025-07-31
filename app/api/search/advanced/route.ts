@@ -17,7 +17,7 @@ const advancedSearchSchema = z.object({
         .array(z.enum(["active", "inactive", "verified", "unverified", "suspended"]))
         .optional(),
       transferStatus: z
-        .array(z.enum(["completed", "pending", "failed", "cancelled", "processed"]))
+        .array(z.enum(["pending", "failed", "cancelled", "processed"]))
         .optional(),
       fundingSourceStatus: z.array(z.enum(["verified", "unverified"])).optional(),
       createdDateRange: z
@@ -81,9 +81,11 @@ const advancedSearchSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  let session: any
+  
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -119,7 +121,7 @@ export async function POST(request: NextRequest) {
 
       if (isDemoMode) {
         // Use mock data for demo
-        const { mockAdvancedSearchResult } = await import("@/lib/search/mock-data")
+        const { mockAdvancedSearchResult } = await import("@/__mocks__/search-results")
         result = {
           ...mockAdvancedSearchResult,
           searchTerm: searchParams.searchTerm,
@@ -193,9 +195,11 @@ export async function POST(request: NextRequest) {
 
 // GET endpoint for available filter options
 export async function GET(request: NextRequest) {
+  let session: any
+  
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

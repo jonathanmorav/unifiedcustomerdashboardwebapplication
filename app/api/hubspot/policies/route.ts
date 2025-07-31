@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { HubSpotClient } from '@/lib/api/hubspot/client'
 import { metrics } from '@/lib/monitoring/metrics'
-import { HubSpotPolicyObject, HubSpotPolicyProperties } from '@/lib/types/hubspot'
+import { HubSpotPolicyObject, HubSpotPolicyProperties, HubSpotObjectType } from '@/lib/types/hubspot'
 import { log } from '@/lib/logger'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
         // This is a more complex query, implementing basic version for now
         
         const sobResults = await hubspotClient.searchObjects(
-          "2-45680577",
+          "summary_of_benefits" as HubSpotObjectType,
           {
             filterGroups: [{
               filters: [{
@@ -113,9 +113,9 @@ export async function GET(request: NextRequest) {
             })
 
             const sobAssociations = await hubspotClient.getAssociations(
-              "2-45680577",
+              "summary_of_benefits" as HubSpotObjectType,
               sob.id,
-              "2-45586773"
+              "policies" as HubSpotObjectType
             )
 
             log.info(`Policy associations retrieved for SOB`, {
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
             })
 
             const policyObjects = await hubspotClient.batchReadObjects<HubSpotPolicyProperties>(
-              "2-45586773",
+              "policies" as HubSpotObjectType,
               policyIds,
               [
                 'policyholder',
@@ -193,8 +193,12 @@ export async function GET(request: NextRequest) {
 
       // Record metrics
       const duration = Date.now() - startTime
-      metrics.recordApiResponseTime("hubspot_policies", duration)
-      metrics.incrementCounter("hubspot_policies_requests_total", {
+      metrics.recordHistogram("http_request_duration_ms", duration, {
+        method: "GET",
+        endpoint: "/api/hubspot/policies",
+        status: "success"
+      })
+      metrics.incrementCounter("hubspot_policies_requests_total", 1, {
         status: "success",
         method: "GET",
         query_type: sobId ? "sob" : "company"
@@ -218,7 +222,7 @@ export async function GET(request: NextRequest) {
     } catch (hubspotError) {
       console.error('HubSpot API error:', hubspotError)
       
-      metrics.incrementCounter("hubspot_policies_requests_total", {
+      metrics.incrementCounter("hubspot_policies_requests_total", 1, {
         status: "error",
         method: "GET",
         error_type: "hubspot_api"
@@ -240,7 +244,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Policies API error:', error)
     
-    metrics.incrementCounter("hubspot_policies_requests_total", {
+    metrics.incrementCounter("hubspot_policies_requests_total", 1, {
       status: "error", 
       method: "GET",
       error_type: "internal"
