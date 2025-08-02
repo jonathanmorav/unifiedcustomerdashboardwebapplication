@@ -187,7 +187,7 @@ export class JourneyTracker {
         definitionVersion: definition.version,
         resourceId: event.resourceId!,
         resourceType: event.resourceType || 'unknown',
-        resourceMetadata: this.extractResourceMetadata(event, context),
+        resourceMetadata: this.extractResourceMetadata(event, context) as any,
         status: 'active',
         startEventId: event.id,
         startTime: event.eventTimestamp,
@@ -269,7 +269,7 @@ export class JourneyTracker {
         durationFromPreviousMs: BigInt(durationFromPrevious),
         expected: !!expectedStep,
         onTime,
-        eventMetadata: this.extractEventMetadata(event)
+        eventMetadata: this.extractEventMetadata(event) as any
       }
     })
     
@@ -552,27 +552,28 @@ export class JourneyTracker {
     }
   }
   
-  private extractResourceMetadata(event: WebhookEvent, context: ProcessingContext): any {
-    const metadata: any = {}
+  private extractResourceMetadata(event: WebhookEvent, context: ProcessingContext): Record<string, unknown> {
+    const metadata: Record<string, unknown> = {}
     
     // Extract from context
     const transaction = context.get('transaction')
     if (transaction) {
-      metadata.customerName = (transaction as any).customerName
-      metadata.companyName = (transaction as any).companyName
-      metadata.amount = (transaction as any).amount
+      const txn = transaction as { customerName?: string; companyName?: string; amount?: number }
+      metadata.customerName = txn.customerName
+      metadata.companyName = txn.companyName
+      metadata.amount = txn.amount
     }
     
     // Extract from event payload
-    const payload = event.payload as any
+    const payload = event.payload as Record<string, unknown>
     if (payload.amount) metadata.amount = payload.amount
     if (payload.customerName) metadata.customerName = payload.customerName
     
     return metadata
   }
   
-  private extractEventMetadata(event: WebhookEvent): any {
-    const payload = event.payload as any
+  private extractEventMetadata(event: WebhookEvent): Record<string, unknown> {
+    const payload = event.payload as Record<string, unknown>
     return {
       eventId: event.eventId,
       resourceId: event.resourceId,

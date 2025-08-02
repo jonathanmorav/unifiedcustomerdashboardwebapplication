@@ -58,7 +58,7 @@ export interface DwollaTransfer {
     currency: string
   }
   created: string
-  metadata?: Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
+  metadata?: Record<string, unknown>
   fees?: Array<{
     amount: {
       value: string
@@ -80,6 +80,10 @@ export interface DwollaTransfer {
   // For already-formatted data
   sourceId?: string
   destinationId?: string
+  // For failed transfers
+  failureReason?: string
+  failureCode?: string
+  returnCode?: string
 }
 
 export interface DwollaNotification {

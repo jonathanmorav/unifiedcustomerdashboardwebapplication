@@ -225,9 +225,9 @@ export class ACHTransactionSync {
       if (transfer.status === 'failed' || transfer.status === 'returned' || transfer.status === 'cancelled') {
         console.log(`🔍 Processing failed transfer: ${transfer.id}`, {
           status: transfer.status,
-          failureReason: (transfer as any).failureReason,
-          failureCode: (transfer as any).failureCode,
-          returnCode: (transfer as any).returnCode,
+          failureReason: transfer.failureReason,
+          failureCode: transfer.failureCode,
+          returnCode: transfer.returnCode,
           amount: transfer.amount,
           created: transfer.created
         })
