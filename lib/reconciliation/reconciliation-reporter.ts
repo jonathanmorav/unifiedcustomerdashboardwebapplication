@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import type { ReconciliationRun, ReconciliationDiscrepancy } from '@prisma/client'
+import type { ReconciliationJob, ReconciliationCheck, ReconciliationDiscrepancy } from '@prisma/client'
 
 interface ReconciliationReport {
   summary: {
@@ -37,45 +37,57 @@ interface ReconciliationReport {
 
 export class ReconciliationReporter {
   async generateReport(runId: string): Promise<ReconciliationReport> {
-    const run = await prisma.reconciliationRun.findUnique({
-      where: { id: runId },
-      include: {
-        discrepancies: true
-      }
+    const run = await prisma.reconciliationJob.findUnique({
+      where: { id: runId }
     })
     
     if (!run) {
       throw new Error('Reconciliation run not found')
     }
     
-    const metrics = run.metrics as any
-    const duration = run.endTime 
-      ? run.endTime.getTime() - run.startTime.getTime()
-      : Date.now() - run.startTime.getTime()
+    const metrics = (run.results as any) || {}
+    const duration = run.completedAt 
+      ? run.completedAt.getTime() - (run.startedAt?.getTime() || run.createdAt.getTime())
+      : Date.now() - (run.startedAt?.getTime() || run.createdAt.getTime())
     
     // Calculate summary
     const summary = {
       runId: run.id,
-      startTime: run.startTime,
-      endTime: run.endTime || new Date(),
+      startTime: run.startedAt || run.createdAt,
+      endTime: run.completedAt || new Date(),
       duration,
       status: run.status,
       totalChecks: metrics.totalChecks || 0,
       totalDiscrepancies: metrics.discrepanciesFound || 0,
       resolvedDiscrepancies: metrics.discrepanciesResolved || 0,
       unresolvedDiscrepancies: (metrics.discrepanciesFound || 0) - (metrics.discrepanciesResolved || 0),
-      criticalIssues: run.discrepancies?.filter(d => d.severity === 'critical' && !d.resolved).length || 0,
+      criticalIssues: 0, // Severity field not available in current schema
       errorRate: metrics.totalChecks > 0 
         ? ((metrics.discrepanciesFound || 0) / metrics.totalChecks) * 100
         : 0
     }
     
+    // Get discrepancies from checks related to this job
+    const checks = await prisma.reconciliationCheck.findMany({
+      where: {
+        metadata: {
+          path: ['jobId'],
+          equals: runId
+        }
+      },
+      include: {
+        discrepancies: true
+      }
+    })
+    
+    const allDiscrepancies = checks.flatMap(check => check.discrepancies)
+    
     // Group discrepancies
-    const discrepanciesByType = this.groupByField(run.discrepancies || [], 'checkName')
-    const discrepanciesBySeverity = this.groupByField(run.discrepancies || [], 'severity')
+    const discrepanciesByType = this.groupByField(allDiscrepancies, 'resourceType')
+    const discrepanciesBySeverity: Record<string, number> = {}
     
     // Get top issues
-    const topIssues = this.getTopIssues(run.discrepancies || [])
+    const topIssues = this.getTopIssues(allDiscrepancies)
     
     // Calculate trends
     const trends = await this.calculateTrends(run)
@@ -114,7 +126,7 @@ export class ReconciliationReporter {
     const issueGroups = new Map<string, ReconciliationDiscrepancy[]>()
     
     for (const discrepancy of discrepancies) {
-      const key = discrepancy.checkName
+      const key = discrepancy.resourceType
       if (!issueGroups.has(key)) {
         issueGroups.set(key, [])
       }
@@ -126,10 +138,10 @@ export class ReconciliationReporter {
       .map(([checkName, items]) => ({
         checkName,
         count: items.length,
-        severity: items[0].severity,
+        severity: 'unknown', // Severity not available in current schema
         examples: items.slice(0, 3).map(item => ({
           resourceId: item.resourceId,
-          details: item.details
+          details: item.notes || ''
         }))
       }))
       .sort((a, b) => b.count - a.count)
@@ -139,20 +151,20 @@ export class ReconciliationReporter {
   }
   
   private async calculateTrends(
-    currentRun: ReconciliationRun
+    currentRun: ReconciliationJob & { discrepancies?: any[] }
   ): Promise<ReconciliationReport['trends']> {
     // Get previous run
-    const previousRun = await prisma.reconciliationRun.findFirst({
+    const previousRun = await prisma.reconciliationJob.findFirst({
       where: {
         id: { not: currentRun.id },
-        startTime: { lt: currentRun.startTime },
+        startedAt: { lt: currentRun.startedAt || currentRun.createdAt },
         status: 'completed'
       },
-      orderBy: { startTime: 'desc' }
+      orderBy: { startedAt: 'desc' }
     })
     
-    const currentMetrics = currentRun.metrics as any
-    const previousMetrics = previousRun?.metrics as any
+    const currentMetrics = (currentRun.results as any) || {}
+    const previousMetrics = (previousRun?.results as any) || {}
     
     // Calculate current discrepancy rate
     const currentDiscrepancyRate = currentMetrics.totalChecks > 0
@@ -251,15 +263,12 @@ export class ReconciliationReporter {
     }>
   }> {
     // Get all runs in date range
-    const runs = await prisma.reconciliationRun.findMany({
+    const runs = await prisma.reconciliationJob.findMany({
       where: {
-        startTime: { gte: startDate, lte: endDate },
+        startedAt: { gte: startDate, lte: endDate },
         status: 'completed'
       },
-      include: {
-        discrepancies: true
-      },
-      orderBy: { startTime: 'asc' }
+      orderBy: { startedAt: 'asc' }
     })
     
     // Calculate aggregates
@@ -274,14 +283,29 @@ export class ReconciliationReporter {
     }> = []
     
     for (const run of runs) {
-      const metrics = run.metrics as any
+      const metrics = (run.results as any) || {}
       totalChecks += metrics.totalChecks || 0
       totalDiscrepancies += metrics.discrepanciesFound || 0
       totalResolved += metrics.discrepanciesResolved || 0
       
+      // Get discrepancies for this run
+      const runChecks = await prisma.reconciliationCheck.findMany({
+        where: {
+          metadata: {
+            path: ['jobId'],
+            equals: run.id
+          }
+        },
+        include: {
+          discrepancies: true
+        }
+      })
+      
+      const runDiscrepancies = runChecks.flatMap(check => check.discrepancies)
+      
       // Track recurring issues
-      for (const discrepancy of run.discrepancies || []) {
-        const key = `${discrepancy.checkName}:${discrepancy.severity}`
+      for (const discrepancy of runDiscrepancies) {
+        const key = `${discrepancy.resourceType}:${discrepancy.field}`
         if (!issueOccurrences.has(key)) {
           issueOccurrences.set(key, { count: 0, runs: new Set() })
         }
@@ -299,7 +323,7 @@ export class ReconciliationReporter {
         : 100
       
       performanceTrend.push({
-        date: run.startTime,
+        date: run.startedAt || run.createdAt,
         discrepancyRate,
         resolutionRate
       })
@@ -335,12 +359,24 @@ export class ReconciliationReporter {
   
   async exportReportToCSV(runId: string): Promise<string> {
     const report = await this.generateReport(runId)
-    const run = await prisma.reconciliationRun.findUnique({
-      where: { id: runId },
+    const run = await prisma.reconciliationJob.findUnique({
+      where: { id: runId }
+    })
+    
+    // Get discrepancies from checks
+    const checks = await prisma.reconciliationCheck.findMany({
+      where: {
+        metadata: {
+          path: ['jobId'],
+          equals: runId
+        }
+      },
       include: {
         discrepancies: true
       }
     })
+    
+    const allDiscrepancies = checks.flatMap(check => check.discrepancies)
     
     if (!run) {
       throw new Error('Run not found')
@@ -387,16 +423,15 @@ export class ReconciliationReporter {
     lines.push('Detailed Discrepancies')
     lines.push('Resource Type,Resource ID,Check Name,Severity,Field,Webhook Value,Actual Value,Resolved')
     
-    for (const discrepancy of run.discrepancies || []) {
-      const details = discrepancy.details as any
+    for (const discrepancy of allDiscrepancies) {
       lines.push([
         discrepancy.resourceType,
         discrepancy.resourceId,
-        discrepancy.checkName,
-        discrepancy.severity,
-        details.field || '',
-        details.webhookValue || '',
-        details.actualValue || '',
+        discrepancy.checkId,
+        'unknown', // severity not available
+        discrepancy.field || '',
+        discrepancy.dwollaValue || '',
+        discrepancy.localValue || '',
         discrepancy.resolved ? 'Yes' : 'No'
       ].map(v => `"${v}"`).join(','))
     }

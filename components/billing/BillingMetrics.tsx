@@ -2,6 +2,7 @@
 
 import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency } from "@/utils/format-currency"
 import {
@@ -13,6 +14,7 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
+  Eye,
 } from "lucide-react"
 
 interface BillingMetrics {
@@ -32,6 +34,7 @@ interface BillingMetricsProps {
   metrics: BillingMetrics
   isLoading?: boolean
   compactView?: boolean
+  onMetricClick?: (filterType: 'processed' | 'pending' | 'failed') => void
 }
 
 interface MetricCardProps {
@@ -44,6 +47,8 @@ interface MetricCardProps {
   }
   color?: "default" | "success" | "warning" | "danger"
   isLoading?: boolean
+  onClick?: () => void
+  clickable?: boolean
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({
@@ -53,6 +58,8 @@ const MetricCard: React.FC<MetricCardProps> = ({
   trend,
   color = "default",
   isLoading = false,
+  onClick,
+  clickable = false,
 }) => {
   const colorClasses = {
     default: "text-cakewalk-text-primary",
@@ -61,12 +68,21 @@ const MetricCard: React.FC<MetricCardProps> = ({
     danger: "text-cakewalk-error",
   }
 
+  const CardComponent = clickable ? Button : Card
+  const cardProps = clickable ? {
+    variant: "ghost" as const,
+    className: "w-full h-auto p-0 shadow-cakewalk-medium transition-shadow hover:shadow-lg",
+    onClick,
+  } : {
+    className: "shadow-cakewalk-medium transition-shadow hover:shadow-lg",
+  }
+
   return (
-    <Card className="shadow-cakewalk-medium transition-shadow hover:shadow-lg">
+    <CardComponent {...cardProps}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-sm font-medium text-cakewalk-text-secondary">
           {title}
-          {icon && <span className="text-cakewalk-text-tertiary">{icon}</span>}
+          {clickable && <Eye className="h-4 w-4 text-cakewalk-text-tertiary" />}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -91,7 +107,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
           </>
         )}
       </CardContent>
-    </Card>
+    </CardComponent>
   )
 }
 
@@ -99,10 +115,53 @@ export const BillingMetrics: React.FC<BillingMetricsProps> = ({
   metrics,
   isLoading = false,
   compactView = false,
+  onMetricClick,
 }) => {
-  // Calculate additional metrics
-  const failureRate = metrics.successRate ? (100 - metrics.successRate).toFixed(1) : "0"
+  // If compactView and onMetricClick provided, show the three main KPIs
+  if (compactView && onMetricClick) {
+    const kpiMetrics = [
+      {
+        title: "Total Processed",
+        value: formatCurrency(metrics.processedAmount || 0),
+        icon: <CheckCircle className="h-5 w-5" />,
+        color: "success" as const,
+        filterType: 'processed' as const,
+      },
+      {
+        title: "Total Pending", 
+        value: formatCurrency(metrics.pendingAmount),
+        icon: <Clock className="h-5 w-5" />,
+        color: "warning" as const,
+        filterType: 'pending' as const,
+      },
+      {
+        title: "Failed",
+        value: formatCurrency(metrics.failedAmount),
+        icon: <XCircle className="h-5 w-5" />,
+        color: "danger" as const,
+        filterType: 'failed' as const,
+      },
+    ]
 
+    return (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {kpiMetrics.map((metric) => (
+          <MetricCard
+            key={metric.title}
+            title={metric.title}
+            value={metric.value}
+            icon={metric.icon}
+            color={metric.color}
+            isLoading={isLoading}
+            clickable={true}
+            onClick={() => onMetricClick(metric.filterType)}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  // Original metrics display for non-compact view
   const primaryMetrics = [
     {
       title: "Total Volume",
@@ -166,17 +225,6 @@ export const BillingMetrics: React.FC<BillingMetricsProps> = ({
     },
   ]
 
-  if (compactView) {
-    // Show only primary metrics in compact view
-    return (
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-        {primaryMetrics.map((metric) => (
-          <MetricCard key={metric.title} {...metric} isLoading={isLoading} />
-        ))}
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-4">
       {/* Primary Metrics */}
@@ -206,7 +254,7 @@ export const BillingMetrics: React.FC<BillingMetricsProps> = ({
                   Failed Transactions Alert
                 </p>
                 <p className="text-sm text-cakewalk-error">
-                  {failureRate}% of transactions failed today. Review failed transactions for
+                  {(100 - metrics.successRate).toFixed(1)}% of transactions failed today. Review failed transactions for
                   potential issues.
                 </p>
               </div>

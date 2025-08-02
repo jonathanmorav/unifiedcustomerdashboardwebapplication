@@ -36,7 +36,7 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<NextRespo
       const response = await handler(...args)
 
       // Track successful requests
-      metrics.incrementCounter("api_requests_total", {
+      metrics.incrementCounter("api_requests_total", 1, {
         method: request.method,
         path: request.nextUrl.pathname,
         status: response.status.toString(),
@@ -49,7 +49,7 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<NextRespo
 
       // Check if it's an API error first
       const apiError = APIErrorAdapter.convertIfAPIError(error, {
-        correlationId,
+        correlationId: correlationId || undefined,
         operation: `${request.method} ${request.nextUrl.pathname}`,
       })
 
@@ -96,12 +96,12 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<NextRespo
       })
 
       // Add correlation headers
-      response.headers.set("X-Correlation-ID", correlationId)
+      response.headers.set("X-Correlation-ID", correlationId || "")
       response.headers.set("X-Request-ID", requestId)
 
       // Add rate limit headers if applicable
-      if ("retryAfter" in responseBody) {
-        response.headers.set("Retry-After", responseBody.retryAfter.toString())
+      if ("retryAfter" in responseBody && responseBody.retryAfter) {
+        response.headers.set("Retry-After", String(responseBody.retryAfter))
       }
 
       return response
@@ -127,15 +127,7 @@ export async function globalErrorHandler(
   await systemError.logError()
 
   // Log the original error for debugging
-  await log.error("Unhandled error in API route", {
-    error:
-      error instanceof Error
-        ? {
-            name: error.name,
-            message: error.message,
-            stack: error.stack,
-          }
-        : error,
+  await log.error("Unhandled error in API route", error instanceof Error ? error : new Error(String(error)), {
     correlationId: correlationId || undefined,
     operation: "global_error_handler",
   })
@@ -161,15 +153,7 @@ export function errorHandlerMiddleware(request: NextRequest): void {
   // Set up global error handling for unhandled promise rejections
   if (typeof process !== "undefined") {
     process.on("unhandledRejection", async (reason, promise) => {
-      await log.error("Unhandled Promise Rejection", {
-        reason:
-          reason instanceof Error
-            ? {
-                name: reason.name,
-                message: reason.message,
-                stack: reason.stack,
-              }
-            : reason,
+      await log.error("Unhandled Promise Rejection", reason instanceof Error ? reason : new Error(String(reason)), {
         operation: "unhandled_rejection",
       })
 

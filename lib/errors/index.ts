@@ -75,15 +75,11 @@ export abstract class ApplicationError extends Error {
     const correlationId =
       this.context.correlationId || (await CorrelationTracking.getCorrelationId())
 
-    await log.error(this.message, {
-      error: {
-        name: this.name,
-        category: this.category,
-        code: this.getErrorCode(),
-        statusCode: this.statusCode,
-        isOperational: this.isOperational,
-        stack: this.stack,
-      },
+    await log.error(this.message, this, {
+      category: this.category,
+      code: this.getErrorCode(),
+      statusCode: this.statusCode,
+      isOperational: this.isOperational,
       context: {
         ...this.context,
         correlationId,

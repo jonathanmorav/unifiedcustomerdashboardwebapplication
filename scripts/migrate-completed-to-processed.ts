@@ -1,4 +1,4 @@
-import { PrismaClient } from "../lib/generated/prisma"
+import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
@@ -76,7 +76,7 @@ async function migrateCompletedToProcessed() {
     })
 
     console.log("\n📊 Updated Transaction Statistics:")
-    stats.forEach((stat) => {
+    stats.forEach((stat: any) => {
       console.log(`  ${stat.status}: ${stat._count._all} transactions`)
     })
   } catch (error) {

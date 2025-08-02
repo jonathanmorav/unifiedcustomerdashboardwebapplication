@@ -78,7 +78,7 @@ export class PasswordService {
       if (!user.passwordHash) {
         await log.warn("Password verification attempted for user without password", {
           userId,
-          email: user.email,
+          email: user.email || '',
           operation: "password_verify_no_password",
         })
         return { success: false, error: "No password set for this account" }
@@ -89,7 +89,7 @@ export class PasswordService {
 
       // Record the attempt
       await AccountSecurity.recordLoginAttempt({
-        email: user.email,
+        email: user.email || '',
         success: isValid,
         ipAddress,
         userAgent,
@@ -99,7 +99,7 @@ export class PasswordService {
       if (!isValid) {
         await log.warn("Failed password verification", {
           userId,
-          email: user.email,
+          email: user.email || '',
           ipAddress,
           operation: "password_verify_failed",
         })
@@ -107,9 +107,8 @@ export class PasswordService {
 
       return { success: isValid }
     } catch (error) {
-      await log.error("Password verification error", {
+      await log.error("Password verification error", error instanceof Error ? error : new Error("Unknown error"), {
         userId,
-        error: error instanceof Error ? error.message : "Unknown error",
         operation: "password_verify_error",
       })
       return { success: false, error: "Verification failed" }
@@ -257,9 +256,8 @@ export class PasswordService {
 
       return { success: true }
     } catch (error) {
-      await log.error("Password update error", {
+      await log.error("Password update error", error instanceof Error ? error : new Error("Unknown error"), {
         userId,
-        error: error instanceof Error ? error.message : "Unknown error",
         operation: "password_update_error",
       })
       return { success: false, error: "Failed to update password" }

@@ -408,7 +408,7 @@ export function validateJourneyDefinition(definition: any): boolean {
 // Helper function to find applicable journeys for an event
 export function findApplicableJourneys(eventType: string, resourceType?: string): typeof JOURNEY_DEFINITIONS {
   return JOURNEY_DEFINITIONS.filter(def => {
-    const config = def.config as JourneyConfig
+    const config = def.config as unknown as JourneyConfig
     
     // Check if this event starts any journey
     const startsJourney = config.startEvents.some(start => 

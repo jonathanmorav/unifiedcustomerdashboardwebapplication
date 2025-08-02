@@ -49,13 +49,8 @@ export class ErrorBoundary extends Component<Props, State> {
     const { errorCount } = this.state
 
     // Log error with context
-    log.error(`React Error Boundary: ${error.message}`, {
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        componentStack: errorInfo.componentStack,
-      },
+    log.error(`React Error Boundary: ${error.message}`, error, {
+      componentStack: errorInfo.componentStack,
       level,
       errorCount: errorCount + 1,
       operation: "react_error_boundary",

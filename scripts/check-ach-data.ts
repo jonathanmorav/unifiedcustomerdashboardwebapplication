@@ -38,7 +38,7 @@ async function checkACHData() {
     const customerNames = await prisma.aCHTransaction.groupBy({
       by: ["customerName"],
       _count: { _all: true },
-      orderBy: { _count: { _all: "desc" } },
+      orderBy: { customerName: "desc" },
       take: 10,
       where: {
         customerName: { not: null },
@@ -47,14 +47,14 @@ async function checkACHData() {
 
     console.log("\n=== Top Customer Names ===")
     customerNames.forEach((cn) => {
-      console.log(`${cn.customerName}: ${cn._count._all} transactions`)
+      console.log(`${cn.customerName}: ${(cn._count as any)._all} transactions`)
     })
 
     // Check company names
     const companyNames = await prisma.aCHTransaction.groupBy({
       by: ["companyName"],
       _count: { _all: true },
-      orderBy: { _count: { _all: "desc" } },
+      orderBy: { companyName: "desc" },
       take: 10,
       where: {
         companyName: { not: null },
@@ -63,7 +63,7 @@ async function checkACHData() {
 
     console.log("\n=== Top Company Names ===")
     companyNames.forEach((cn) => {
-      console.log(`${cn.companyName}: ${cn._count._all} transactions`)
+      console.log(`${cn.companyName}: ${(cn._count as any)._all} transactions`)
     })
   } catch (error) {
     console.error("Error checking ACH data:", error)

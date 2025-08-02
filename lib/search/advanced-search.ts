@@ -117,7 +117,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
       // Apply benefit amount filter
       if (filters.benefitAmountRange && customer.summaryOfBenefits) {
         const totalAmount = customer.summaryOfBenefits.reduce(
-          (sum, sob) => sum + (sob.amount_to_draft || 0),
+          (sum, sob) => sum + (sob.properties?.amount_to_draft || 0),
           0
         )
         if (!this.isInAmountRange(totalAmount, filters.benefitAmountRange)) {
@@ -195,7 +195,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
       // Apply transfer amount range filter
       if (filters.transferAmountRange && customer.transfers) {
         const hasTransferInRange = customer.transfers.some((transfer) => {
-          const amount = parseFloat(transfer.amount.value)
+          const amount = parseFloat(transfer.amount)
           return this.isInAmountRange(amount, filters.transferAmountRange!)
         })
         if (!hasTransferInRange) {
@@ -247,15 +247,15 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
           break
         case "company_name":
           // Defensive access with fallback
-          const nameA = a.company?.name || a.company?.companyname || (a.company as any)?.properties?.name || ""
-          const nameB = b.company?.name || b.company?.companyname || (b.company as any)?.properties?.name || ""
+          const nameA = a.company?.properties?.name || ""
+          const nameB = b.company?.properties?.name || ""
           compareValue = nameA.localeCompare(nameB)
           break
         case "amount":
           const amountA =
-            a.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amount_to_draft || 0), 0) || 0
+            a.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.properties?.amount_to_draft || 0), 0) || 0
           const amountB =
-            b.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.amount_to_draft || 0), 0) || 0
+            b.summaryOfBenefits?.reduce((sum, sob) => sum + (sob.properties?.amount_to_draft || 0), 0) || 0
           compareValue = amountA - amountB
           break
         default:
@@ -284,16 +284,16 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
             new Date(a.customer.created).getTime() - new Date(b.customer.created).getTime()
           break
         case "customer_name":
-          const nameA = `${a.customer.firstName} ${a.customer.lastName}`
-          const nameB = `${b.customer.firstName} ${b.customer.lastName}`
+          const nameA = a.customer.name || a.customer.businessName || ''
+          const nameB = b.customer.name || b.customer.businessName || ''
           compareValue = nameA.localeCompare(nameB)
           break
         case "status":
-          compareValue = a.customer.status.localeCompare(b.customer.status)
+          compareValue = a.customer.type.localeCompare(b.customer.type)
           break
         case "amount":
-          const amountA = a.transfers?.reduce((sum, t) => sum + parseFloat(t.amount.value), 0) || 0
-          const amountB = b.transfers?.reduce((sum, t) => sum + parseFloat(t.amount.value), 0) || 0
+          const amountA = a.transfers?.reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0
+          const amountB = b.transfers?.reduce((sum, t) => sum + parseFloat(t.amount), 0) || 0
           compareValue = amountA - amountB
           break
         default:
@@ -339,7 +339,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
     const totalTransferAmount = dwollaData.reduce((sum, customer) => {
       const customerTotal =
         customer.transfers?.reduce(
-          (tSum, transfer) => tSum + parseFloat(transfer.amount.value),
+          (tSum, transfer) => tSum + parseFloat(transfer.amount),
           0
         ) || 0
       return sum + customerTotal
@@ -388,7 +388,7 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
     // This is a simplified status determination
     // In reality, you'd check specific HubSpot properties
     // Defensive access with null check
-    return customer.company?.lifecycleStage === "customer" ? "active" : "inactive"
+    return customer.company?.properties?.onboarding_status === "completed" ? "active" : "inactive"
   }
 
   /**
@@ -397,11 +397,12 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
   private getDwollaCustomerStatus(
     customer: DwollaCustomerData
   ): "active" | "inactive" | "suspended" | "verified" | "unverified" {
-    const status = customer.customer.status
-    if (status === "verified") return "verified"
-    if (status === "unverified") return "unverified"
-    if (status === "suspended") return "suspended"
-    // Map other statuses appropriately
+    // FormattedDwollaCustomer doesn't have status, only type
+    // We'll map based on type for now
+    const type = customer.customer.type
+    if (type === "receive-only") return "inactive"
+    // Without the actual status field, we can't determine verified/unverified
+    // This would need to be added to FormattedDwollaCustomer or fetched separately
     return "active"
   }
 }

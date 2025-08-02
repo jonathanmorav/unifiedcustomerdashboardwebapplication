@@ -71,6 +71,7 @@ export interface Policy {
   productCode?: string
   renewalDate?: string
   notes?: string
+  policyStatus?: 'active' | 'cancelled' | 'payment-pending' | 'terminated' | 'pending' | 'inactive'
 }
 
 export interface SummaryOfBenefits {
@@ -258,6 +259,9 @@ export type HubSpotObjectType =
   | "policies"
   | "monthly_invoices"
   | "lists"
+  | "2-45680577"  // Custom object ID for policies
+  | "2-45586773"  // Custom object ID for summary of benefits
+  | "2-47684489"  // Custom object ID for monthly invoices
 
 
 

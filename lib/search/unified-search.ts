@@ -197,7 +197,7 @@ export class UnifiedSearchEngine {
     if (result.dwolla.success && result.dwolla.data) {
       console.log(`[DEBUG] About to format Dwolla data...`)
       try {
-        const formatted = DwollaFormatter.format(result.dwolla.data)
+        const formatted = result.dwolla.data as DwollaCustomerData
         console.log(`[DEBUG] Dwolla data formatted successfully`)
         display.dwolla = {
           customer: formatted.customer,
@@ -316,7 +316,7 @@ export class UnifiedSearchEngine {
       data: data || undefined,
       duration: Date.now() - startTime,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(`[DEBUG] Dwolla search error:`, error)
     throw error
   }

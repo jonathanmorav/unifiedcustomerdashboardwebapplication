@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
-import type { WebhookEvent, Prisma } from '@prisma/client'
+import type { WebhookEvent } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { getJourneyTracker } from './journey-tracker'
 import { ProcessingContext } from './processing-context'
 

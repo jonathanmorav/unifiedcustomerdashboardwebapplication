@@ -52,7 +52,7 @@ export interface DwollaFundingSource {
 
 export interface DwollaTransfer {
   id: string
-  status: "pending" | "processed" | "failed" | "cancelled" | "reclaimed"
+  status: "pending" | "processed" | "failed" | "cancelled" | "reclaimed" | "returned"
   amount: {
     value: string
     currency: string
@@ -191,7 +191,7 @@ export interface FormattedTransfer {
   id: string
   amount: string
   currency: string
-  status: "pending" | "processed" | "failed" | "cancelled" | "reclaimed"
+  status: "pending" | "processed" | "failed" | "cancelled" | "reclaimed" | "returned"
   created: string
   sourceId: string | null
   destinationId: string | null

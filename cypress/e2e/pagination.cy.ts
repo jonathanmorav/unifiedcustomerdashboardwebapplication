@@ -275,7 +275,13 @@ describe("Pagination Tests", () => {
 
     // Verify pagination is hidden or shows appropriate empty state
     cy.get('[aria-label*="Go to page"]').should("not.exist")
-    cy.contains("No results found").should("be.visible").or(cy.contains("0 results"))
+    cy.get("body").then(($body) => {
+      if ($body.find(":contains('No results found')").length) {
+        cy.contains("No results found").should("be.visible")
+      } else {
+        cy.contains("0 results").should("be.visible")
+      }
+    })
   })
 
   it("should maintain pagination state during browser back/forward", () => {

@@ -108,7 +108,7 @@ export class AccountSecurity {
       })
 
       // Send email notification about account lockout
-      await EmailService.sendAccountLockoutNotification(user.email, lockoutUntil, ipAddress)
+      await EmailService.sendAccountLockoutNotification(user.email || '', lockoutUntil, ipAddress)
     }
   }
 

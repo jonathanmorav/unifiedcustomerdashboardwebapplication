@@ -68,10 +68,8 @@ export async function POST(request: NextRequest) {
             payload: webhookEvent,
             signature: 'historical-sync', // Mark as historical
             processingState: 'queued',
-            metadata: {
-              syncedAt: new Date(),
-              historical: true
-            }
+            topic: webhookEvent.topic,
+            partitionKey: `dwolla-${new Date(webhookEvent.created).toISOString().slice(0, 7)}` // YYYY-MM format
           }
         })
         

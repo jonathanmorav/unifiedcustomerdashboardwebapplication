@@ -42,7 +42,7 @@ async function diagnoseDwollaSync() {
     
     // Get transfers without any date filter
     console.log("\n   a) All transfers (no date filter):")
-    let allTransfers = []
+    let allTransfers: any[] = []
     let offset = 0
     const limit = 200
     
@@ -69,8 +69,8 @@ async function diagnoseDwollaSync() {
     let otherCount = 0
 
     for (const transfer of allTransfers) {
-      const sourceUrl = transfer._links.source.href
-      const destUrl = transfer._links.destination.href
+      const sourceUrl = transfer._links?.source.href
+      const destUrl = transfer._links?.destination.href
       
       if (destUrl.includes(ourAccountId)) {
         // Money coming TO us

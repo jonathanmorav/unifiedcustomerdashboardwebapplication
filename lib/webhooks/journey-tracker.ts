@@ -55,7 +55,7 @@ export class JourneyTracker {
     
     // Filter to ones that care about this event
     return definitions.filter(def => {
-      const config = def.config as JourneyConfig
+      const config = def.config as unknown as JourneyConfig
       
       // Check if this event starts the journey
       const isStartEvent = config.startEvents.some(start => 
@@ -101,7 +101,7 @@ export class JourneyTracker {
     definition: EventJourneyDefinition,
     context: ProcessingContext
   ): Promise<void> {
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Check if this starts a new journey
     const isStartEvent = config.startEvents.some(start => 
@@ -133,7 +133,7 @@ export class JourneyTracker {
     definition: EventJourneyDefinition,
     context: ProcessingContext
   ): Promise<void> {
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Check if we already have active journeys
     const existingActive = await prisma.journeyInstance.count({
@@ -227,7 +227,7 @@ export class JourneyTracker {
     definition: EventJourneyDefinition,
     context: ProcessingContext
   ): Promise<void> {
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Handle out-of-order events
     if (event.eventTimestamp < journey.lastEventTime) {
@@ -383,7 +383,7 @@ export class JourneyTracker {
     definition: EventJourneyDefinition
   ): Promise<JourneyConflict[]> {
     const conflicts: JourneyConflict[] = []
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Check for duplicate steps
     const existingStep = await prisma.journeyStep.findFirst({
@@ -457,7 +457,7 @@ export class JourneyTracker {
     journey: JourneyInstance,
     definition: EventJourneyDefinition
   ): Promise<void> {
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Simple prediction based on expected steps
     if (config.expectedSteps && config.expectedSteps.length > 0) {
@@ -497,7 +497,7 @@ export class JourneyTracker {
     journey: JourneyInstance,
     definition: EventJourneyDefinition
   ): Promise<void> {
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Check if journey has been inactive too long
     const inactiveMinutes = (Date.now() - journey.lastEventTime.getTime()) / (1000 * 60)
@@ -558,9 +558,9 @@ export class JourneyTracker {
     // Extract from context
     const transaction = context.get('transaction')
     if (transaction) {
-      metadata.customerName = transaction.customerName
-      metadata.companyName = transaction.companyName
-      metadata.amount = transaction.amount
+      metadata.customerName = (transaction as any).customerName
+      metadata.companyName = (transaction as any).companyName
+      metadata.amount = (transaction as any).amount
     }
     
     // Extract from event payload

@@ -118,7 +118,7 @@ process.env.DWOLLA_KEY = "test-dwolla-key"
 process.env.DWOLLA_SECRET = "test-dwolla-secret"
 process.env.DWOLLA_ENVIRONMENT = "sandbox"
 process.env.DWOLLA_BASE_URL = "https://api-sandbox.dwolla.com"
-process.env.NODE_ENV = "test"
+// NODE_ENV is already set by Jest to 'test'
 
 // Mock crypto for CSRF token generation
 Object.defineProperty(global, "crypto", {
@@ -141,11 +141,15 @@ global.ResizeObserver = class ResizeObserver {
 
 // Mock IntersectionObserver for lazy loading
 global.IntersectionObserver = class IntersectionObserver {
+  root = null
+  rootMargin = ''
+  thresholds = []
   constructor() {}
   observe() {}
   unobserve() {}
   disconnect() {}
-}
+  takeRecords() { return [] }
+} as any
 
 // Mock scrollIntoView for navigation tests
 Element.prototype.scrollIntoView = jest.fn()

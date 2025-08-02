@@ -208,7 +208,7 @@ export async function GET(request: NextRequest) {
         statusAmounts: {
           pending: statusAmountMap.pending || 0,
           processed: statusAmountMap.processed || 0,
-          failed: statusAmountMap.failed || 0,
+          failed: (statusAmountMap.failed || 0) + (statusAmountMap.returned || 0), // Combine failed + returned
           returned: statusAmountMap.returned || 0,
         },
       },

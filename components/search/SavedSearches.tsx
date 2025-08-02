@@ -180,7 +180,7 @@ export function SavedSearches({
                         setEditingSearch(search)
                         setNewSearchName(search.name)
                         setNewSearchDescription(search.description || "")
-                        setNewSearchPublic(search.isPublic)
+                        setNewSearchPublic(search.isPublic || false)
                       }}
                     >
                       <Edit2 className="h-4 w-4" />
@@ -243,7 +243,7 @@ export function SavedSearches({
               <Textarea
                 id="description"
                 value={newSearchDescription}
-                onChange={(e) => setNewSearchDescription(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewSearchDescription(e.target.value)}
                 placeholder="Add notes about when to use this search..."
                 rows={3}
               />

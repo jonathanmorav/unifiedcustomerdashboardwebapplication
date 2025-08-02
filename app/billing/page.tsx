@@ -202,6 +202,16 @@ export default function BillingPage() {
     }
   }
 
+  const handleMetricClick = (filterType: 'processed' | 'pending' | 'failed') => {
+    // Set filters to show only transactions of the selected type
+    const newFilters: BillingFilterValues = {
+      ...filters,
+      status: [filterType],
+    }
+    setFilters(newFilters)
+    setCurrentPage(1) // Reset to first page
+  }
+
   if (!session) {
     return null
   }
@@ -269,8 +279,13 @@ export default function BillingPage() {
           </div>
         )}
 
-        {/* Metrics Dashboard */}
-        <BillingMetrics metrics={metrics} isLoading={isLoading} compactView={true} />
+        {/* Improved KPI Metrics */}
+        <BillingMetrics 
+          metrics={metrics} 
+          isLoading={isLoading} 
+          compactView={true}
+          onMetricClick={handleMetricClick}
+        />
 
         {/* Tabs for Transactions and Analytics */}
         <Tabs defaultValue="transactions" className="mt-6">
@@ -293,59 +308,59 @@ export default function BillingPage() {
 
             {/* Transactions Table */}
             <Card className="mt-6 shadow-cakewalk-medium">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>
-                Transactions
-                {totalCount > 0 && (
-                  <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
-                    (Showing {transactions.length} of {totalCount.toLocaleString()})
-                  </span>
-                )}
-              </CardTitle>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {transactions.length > 0 && (
-                  <span>
-                    Page Total:{" "}
-                    {transactions
-                      .reduce((sum, t) => sum + t.amount, 0)
-                      .toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      })}
-                  </span>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <TransactionTable
-              transactions={transactions}
-              isLoading={isLoading}
-              totalAmount={metrics.totalVolume}
-              onTransactionClick={handleTransactionClick}
-              currentPage={currentPage}
-              itemsPerPage={pageSize}
-            />
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-between">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Showing {(currentPage - 1) * pageSize + 1} to{" "}
-                  {Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}{" "}
-                  transactions
-                </p>
-                <Pagination
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>
+                    Transactions
+                    {totalCount > 0 && (
+                      <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
+                        (Showing {transactions.length} of {totalCount.toLocaleString()})
+                      </span>
+                    )}
+                  </CardTitle>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {transactions.length > 0 && (
+                      <span>
+                        Page Total:{" "}
+                        {transactions
+                          .reduce((sum, t) => sum + t.amount, 0)
+                          .toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                          })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <TransactionTable
+                  transactions={transactions}
+                  isLoading={isLoading}
+                  totalAmount={metrics.totalVolume}
+                  onTransactionClick={handleTransactionClick}
                   currentPage={currentPage}
-                  totalPages={totalPages}
-                  onChange={setCurrentPage}
-                  className="justify-end"
+                  itemsPerPage={pageSize}
                 />
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="mt-6 flex items-center justify-between">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Showing {(currentPage - 1) * pageSize + 1} to{" "}
+                      {Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}{" "}
+                      transactions
+                    </p>
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onChange={setCurrentPage}
+                      className="justify-end"
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="analytics">

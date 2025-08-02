@@ -217,7 +217,11 @@ describe("Status Badge Tests", () => {
     // Verify status badges have proper accessibility attributes
     cy.get('[data-testid*="status"]').each(($badge) => {
       // Should have appropriate ARIA labels or text content
-      cy.wrap($badge).should("have.attr", "aria-label").or("contain.text")
+      cy.wrap($badge).then(($el) => {
+        const hasAriaLabel = $el.attr("aria-label")
+        const hasText = $el.text().trim().length > 0
+        expect(hasAriaLabel || hasText).to.be.true
+      })
     })
 
     // Verify status badges are keyboard accessible if they're interactive

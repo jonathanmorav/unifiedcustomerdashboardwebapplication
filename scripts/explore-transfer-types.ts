@@ -29,13 +29,13 @@ async function exploreTransfers() {
       console.log(`Created: ${transfer.created}`)
 
       // Check source type
-      const sourceHref = transfer._links.source.href
+      const sourceHref = transfer._links?.source.href
       console.log(`\nSource URL: ${sourceHref}`)
 
-      if (sourceHref.includes("/funding-sources/")) {
+      if (sourceHref && sourceHref.includes("/funding-sources/")) {
         console.log("Source Type: Funding Source")
         try {
-          const source = await client.getFundingSourceByUrl(sourceHref)
+          const source = await client.getFundingSourceByUrl(sourceHref!)
           console.log(`Source Name: ${source.name}`)
           console.log(`Source Type: ${source.type}`)
 
@@ -48,20 +48,20 @@ async function exploreTransfers() {
             console.log(`Customer Type: ${customer.type}`)
           }
         } catch (error) {
-          console.log("Error fetching source:", error.message)
+          console.log("Error fetching source:", (error as Error).message)
         }
-      } else if (sourceHref.includes("/accounts/")) {
+      } else if (sourceHref && sourceHref.includes("/accounts/")) {
         console.log("Source Type: Master Account")
       }
 
       // Check destination type
-      const destHref = transfer._links.destination.href
+      const destHref = transfer._links?.destination.href
       console.log(`\nDestination URL: ${destHref}`)
 
-      if (destHref.includes("/funding-sources/")) {
+      if (destHref && destHref.includes("/funding-sources/")) {
         console.log("Destination Type: Funding Source")
         try {
-          const dest = await client.getFundingSourceByUrl(destHref)
+          const dest = await client.getFundingSourceByUrl(destHref!)
           console.log(`Destination Name: ${dest.name}`)
           console.log(`Destination Type: ${dest.type}`)
 
@@ -74,9 +74,9 @@ async function exploreTransfers() {
             console.log(`Customer Type: ${customer.type}`)
           }
         } catch (error) {
-          console.log("Error fetching destination:", error.message)
+          console.log("Error fetching destination:", (error as Error).message)
         }
-      } else if (destHref.includes("/accounts/")) {
+      } else if (destHref && destHref.includes("/accounts/")) {
         console.log("Destination Type: Master Account")
       }
 
@@ -93,9 +93,9 @@ async function exploreTransfers() {
     let customerTransferCount = 0
     for (const transfer of allTransfers) {
       // Check if source is a funding source (not account)
-      if (transfer._links.source.href.includes("/funding-sources/")) {
+      if (transfer._links?.source.href.includes("/funding-sources/")) {
         try {
-          const source = await client.getFundingSourceByUrl(transfer._links.source.href)
+          const source = await client.getFundingSourceByUrl(transfer._links?.source.href)
           if (source._links?.customer) {
             customerTransferCount++
             if (customerTransferCount <= 3) {

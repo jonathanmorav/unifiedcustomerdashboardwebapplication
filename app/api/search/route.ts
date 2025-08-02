@@ -22,7 +22,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   // Check authentication
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
-    throw new AuthenticationError("Authentication required", { correlationId })
+    throw new AuthenticationError("Authentication required", { correlationId: correlationId || undefined })
   }
 
   // Parse and validate request body
@@ -31,7 +31,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
   if (!validation.success) {
     throw new ValidationError("Invalid search request", validation.error.flatten().fieldErrors, {
-      correlationId,
+      correlationId: correlationId || undefined,
       userId: session.user.email,
     })
   }
@@ -84,11 +84,10 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
     // Save to search history (non-blocking)
     SearchHistoryManager.saveSearch(result, session.user.email).catch((err) => {
-      log.error("Failed to save search history", {
-        error: err instanceof Error ? err.message : "Unknown error",
+      log.error("Failed to save search history", err instanceof Error ? err : new Error("Unknown error"), {
         userId: session.user.email,
         searchTerm,
-        correlationId,
+        correlationId: correlationId || undefined,
         operation: "search_history_save",
       })
     })
@@ -98,7 +97,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
       data: displayResult,
       searchId: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
-      correlationId,
+      correlationId: correlationId || "",
     })
   } finally {
     clearTimeout(timeoutId)
@@ -112,7 +111,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
   // Check authentication
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
-    throw new AuthenticationError("Authentication required", { correlationId })
+    throw new AuthenticationError("Authentication required", { correlationId: correlationId || undefined })
   }
 
   // Get query parameters
@@ -125,7 +124,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     throw new ValidationError(
       "Invalid limit parameter",
       { limit: ["Limit must be between 1 and 100"] },
-      { correlationId, userId: session.user.email }
+      { correlationId: correlationId || undefined, userId: session.user.email }
     )
   }
 
@@ -139,6 +138,6 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
   return NextResponse.json({
     success: true,
     data: history,
-    correlationId,
+    correlationId: correlationId || "",
   })
 })

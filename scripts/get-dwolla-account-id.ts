@@ -71,7 +71,7 @@ async function getDwollaAccountId() {
     }
   } catch (error) {
     console.error("❌ Error:", error)
-    if (error.message.includes("401")) {
+    if ((error as Error).message.includes("401")) {
       console.error("\nAuthentication failed. Please check your DWOLLA_KEY and DWOLLA_SECRET.")
     }
   }

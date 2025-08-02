@@ -91,32 +91,46 @@ export class ACHTransactionSync {
     const allTransfers: any[] = []
     let currentOffset = options.offset || 0
     const pageSize = 200 // Dwolla max per page
-    const maxLimit = options.limit || Infinity // If no limit, fetch all
+    const maxLimit = options.limit || Infinity
 
     try {
-      // Build search parameters
       const searchParams: Record<string, any> = {
         limit: pageSize,
         offset: currentOffset,
       }
 
       if (options.startDate) {
-        // Dwolla expects YYYY-MM-DD format
         searchParams.startDate = options.startDate.toISOString().split('T')[0]
       }
 
       if (options.endDate) {
-        // Dwolla expects YYYY-MM-DD format
         searchParams.endDate = options.endDate.toISOString().split('T')[0]
       }
 
-      // Keep fetching until we have all transfers or reach our limit
       let pageCount = 0
       while (allTransfers.length < maxLimit) {
         console.log(`Fetching page ${pageCount + 1} (offset: ${searchParams.offset})...`)
         const response = await this.client.getTransfers(searchParams)
 
         const transfers = response._embedded?.transfers || []
+        console.log(`Raw transfers from Dwolla: ${transfers.length}`)
+
+        // DEBUG: Log all transfer statuses
+        const statusCounts: Record<string, number> = {}
+        transfers.forEach((transfer: any) => {
+          statusCounts[transfer.status] = (statusCounts[transfer.status] || 0) + 1
+          if (transfer.status === 'failed' || transfer.status === 'returned' || transfer.status === 'cancelled') {
+            console.log(`🔴 Found failed/returned transfer: ${transfer.id}`, {
+              status: transfer.status,
+              amount: transfer.amount,
+              created: transfer.created,
+              failureReason: transfer.failureReason,
+              failureCode: transfer.failureCode,
+              returnCode: transfer.returnCode
+            })
+          }
+        })
+        console.log(`Status breakdown:`, statusCounts)
 
         if (transfers.length === 0) {
           console.log("No more transfers found")
@@ -125,12 +139,25 @@ export class ACHTransactionSync {
 
         // Enrich transfer data
         let enrichedCount = 0
+        let failedEnrichedCount = 0
         for (const transfer of transfers) {
           const enrichedTransfer = await this.enrichTransferData(transfer)
-          // Only include customer-initiated transfers (skip null returns)
+          
           if (enrichedTransfer !== null) {
             allTransfers.push(enrichedTransfer)
             enrichedCount++
+            
+            // DEBUG: Log failed transactions that made it through enrichment
+            if (enrichedTransfer.status === 'failed' || enrichedTransfer.status === 'returned' || enrichedTransfer.status === 'cancelled') {
+              failedEnrichedCount++
+              console.log(`✅ Failed transaction enriched: ${enrichedTransfer.dwollaId}`, {
+                status: enrichedTransfer.status,
+                amount: enrichedTransfer.amount,
+                failureReason: enrichedTransfer.failureReason,
+                failureCode: enrichedTransfer.failureCode,
+                returnCode: enrichedTransfer.returnCode
+              })
+            }
 
             if (allTransfers.length >= maxLimit) {
               console.log(`Reached limit of ${maxLimit} transfers`)
@@ -139,9 +166,8 @@ export class ACHTransactionSync {
           }
         }
         
-        console.log(`Page ${pageCount + 1}: Found ${enrichedCount} customer transfers out of ${transfers.length} total`)
+        console.log(`Page ${pageCount + 1}: Found ${enrichedCount} customer transfers (${failedEnrichedCount} failed) out of ${transfers.length} total`)
 
-        // Check if there's a next page
         if (!response._links?.next) {
           console.log("No more pages available")
           break
@@ -150,13 +176,15 @@ export class ACHTransactionSync {
         searchParams.offset += pageSize
         pageCount++
         
-        // Add a small delay to avoid rate limiting
         if (pageCount % 10 === 0) {
           console.log("Pausing briefly to avoid rate limits...")
           await new Promise(resolve => setTimeout(resolve, 1000))
         }
       }
 
+      console.log(`Total transfers fetched: ${allTransfers.length}`)
+      console.log(`Failed transfers in final result:`, allTransfers.filter(t => t.status === 'failed' || t.status === 'returned' || t.status === 'cancelled').length)
+      
       return allTransfers
     } catch (error) {
       console.error("Failed to fetch transfers from Dwolla", { error, options })
@@ -177,25 +205,42 @@ export class ACHTransactionSync {
       let sourceFundingSource = null
       let destinationFundingSource = null
 
-      // Check if source is a customer (customer-initiated debit)
-              const sourceUrl = transfer._links.source?.href
-        const destUrl = transfer._links.destination?.href
-      
+      // DEBUG: Log all transfers being processed
+      console.log(`Processing transfer: ${transfer.id}`, {
+        status: transfer.status,
+        amount: transfer.amount,
+        sourceUrl: transfer._links?.source?.href,
+        destUrl: transfer._links?.destination?.href,
+        ourAccountId
+      })
+
       // IMPORTANT: Only process customer-initiated transfers (customer is the source)
       // Skip transfers where Cakewalk is the source (credits to customers)
-      if (sourceUrl?.includes(ourAccountId)) {
-        // This is a Cakewalk-initiated transfer, skip it
+      if (transfer._links?.source?.href && ourAccountId && transfer._links.source.href.includes(ourAccountId)) {
+        console.log(`❌ Skipping Cakewalk-initiated transfer: ${transfer.id}`)
         return null
       }
 
-      if (sourceUrl?.includes("/customers/")) {
+      // DEBUG: Log failed transfers that pass the filter
+      if (transfer.status === 'failed' || transfer.status === 'returned' || transfer.status === 'cancelled') {
+        console.log(`🔍 Processing failed transfer: ${transfer.id}`, {
+          status: transfer.status,
+          failureReason: (transfer as any).failureReason,
+          failureCode: (transfer as any).failureCode,
+          returnCode: (transfer as any).returnCode,
+          amount: transfer.amount,
+          created: transfer.created
+        })
+      }
+
+      if (transfer._links?.source?.href?.includes("/customers/")) {
         // Customer is the source (ACH debit from customer)
-        customerDetails = await this.fetchCustomerDetails(sourceUrl)
+        customerDetails = await this.fetchCustomerDetails(transfer._links.source.href)
 
         // Get the actual funding source used
-        if (transfer._links["source-funding-source"]) {
+        if (transfer._links?.["source-funding-source"]) {
           sourceFundingSource = await this.fetchFundingSourceDetails(
-            transfer._links["source-funding-source"].href
+            transfer._links!["source-funding-source"].href
           )
           sourceDetails = {
             id: sourceFundingSource.id,
@@ -209,9 +254,9 @@ export class ACHTransactionSync {
           id: ourAccountId,
           name: "Cakewalk Benefits Inc.",
         }
-      } else if (destUrl?.includes("/customers/")) {
+      } else if (transfer._links?.destination?.href?.includes("/customers/")) {
         // Customer is the destination (ACH credit to customer)
-        customerDetails = await this.fetchCustomerDetails(destUrl)
+        customerDetails = await this.fetchCustomerDetails(transfer._links.destination.href)
 
         // Source is our account
         sourceDetails = {
@@ -220,9 +265,9 @@ export class ACHTransactionSync {
         }
 
         // Get the actual funding source used
-        if (transfer._links["destination-funding-source"]) {
+        if (transfer._links?.["destination-funding-source"]) {
           destinationFundingSource = await this.fetchFundingSourceDetails(
-            transfer._links["destination-funding-source"].href
+            transfer._links!["destination-funding-source"].href
           )
           destinationDetails = {
             id: destinationFundingSource.id,
@@ -233,8 +278,8 @@ export class ACHTransactionSync {
       } else {
         // Neither source nor destination is a customer - handle as before
         const [source, dest] = await Promise.all([
-          this.fetchFundingSourceDetails(sourceUrl),
-          this.fetchFundingSourceDetails(destUrl),
+          transfer._links?.source?.href ? this.fetchFundingSourceDetails(transfer._links.source.href) : Promise.resolve({ id: '', name: '' }),
+          transfer._links?.destination?.href ? this.fetchFundingSourceDetails(transfer._links.destination.href) : Promise.resolve({ id: '', name: '' }),
         ])
         sourceDetails = source
         destinationDetails = dest
@@ -247,7 +292,7 @@ export class ACHTransactionSync {
       }
 
       // Determine direction based on our account
-      const direction = destUrl.includes(ourAccountId) ? "credit" : "debit"
+      const direction = (transfer._links?.destination?.href && ourAccountId && transfer._links.destination.href.includes(ourAccountId)) ? "credit" : "debit"
 
       // Calculate fees and net amount
       const amount = parseFloat(transfer.amount.value)

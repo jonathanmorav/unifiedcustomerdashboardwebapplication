@@ -1,4 +1,4 @@
-import { PrismaClient } from "../lib/generated/prisma"
+import { PrismaClient } from "@prisma/client"
 import { ACHTransactionSync } from "../lib/api/dwolla/ach-sync"
 import { DwollaClient } from "../lib/api/dwolla/client"
 
@@ -52,7 +52,7 @@ async function seedACHTransactions() {
     })
 
     console.log("\n📊 Transaction Statistics:")
-    stats.forEach((stat) => {
+    stats.forEach((stat: any) => {
       console.log(`  ${stat.status}: ${stat._count._all} transactions`)
     })
 

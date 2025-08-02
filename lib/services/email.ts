@@ -59,7 +59,7 @@ export class EmailService {
    */
   private static async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
     try {
-      const correlationId = options.correlationId || (await CorrelationTracking.getCorrelationId())
+      const correlationId = options.correlationId || (await CorrelationTracking.getCorrelationId()) || undefined
 
       const result = await this.provider.send({
         ...options,
@@ -77,22 +77,20 @@ export class EmailService {
           operation: "email_send_success",
         })
       } else {
-        await log.error("Email send failed", {
+        await log.error("Email send failed", new Error(result.error || "Unknown error"), {
           to: options.to,
           subject: options.subject,
-          error: result.error,
-          correlationId,
+          correlationId: correlationId || undefined,
           operation: "email_send_failed",
         })
       }
 
       return result
     } catch (error) {
-      await log.error("Email service error", {
+      await log.error("Email service error", error instanceof Error ? error : new Error("Unknown error"), {
         to: options.to,
         subject: options.subject,
-        error: error instanceof Error ? error.message : "Unknown error",
-        correlationId: options.correlationId,
+        correlationId: options.correlationId || undefined,
         operation: "email_service_error",
       })
       return { success: false, error: "Failed to send email" }

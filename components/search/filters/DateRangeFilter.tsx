@@ -72,8 +72,16 @@ const presetRanges = [
 
 export function DateRangeFilter({ label, value, onChange, className }: DateRangeFilterProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [startDate, setStartDate] = useState(value?.start || "")
-  const [endDate, setEndDate] = useState(value?.end || "")
+  const [startDate, setStartDate] = useState(
+    value?.start 
+      ? (typeof value.start === "string" ? value.start : value.start.toISOString().split("T")[0])
+      : ""
+  )
+  const [endDate, setEndDate] = useState(
+    value?.end
+      ? (typeof value.end === "string" ? value.end : value.end.toISOString().split("T")[0])
+      : ""
+  )
 
   const formatDateRange = (range: DateRange) => {
     const start = new Date(range.start).toLocaleDateString()

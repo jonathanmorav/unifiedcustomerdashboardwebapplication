@@ -23,11 +23,11 @@ async function inspectTransfer() {
 
     // Get funding source details
     console.log("\n=== Source Funding Source ===")
-    const source = await client.getFundingSourceByUrl(transfer._links.source.href)
+    const source = await client.getFundingSourceByUrl(transfer._links?.source.href!)
     console.log(JSON.stringify(source, null, 2))
 
     console.log("\n=== Destination Funding Source ===")
-    const dest = await client.getFundingSourceByUrl(transfer._links.destination.href)
+    const dest = await client.getFundingSourceByUrl(transfer._links?.destination.href!)
     console.log(JSON.stringify(dest, null, 2))
   } catch (error) {
     console.error("Inspection failed:", error)

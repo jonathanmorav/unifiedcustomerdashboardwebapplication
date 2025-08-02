@@ -6,11 +6,7 @@ async function debugDwollaSync() {
     console.log("\n=== Debugging Dwolla Sync ===\n")
 
     // Initialize Dwolla client
-    const client = new DwollaClient({
-      key: process.env.DWOLLA_KEY!,
-      secret: process.env.DWOLLA_SECRET!,
-      environment: process.env.DWOLLA_ENVIRONMENT === "production" ? "production" : "sandbox",
-    })
+    const client = new DwollaClient({})
 
     const accountId = process.env.DWOLLA_MASTER_ACCOUNT_ID
     console.log(`Master Account ID: ${accountId}`)
@@ -33,10 +29,10 @@ async function debugDwollaSync() {
 
     // Debug source
     console.log("\n=== Source Details ===")
-    console.log(`Source URL: ${transfer._links.source.href}`)
+    console.log(`Source URL: ${transfer._links?.source.href}`)
 
     try {
-      const sourceDetails = await client.getFundingSourceByUrl(transfer._links.source.href)
+      const sourceDetails = await client.getFundingSourceByUrl(transfer._links?.source.href!)
       console.log(`Source ID: ${sourceDetails.id}`)
       console.log(`Source Name: ${sourceDetails.name}`)
       console.log(`Source Type: ${sourceDetails.type}`)
@@ -63,10 +59,10 @@ async function debugDwollaSync() {
 
     // Debug destination
     console.log("\n=== Destination Details ===")
-    console.log(`Destination URL: ${transfer._links.destination.href}`)
+    console.log(`Destination URL: ${transfer._links?.destination.href}`)
 
     try {
-      const destDetails = await client.getFundingSourceByUrl(transfer._links.destination.href)
+      const destDetails = await client.getFundingSourceByUrl(transfer._links?.destination.href!)
       console.log(`Destination ID: ${destDetails.id}`)
       console.log(`Destination Name: ${destDetails.name}`)
       console.log(`Destination Type: ${destDetails.type}`)

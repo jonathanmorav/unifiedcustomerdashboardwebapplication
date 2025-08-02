@@ -153,7 +153,7 @@ export class SearchHistory {
       if (results.hubspot.data.summaryOfBenefits?.length > 0) {
         tags.push("hubspot:benefits")
       }
-      if (results.hubspot.data.monthlyInvoices?.length > 0) {
+      if (results.hubspot.data.monthlyInvoices && results.hubspot.data.monthlyInvoices.length > 0) {
         tags.push("hubspot:invoices")
       }
 
@@ -179,5 +179,39 @@ export class SearchHistory {
     }
 
     return tags
+  }
+
+  static exportAsCSV(): string {
+    const history = this.getHistory()
+    const headers = [
+      "Timestamp",
+      "Search Term",
+      "Search Type",
+      "Duration (ms)",
+      "Results Count",
+      "Status"
+    ]
+
+    const rows = history.map(entry => {
+      const resultCount = (entry.foundInHubspot ? 1 : 0) + 
+                         (entry.foundInDwolla ? 1 : 0)
+      const status = entry.foundInHubspot || entry.foundInDwolla ? "Success" : "No Results"
+      
+      return [
+        entry.timestamp.toISOString(),
+        entry.searchTerm,
+        entry.searchType,
+        entry.duration.toString(),
+        resultCount.toString(),
+        status
+      ]
+    })
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n")
+
+    return csvContent
   }
 }
