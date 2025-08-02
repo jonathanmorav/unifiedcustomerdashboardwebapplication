@@ -1,19 +1,90 @@
-import { NextRequest } from "next/server"
-import { POST, GET } from "@/app/api/search/route"
-import { getServerSession } from "next-auth"
-import { getUnifiedSearchEngine } from "@/lib/search/unified-search"
-import { SearchHistoryManager } from "@/lib/search/search-history"
-
-// Mock dependencies
-jest.mock("next-auth")
-jest.mock("@/lib/auth")
-jest.mock("@/lib/search/unified-search")
-jest.mock("@/lib/search/search-history")
+// Mock all dependencies before imports
+jest.mock("jose", () => ({}))
+jest.mock("next-auth", () => ({
+  getServerSession: jest.fn()
+}))
+jest.mock("@/lib/auth", () => ({
+  authOptions: {}
+}))
+jest.mock("@/lib/logger", () => ({
+  log: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn()
+  }
+}))
+jest.mock("@/lib/search/unified-search", () => ({
+  getUnifiedSearchEngine: jest.fn()
+}))
+jest.mock("@/lib/search/search-history", () => ({
+  SearchHistoryManager: jest.fn().mockImplementation(() => ({
+    saveSearch: jest.fn()
+  }))
+}))
 jest.mock("@/lib/search/mock-data", () => ({
   mockSearchResult: jest.fn().mockResolvedValue({
     hubspot: { data: [], error: null },
     dwolla: { data: [], error: null },
   }),
+}))
+jest.mock("@/lib/middleware/error-handler", () => ({
+  withErrorHandler: (handler: any) => handler
+}))
+jest.mock("@/lib/security/correlation", () => ({
+  CorrelationTracking: {
+    getCorrelationId: jest.fn().mockResolvedValue("test-correlation-id")
+  }
+}))
+jest.mock("@/lib/errors", () => ({
+  AuthenticationError: class AuthenticationError extends Error {},
+  ValidationError: class ValidationError extends Error {},
+  SystemError: class SystemError extends Error {}
+}))
+
+import { NextRequest } from "next/server"
+import { POST, GET } from "@/app/api/search/route"
+import { getServerSession } from "next-auth"
+import { getUnifiedSearchEngine } from "@/lib/search/unified-search"
+import { SearchHistoryManager } from "@/lib/search/search-history"
+jest.mock("next-auth", () => ({
+  getServerSession: jest.fn()
+}))
+jest.mock("@/lib/auth", () => ({
+  authOptions: {}
+}))
+jest.mock("@/lib/logger", () => ({
+  log: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn()
+  }
+}))
+jest.mock("@/lib/search/unified-search", () => ({
+  getUnifiedSearchEngine: jest.fn()
+}))
+jest.mock("@/lib/search/search-history", () => ({
+  SearchHistoryManager: jest.fn().mockImplementation(() => ({
+    saveSearch: jest.fn()
+  }))
+}))
+jest.mock("@/lib/search/mock-data", () => ({
+  mockSearchResult: jest.fn().mockResolvedValue({
+    hubspot: { data: [], error: null },
+    dwolla: { data: [], error: null },
+  }),
+}))
+jest.mock("@/lib/middleware/error-handler", () => ({
+  withErrorHandler: (handler: any) => handler
+}))
+jest.mock("@/lib/security/correlation", () => ({
+  CorrelationTracking: {
+    getCorrelationId: jest.fn().mockResolvedValue("test-correlation-id")
+  }
+}))
+jest.mock("@/lib/errors", () => ({
+  AuthenticationError: class AuthenticationError extends Error {},
+  ValidationError: class ValidationError extends Error {},
+  SystemError: class SystemError extends Error {}
 }))
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>

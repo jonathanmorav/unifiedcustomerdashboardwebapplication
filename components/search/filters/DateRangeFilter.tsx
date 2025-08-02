@@ -70,18 +70,30 @@ const presetRanges = [
   },
 ]
 
+// Helper function to safely convert date to string format
+const formatDateToString = (date: Date | string | undefined): string => {
+  if (!date) return ""
+  
+  try {
+    if (typeof date === "string") {
+      return date
+    }
+    
+    if (date instanceof Date && !isNaN(date.getTime())) {
+      return date.toISOString().split("T")[0]
+    }
+    
+    return ""
+  } catch (error) {
+    console.warn("Invalid date provided to DateRangeFilter:", date)
+    return ""
+  }
+}
+
 export function DateRangeFilter({ label, value, onChange, className }: DateRangeFilterProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [startDate, setStartDate] = useState(
-    value?.start 
-      ? (typeof value.start === "string" ? value.start : value.start.toISOString().split("T")[0])
-      : ""
-  )
-  const [endDate, setEndDate] = useState(
-    value?.end
-      ? (typeof value.end === "string" ? value.end : value.end.toISOString().split("T")[0])
-      : ""
-  )
+  const [startDate, setStartDate] = useState(formatDateToString(value?.start))
+  const [endDate, setEndDate] = useState(formatDateToString(value?.end))
 
   const formatDateRange = (range: DateRange) => {
     const start = new Date(range.start).toLocaleDateString()

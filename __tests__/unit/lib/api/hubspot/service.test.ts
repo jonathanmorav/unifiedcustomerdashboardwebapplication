@@ -21,7 +21,7 @@ describe("HubSpotService", () => {
     ;(service as any).client = mockClient
   })
 
-  describe("searchCompany", () => {
+  describe("searchCustomer", () => {
     const mockCompany: HubSpotCompany = {
       id: "123",
       properties: {
@@ -34,35 +34,23 @@ describe("HubSpotService", () => {
       },
     }
 
-    it("should search company by email", async () => {
-      mockClient.searchCompanies.mockResolvedValueOnce({
-        results: [mockCompany],
-        paging: { next: null },
-      })
+    it("should search customer by email", async () => {
+      mockClient.searchCompanies.mockResolvedValueOnce([mockCompany])
+      mockClient.getCompanySummaryOfBenefits.mockResolvedValueOnce([])
+      mockClient.getMonthlyInvoices.mockResolvedValueOnce([])
+      mockClient.getCompanyListMemberships.mockResolvedValueOnce([])
 
-      const params: HubSpotSearchParams = {
-        email: "test@company.com",
-      }
-
-      const result = await service.searchCompany(params)
+      const result = await service.searchCustomer({ searchTerm: "test@company.com", searchType: "email" })
 
       expect(result).toEqual({
-        data: {
-          company: mockCompany.properties,
-          summaryOfBenefits: [],
-          policies: [],
-          monthlyInvoices: [],
-        },
-        error: null,
+        company: mockCompany,
+        summaryOfBenefits: [],
+        policies: [],
+        monthlyInvoices: [],
+        activeLists: [],
       })
 
-      expect(mockClient.searchCompanies).toHaveBeenCalledWith([
-        {
-          propertyName: "email",
-          operator: "EQ",
-          value: "test@company.com",
-        },
-      ])
+      expect(mockClient.searchCompanies).toHaveBeenCalledWith("test@company.com", "email")
     })
 
     it("should search company by dwolla ID", async () => {

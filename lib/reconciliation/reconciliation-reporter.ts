@@ -2,6 +2,14 @@ import { prisma } from '@/lib/db'
 import { log } from '@/lib/logger'
 import type { ReconciliationJob, ReconciliationCheck, ReconciliationDiscrepancy } from '@prisma/client'
 
+// Define proper interface for reconciliation metrics
+interface ReconciliationMetrics {
+  totalChecks: number
+  discrepanciesFound: number
+  discrepanciesResolved: number
+  [key: string]: any // Allow for additional properties
+}
+
 interface ReconciliationReport {
   summary: {
     runId: string
@@ -45,7 +53,7 @@ export class ReconciliationReporter {
       throw new Error('Reconciliation run not found')
     }
     
-    const metrics = (run.results as any) || {}
+    const metrics = (run.results as ReconciliationMetrics) || {}
     const duration = run.completedAt 
       ? run.completedAt.getTime() - (run.startedAt?.getTime() || run.createdAt.getTime())
       : Date.now() - (run.startedAt?.getTime() || run.createdAt.getTime())
