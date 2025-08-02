@@ -14,8 +14,12 @@ jest.mock("@/lib/api/dwolla/client", () => ({
   DwollaClient: jest.fn().mockImplementation(() => ({
     searchCustomers: jest.fn(),
     getCustomer: jest.fn(),
+    getCustomerByDwollaId: jest.fn(),
     getFundingSources: jest.fn(),
     getTransfers: jest.fn(),
+    getCustomerFundingSources: jest.fn(),
+    getCustomerTransfers: jest.fn(),
+    getCustomerNotifications: jest.fn(),
   })),
 }))
 
@@ -66,78 +70,86 @@ describe("DwollaService", () => {
     }
 
     it("should search customer by email", async () => {
-      mockClient.searchCustomers.mockResolvedValueOnce({
-        _embedded: { customers: [mockCustomer] },
-        total: 1,
-      })
+      mockClient.searchCustomers.mockResolvedValueOnce([mockCustomer])
+      mockClient.getCustomerFundingSources.mockResolvedValueOnce([])
+      mockClient.getCustomerTransfers.mockResolvedValueOnce([])
+      mockClient.getCustomerNotifications.mockResolvedValueOnce([])
 
-      const params: DwollaSearchParams = { email: "john@example.com" }
+      const params: DwollaSearchParams = { searchTerm: "john@example.com", searchType: "email" }
       const result = await service.searchCustomer(params)
 
       expect(result).toEqual({
-        data: {
-          customer: mockCustomer,
-          fundingSources: [],
-          transfers: [],
-          notifications: [],
+        customer: {
+          id: mockCustomer.id,
+          email: mockCustomer.email,
+          name: `${mockCustomer.firstName} ${mockCustomer.lastName}`,
+          businessName: mockCustomer.businessName,
+          type: mockCustomer.type,
+          created: mockCustomer.created,
         },
-        error: null,
+        fundingSources: [],
+        transfers: [],
+        notifications: [],
+        notificationCount: 0,
       })
 
-      expect(mockClient.searchCustomers).toHaveBeenCalledWith("john@example.com", undefined)
+      expect(mockClient.searchCustomers).toHaveBeenCalledWith({ email: "john@example.com", limit: 1 }, undefined)
     })
 
     it("should search customer by dwolla ID", async () => {
-      mockClient.getCustomer.mockResolvedValueOnce(mockCustomer)
+      mockClient.getCustomerByDwollaId.mockResolvedValueOnce(mockCustomer)
+      mockClient.getCustomerFundingSources.mockResolvedValueOnce([])
+      mockClient.getCustomerTransfers.mockResolvedValueOnce([])
+      mockClient.getCustomerNotifications.mockResolvedValueOnce([])
 
-      const params: DwollaSearchParams = { dwolla_id: "dwolla-123" }
+      const params: DwollaSearchParams = { searchTerm: "dwolla-123", searchType: "dwolla_id" }
       const result = await service.searchCustomer(params)
 
-      expect(result.data?.customer).toEqual(mockCustomer)
-      expect(mockClient.getCustomer).toHaveBeenCalledWith("dwolla-123", undefined)
+      expect(result?.customer).toEqual({
+        id: mockCustomer.id,
+        email: mockCustomer.email,
+        name: `${mockCustomer.firstName} ${mockCustomer.lastName}`,
+        businessName: mockCustomer.businessName,
+        type: mockCustomer.type,
+        created: mockCustomer.created,
+      })
+      expect(mockClient.getCustomerByDwollaId).toHaveBeenCalledWith("dwolla-123", undefined)
     })
 
     it("should search customer by name", async () => {
-      mockClient.searchCustomers.mockResolvedValueOnce({
-        _embedded: { customers: [mockCustomer] },
-        total: 1,
+      mockClient.searchCustomers.mockResolvedValueOnce([mockCustomer])
+      mockClient.getCustomerFundingSources.mockResolvedValueOnce([])
+      mockClient.getCustomerTransfers.mockResolvedValueOnce([])
+      mockClient.getCustomerNotifications.mockResolvedValueOnce([])
+
+      const params: DwollaSearchParams = { searchTerm: "John Doe", searchType: "name" }
+      const result = await service.searchCustomer(params)
+
+      expect(result?.customer).toEqual({
+        id: mockCustomer.id,
+        email: mockCustomer.email,
+        name: `${mockCustomer.firstName} ${mockCustomer.lastName}`,
+        businessName: mockCustomer.businessName,
+        type: mockCustomer.type,
+        created: mockCustomer.created,
       })
-
-      const params: DwollaSearchParams = { name: "John Doe" }
-      await service.searchCustomer(params)
-
-      expect(mockClient.searchCustomers).toHaveBeenCalledWith("John Doe", undefined)
+      expect(mockClient.searchCustomers).toHaveBeenCalledWith({ limit: 25, offset: 0 }, undefined)
     })
 
     it("should handle customer not found", async () => {
-      mockClient.searchCustomers.mockResolvedValueOnce({
-        _embedded: { customers: [] },
-        total: 0,
-      })
+      mockClient.searchCustomers.mockResolvedValueOnce([])
 
-      const result = await service.searchCustomer({ email: "notfound@example.com" })
+      const result = await service.searchCustomer({ searchTerm: "notfound@example.com", searchType: "email" })
 
-      expect(result).toEqual({
-        data: null,
-        error: {
-          code: "CUSTOMER_NOT_FOUND",
-          message: "No customer found with the provided search criteria",
-        },
-      })
+      expect(result).toBeNull()
     })
 
     it("should handle API errors", async () => {
       mockClient.searchCustomers.mockRejectedValueOnce(new Error("API Error"))
 
-      const result = await service.searchCustomer({ email: "test@example.com" })
-
-      expect(result).toEqual({
-        data: null,
-        error: {
-          code: "DWOLLA_API_ERROR",
-          message: "Failed to search customer",
-        },
-      })
+      await expect(
+        service.searchCustomer({ searchTerm: "test@example.com", searchType: "email" })
+      ).rejects.toThrow("API Error")
     })
 
     it("should support abort signal", async () => {
