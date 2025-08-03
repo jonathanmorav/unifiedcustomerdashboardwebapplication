@@ -9,7 +9,7 @@ import {
 } from "./ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import Image from "next/image"
-import { Moon, Sun, LogOut, Settings, User, LayoutDashboard, Receipt, Activity } from "lucide-react"
+import { Moon, Sun, LogOut, Settings, User, LayoutDashboard, Receipt, Activity, FileText } from "lucide-react"
 import { useTheme } from "next-themes"
 import { signOut, useSession } from "next-auth/react"
 import Link from "next/link"
@@ -65,6 +65,16 @@ export function Header() {
               >
                 <Receipt className="h-4 w-4" />
                 Billing
+              </Button>
+            </Link>
+            <Link href="/reconciliation">
+              <Button
+                variant={pathname === "/reconciliation" ? "default" : "ghost"}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Reconciliation
               </Button>
             </Link>
 

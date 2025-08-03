@@ -171,8 +171,8 @@ export class ReconciliationReporter {
       orderBy: { startedAt: 'desc' }
     })
     
-    const currentMetrics = (currentRun.results as any) || {}
-    const previousMetrics = (previousRun?.results as any) || {}
+    const currentMetrics = (currentRun.results as ReconciliationMetrics) || {}
+    const previousMetrics = (previousRun?.results as ReconciliationMetrics) || {}
     
     // Calculate current discrepancy rate
     const currentDiscrepancyRate = currentMetrics.totalChecks > 0
@@ -291,7 +291,7 @@ export class ReconciliationReporter {
     }> = []
     
     for (const run of runs) {
-      const metrics = (run.results as any) || {}
+      const metrics = (run.results as ReconciliationMetrics) || {}
       totalChecks += metrics.totalChecks || 0
       totalDiscrepancies += metrics.discrepanciesFound || 0
       totalResolved += metrics.discrepanciesResolved || 0
