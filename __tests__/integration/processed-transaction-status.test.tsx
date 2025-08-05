@@ -38,9 +38,9 @@ describe("Processed Transaction Status Integration Test", () => {
     // Most importantly, verify the status badge shows "Processed"
     expect(screen.getByText("Processed")).toBeInTheDocument()
 
-    // Verify the badge has the correct green styling
+    // Verify the badge has the correct Cakewalk success styling
     const processedBadge = screen.getByText("Processed")
-    expect(processedBadge).toHaveClass("bg-green-100", "text-green-800")
+    expect(processedBadge).toHaveClass("bg-cakewalk-success-light", "text-black")
   })
 
   test("processed status badge has correct visual styling", () => {
@@ -50,7 +50,7 @@ describe("Processed Transaction Status Integration Test", () => {
 
     // Verify it's a badge element with the correct classes
     expect(processedBadge.closest(".border-0")).toBeInTheDocument()
-    expect(processedBadge).toHaveClass("bg-green-100", "text-green-800")
+    expect(processedBadge).toHaveClass("bg-cakewalk-success-light", "text-black")
   })
 
   test("displays processed transaction in transaction table correctly", () => {
@@ -85,12 +85,12 @@ describe("Processed Transaction Status Integration Test", () => {
 
 describe("Transaction Status Badge Integration", () => {
   const statusTestCases = [
-    { status: "pending", expectedText: "Pending", expectedColor: "bg-yellow-100" },
-    { status: "processing", expectedText: "Processing", expectedColor: "bg-blue-100" },
-    { status: "processed", expectedText: "Processed", expectedColor: "bg-green-100" },
-    { status: "failed", expectedText: "Failed", expectedColor: "bg-red-100" },
-    { status: "cancelled", expectedText: "Cancelled", expectedColor: "bg-gray-100" },
-    { status: "returned", expectedText: "Returned", expectedColor: "bg-orange-100" },
+    { status: "pending", expectedText: "Pending", expectedColor: "bg-cakewalk-warning-light" },
+    { status: "processing", expectedText: "Processing", expectedColor: "bg-cakewalk-info-light" },
+    { status: "processed", expectedText: "Processed", expectedColor: "bg-cakewalk-success-light" },
+    { status: "failed", expectedText: "Failed", expectedColor: "bg-cakewalk-error-light" },
+    { status: "cancelled", expectedText: "Cancelled", expectedColor: "bg-cakewalk-neutral" },
+    { status: "returned", expectedText: "Returned", expectedColor: "bg-cakewalk-warning-light" },
   ]
 
   statusTestCases.forEach(({ status, expectedText, expectedColor }) => {

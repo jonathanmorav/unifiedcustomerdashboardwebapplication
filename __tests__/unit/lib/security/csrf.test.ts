@@ -83,7 +83,12 @@ describe("CSRFProtection", () => {
     it("should reject tampered tokens", () => {
       const tokenData = CSRFProtection.generateToken(mockSessionId)
       const signed = CSRFProtection.signToken(tokenData)
-      const tampered = signed.replace(/.$/, "0") // Change last character
+      
+      // Tamper with the signature part (after the dot)
+      const [payload, signature] = signed.split(".")
+      // Change multiple characters in the signature to ensure it's invalid
+      const tamperedSignature = signature.substring(0, signature.length - 4) + "XXXX"
+      const tampered = `${payload}.${tamperedSignature}`
 
       const isValid = CSRFProtection.verifyToken(tampered, mockSessionId)
 

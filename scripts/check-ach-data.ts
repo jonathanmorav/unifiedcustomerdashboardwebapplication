@@ -47,7 +47,7 @@ async function checkACHData() {
 
     console.log("\n=== Top Customer Names ===")
     customerNames.forEach((cn) => {
-      console.log(`${cn.customerName}: ${(cn._count as any)._all} transactions`)
+      console.log(`${cn.customerName}: ${cn._count?._all || 0} transactions`)
     })
 
     // Check company names
@@ -63,7 +63,7 @@ async function checkACHData() {
 
     console.log("\n=== Top Company Names ===")
     companyNames.forEach((cn) => {
-      console.log(`${cn.companyName}: ${(cn._count as any)._all} transactions`)
+      console.log(`${cn.companyName}: ${cn._count?._all || 0} transactions`)
     })
   } catch (error) {
     console.error("Error checking ACH data:", error)

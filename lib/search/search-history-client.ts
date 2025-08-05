@@ -182,36 +182,41 @@ export class SearchHistory {
   }
 
   static exportAsCSV(): string {
-    const history = this.getHistory()
-    const headers = [
-      "Timestamp",
-      "Search Term",
-      "Search Type",
-      "Duration (ms)",
-      "Results Count",
-      "Status"
-    ]
-
-    const rows = history.map(entry => {
-      const resultCount = (entry.foundInHubspot ? 1 : 0) + 
-                         (entry.foundInDwolla ? 1 : 0)
-      const status = entry.foundInHubspot || entry.foundInDwolla ? "Success" : "No Results"
-      
-      return [
-        entry.timestamp.toISOString(),
-        entry.searchTerm,
-        entry.searchType,
-        entry.duration.toString(),
-        resultCount.toString(),
-        status
+    try {
+      const history = this.getHistory()
+      const headers = [
+        "Timestamp",
+        "Search Term",
+        "Search Type",
+        "Duration (ms)",
+        "Results Count",
+        "Status"
       ]
-    })
 
-    const csvContent = [
-      headers.join(","),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
-    ].join("\n")
+      const rows = history.map(entry => {
+        const resultCount = (entry.foundInHubspot ? 1 : 0) + 
+                           (entry.foundInDwolla ? 1 : 0)
+        const status = entry.foundInHubspot || entry.foundInDwolla ? "Success" : "No Results"
+        
+        return [
+          entry.timestamp.toISOString(),
+          entry.searchTerm,
+          entry.searchType,
+          entry.duration.toString(),
+          resultCount.toString(),
+          status
+        ]
+      })
 
-    return csvContent
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+      ].join("\n")
+
+      return csvContent
+    } catch (error) {
+      console.error("Error exporting search history as CSV:", error)
+      return ""
+    }
   }
 }

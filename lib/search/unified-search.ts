@@ -197,7 +197,13 @@ export class UnifiedSearchEngine {
     if (result.dwolla.success && result.dwolla.data) {
       console.log(`[DEBUG] About to format Dwolla data...`)
       try {
-        const formatted = result.dwolla.data as DwollaCustomerData
+        // Validate Dwolla data structure before casting
+        const dwollaData = result.dwolla.data
+        if (!dwollaData || typeof dwollaData !== 'object' || !dwollaData.customer) {
+          throw new Error('Invalid Dwolla data structure')
+        }
+        
+        const formatted = dwollaData as DwollaCustomerData
         console.log(`[DEBUG] Dwolla data formatted successfully`)
         display.dwolla = {
           customer: formatted.customer,

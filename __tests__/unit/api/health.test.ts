@@ -1,3 +1,31 @@
+// Mock NextRequest first
+jest.mock("next/server", () => {
+  class MockNextRequest {
+    url: string
+    method: string
+    headers: any
+
+    constructor(url: string, init?: RequestInit) {
+      this.url = url
+      this.method = init?.method || "GET"
+      this.headers = {
+        get: () => null,
+        has: () => false,
+      }
+    }
+  }
+
+  return {
+    NextRequest: MockNextRequest,
+    NextResponse: {
+      json: (data: any, init?: ResponseInit) => ({
+        status: init?.status || 200,
+        json: async () => data,
+      }),
+    },
+  }
+})
+
 import { GET as healthGET } from "@/app/api/health/route"
 import { GET as liveGET } from "@/app/api/health/live/route"
 import { GET as readyGET } from "@/app/api/health/ready/route"

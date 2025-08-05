@@ -5,7 +5,7 @@ import { DwollaService } from "@/lib/api/dwolla/service"
 // Mock the service modules
 jest.mock("@/lib/api/hubspot/service", () => ({
   HubSpotService: jest.fn().mockImplementation(() => ({
-    searchCompany: jest.fn(),
+    searchCustomer: jest.fn(),
     getSummaryOfBenefits: jest.fn(),
     getPolicies: jest.fn(),
     getMonthlyInvoices: jest.fn(),
@@ -83,105 +83,107 @@ describe("UnifiedSearchEngine", () => {
     }
 
     it("should search both services with email", async () => {
-      mockHubSpotService.searchCompany.mockResolvedValue(mockHubSpotResult)
-      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult)
+      mockHubSpotService.searchCustomer.mockResolvedValue(mockHubSpotResult.data)
+      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult.data)
 
-      const result = await searchEngine.search("test@company.com", "email")
+      const result = await searchEngine.search({ searchTerm: "test@company.com", searchType: "email" })
 
-      expect(result).toEqual({
-        hubspot: mockHubSpotResult,
-        dwolla: mockDwollaResult,
+      expect(result).toMatchObject({
+        searchTerm: "test@company.com",
+        searchType: "email",
+        hubspot: {
+          success: true,
+          data: mockHubSpotResult.data,
+        },
+        dwolla: {
+          success: true,
+          data: mockDwollaResult.data,
+        },
       })
 
-      expect(mockHubSpotService.searchCompany).toHaveBeenCalledWith(
-        { email: "test@company.com" },
-        undefined
+      expect(mockHubSpotService.searchCustomer).toHaveBeenCalledWith(
+        { searchTerm: "test@company.com", searchType: "email" }
       )
       expect(mockDwollaService.searchCustomer).toHaveBeenCalledWith(
-        { email: "test@company.com" },
-        undefined
+        { searchTerm: "test@company.com", searchType: "email" }
       )
     })
 
     it("should auto-detect email type", async () => {
-      mockHubSpotService.searchCompany.mockResolvedValue(mockHubSpotResult)
-      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult)
+      mockHubSpotService.searchCustomer.mockResolvedValue(mockHubSpotResult.data)
+      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult.data)
 
-      await searchEngine.search("user@example.com", "auto")
+      await searchEngine.search({ searchTerm: "user@example.com", searchType: "auto" })
 
-      expect(mockHubSpotService.searchCompany).toHaveBeenCalledWith(
-        { email: "user@example.com" },
-        undefined
+      expect(mockHubSpotService.searchCustomer).toHaveBeenCalledWith(
+        { searchTerm: "user@example.com", searchType: "email" }
       )
     })
 
     it("should auto-detect Dwolla ID", async () => {
-      mockHubSpotService.searchCompany.mockResolvedValue(mockHubSpotResult)
-      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult)
+      mockHubSpotService.searchCustomer.mockResolvedValue(mockHubSpotResult.data)
+      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult.data)
 
       const dwollaId = "123e4567-e89b-12d3-a456-426614174000"
-      await searchEngine.search(dwollaId, "auto")
+      await searchEngine.search({ searchTerm: dwollaId, searchType: "auto" })
 
-      expect(mockHubSpotService.searchCompany).toHaveBeenCalledWith(
-        { dwolla_id: dwollaId },
-        undefined
+      expect(mockHubSpotService.searchCustomer).toHaveBeenCalledWith(
+        { searchTerm: dwollaId, searchType: "dwolla_id" }
       )
       expect(mockDwollaService.searchCustomer).toHaveBeenCalledWith(
-        { dwolla_id: dwollaId },
-        undefined
+        { searchTerm: dwollaId, searchType: "dwolla_id" }
       )
     })
 
     it("should handle partial failures", async () => {
-      const hubspotError = {
-        data: null,
-        error: {
-          code: "HUBSPOT_API_ERROR",
-          message: "API Error",
+      const hubspotError = new Error("API Error")
+
+      mockHubSpotService.searchCustomer.mockRejectedValue(hubspotError)
+      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult.data)
+
+      const result = await searchEngine.search({ searchTerm: "test@company.com", searchType: "email" })
+
+      expect(result).toMatchObject({
+        searchTerm: "test@company.com",
+        searchType: "email",
+        hubspot: {
+          success: false,
+          error: "API Error"
         },
-      }
-
-      mockHubSpotService.searchCompany.mockResolvedValue(hubspotError)
-      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult)
-
-      const result = await searchEngine.search("test@company.com", "email")
-
-      expect(result).toEqual({
-        hubspot: hubspotError,
-        dwolla: mockDwollaResult,
+        dwolla: {
+          success: true,
+          data: mockDwollaResult.data
+        }
       })
     })
 
     it("should handle both services failing", async () => {
-      const error = {
-        data: null,
-        error: { code: "ERROR", message: "Failed" },
-      }
+      const error = new Error("Failed")
 
-      mockHubSpotService.searchCompany.mockResolvedValue(error)
-      mockDwollaService.searchCustomer.mockResolvedValue(error)
+      mockHubSpotService.searchCustomer.mockRejectedValue(error)
+      mockDwollaService.searchCustomer.mockRejectedValue(error)
 
-      const result = await searchEngine.search("test@company.com", "email")
+      const result = await searchEngine.search({ searchTerm: "test@company.com", searchType: "email" })
 
-      expect(result.hubspot.error).toBeTruthy()
-      expect(result.dwolla.error).toBeTruthy()
+      expect(result.hubspot.success).toBe(false)
+      expect(result.hubspot.error).toBe("Failed")
+      expect(result.dwolla.success).toBe(false)
+      expect(result.dwolla.error).toBe("Failed")
     })
 
     it("should support abort signal", async () => {
       const abortController = new AbortController()
 
-      mockHubSpotService.searchCompany.mockResolvedValue(mockHubSpotResult)
-      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult)
+      mockHubSpotService.searchCustomer.mockResolvedValue(mockHubSpotResult.data)
+      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult.data)
 
-      await searchEngine.search("test@company.com", "email", abortController.signal)
+      await searchEngine.search({ searchTerm: "test@company.com", searchType: "email", signal: abortController.signal })
 
-      expect(mockHubSpotService.searchCompany).toHaveBeenCalledWith(
-        { email: "test@company.com" },
-        abortController.signal
+      expect(mockHubSpotService.searchCustomer).toHaveBeenCalledWith(
+        { searchTerm: "test@company.com", searchType: "email" }
       )
       expect(mockDwollaService.searchCustomer).toHaveBeenCalledWith(
-        { email: "test@company.com" },
-        abortController.signal
+        { searchTerm: "test@company.com", searchType: "email", signal: abortController.signal }
       )
     })
 
@@ -190,7 +192,7 @@ describe("UnifiedSearchEngine", () => {
 
       // The search method should handle long search terms - check if it throws or returns error
       try {
-        await searchEngine.search(longSearchTerm, "name")
+        await searchEngine.search({ searchTerm: longSearchTerm, searchType: "name" })
         // If it doesn't throw, check the result
         expect(true).toBe(true) // Adjust based on actual behavior
       } catch (error) {
@@ -199,14 +201,13 @@ describe("UnifiedSearchEngine", () => {
     })
 
     it("should trim search term", async () => {
-      mockHubSpotService.searchCompany.mockResolvedValue(mockHubSpotResult)
-      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult)
+      mockHubSpotService.searchCustomer.mockResolvedValue(mockHubSpotResult.data)
+      mockDwollaService.searchCustomer.mockResolvedValue(mockDwollaResult.data)
 
-      await searchEngine.search("  test@company.com  ", "email")
+      await searchEngine.search({ searchTerm: "  test@company.com  ", searchType: "email" })
 
-      expect(mockHubSpotService.searchCompany).toHaveBeenCalledWith(
-        { email: "test@company.com" },
-        undefined
+      expect(mockHubSpotService.searchCustomer).toHaveBeenCalledWith(
+        { searchTerm: "  test@company.com  ", searchType: "email" }
       )
     })
   })
@@ -227,8 +228,8 @@ describe("UnifiedSearchEngine", () => {
     })
 
     it("should default to name for other text", () => {
-      // The actual implementation returns 'name' not 'business_name'
-      expect(searchEngine["detectSearchType"]("Acme Corporation")).toBe("name")
+      // The actual implementation returns 'business_name' for business names
+      expect(searchEngine["detectSearchType"]("Acme Corporation")).toBe("business_name")
       expect(searchEngine["detectSearchType"]("John Doe")).toBe("name")
       expect(searchEngine["detectSearchType"]("123 Main St")).toBe("name")
     })

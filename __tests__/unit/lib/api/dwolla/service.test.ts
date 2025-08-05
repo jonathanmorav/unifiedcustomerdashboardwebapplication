@@ -138,6 +138,8 @@ describe("DwollaService", () => {
         type: mockCustomer.type,
         created: mockCustomer.created,
       })
+      // The searchByName method calls searchCustomers with pagination parameters only
+      // and filters results locally, so we expect the call with limit and offset
       expect(mockClient.searchCustomers).toHaveBeenCalledWith({ limit: 100, offset: 0 }, undefined)
     })
 

@@ -52,7 +52,7 @@ async function seedACHTransactions() {
     })
 
     console.log("\n📊 Transaction Statistics:")
-    stats.forEach((stat: any) => {
+    stats.forEach((stat) => {
       console.log(`  ${stat.status}: ${stat._count._all} transactions`)
     })
 

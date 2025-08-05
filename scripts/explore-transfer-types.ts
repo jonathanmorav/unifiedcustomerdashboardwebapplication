@@ -93,7 +93,7 @@ async function exploreTransfers() {
     let customerTransferCount = 0
     for (const transfer of allTransfers) {
       // Check if source is a funding source (not account)
-      if (transfer._links?.source.href.includes("/funding-sources/")) {
+      if (transfer._links?.source?.href?.includes("/funding-sources/")) {
         try {
           const source = await client.getFundingSourceByUrl(transfer._links?.source.href)
           if (source._links?.customer) {

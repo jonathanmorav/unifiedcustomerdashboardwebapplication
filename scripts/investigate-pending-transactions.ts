@@ -92,12 +92,13 @@ async function investigatePendingTransactions() {
     }
 
     // Check for unusual Dwolla IDs (potential mock data)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     const mockDwollaIds = pendingTransactions.filter(tx => 
       tx.dwollaId && (
-        tx.dwollaId.includes('mock') ||
-        tx.dwollaId.includes('test') ||
-        tx.dwollaId.includes('demo') ||
-        tx.dwollaId.length < 10
+        tx.dwollaId.toLowerCase().includes('mock') ||
+        tx.dwollaId.toLowerCase().includes('test') ||
+        tx.dwollaId.toLowerCase().includes('demo') ||
+        !uuidRegex.test(tx.dwollaId)
       )
     )
     if (mockDwollaIds.length > 0) {

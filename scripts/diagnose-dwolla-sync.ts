@@ -69,17 +69,17 @@ async function diagnoseDwollaSync() {
     let otherCount = 0
 
     for (const transfer of allTransfers) {
-      const sourceUrl = transfer._links?.source.href
-      const destUrl = transfer._links?.destination.href
+      const sourceUrl = transfer._links?.source?.href
+      const destUrl = transfer._links?.destination?.href
       
-      if (destUrl.includes(ourAccountId)) {
+      if (destUrl?.includes(ourAccountId)) {
         // Money coming TO us
-        if (sourceUrl.includes("/customers/")) {
+        if (sourceUrl?.includes("/customers/")) {
           customerToUs++
         } else {
           bankToBankCount++
         }
-      } else if (sourceUrl.includes(ourAccountId)) {
+      } else if (sourceUrl?.includes(ourAccountId)) {
         // Money going FROM us
         usToCustomer++
       } else {
@@ -103,9 +103,9 @@ async function diagnoseDwollaSync() {
     // Test 5: Sample customer transfers
     console.log("\n5️⃣ Sample customer-initiated transfers:")
     const customerTransfers = allTransfers.filter(t => {
-      const destUrl = t._links.destination.href
-      const sourceUrl = t._links.source.href
-      return destUrl.includes(ourAccountId) && sourceUrl.includes("/customers/")
+      const destUrl = t._links?.destination?.href
+      const sourceUrl = t._links?.source?.href
+      return destUrl?.includes(ourAccountId) && sourceUrl?.includes("/customers/")
     })
     
     for (let i = 0; i < Math.min(5, customerTransfers.length); i++) {

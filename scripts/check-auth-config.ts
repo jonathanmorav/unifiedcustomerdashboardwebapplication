@@ -42,8 +42,7 @@ async function checkAuthConfig() {
 
     // 3. Check authorized emails
     console.log('3. Authorized Emails:')
-    const emails = Array.isArray(env.AUTHORIZED_EMAILS) ? env.AUTHORIZED_EMAILS : 
-                   (typeof env.AUTHORIZED_EMAILS === 'string' ? (env.AUTHORIZED_EMAILS as string).split(',').map((e: string) => e.trim()) : [])
+    const emails = env.AUTHORIZED_EMAILS
     if (emails.length === 0) {
       console.log('   ❌ No authorized emails configured')
     } else {

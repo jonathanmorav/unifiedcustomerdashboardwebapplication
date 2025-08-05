@@ -396,13 +396,13 @@ export class AdvancedSearchEngine extends UnifiedSearchEngine {
    */
   private getDwollaCustomerStatus(
     customer: DwollaCustomerData
-  ): "active" | "inactive" | "suspended" | "verified" | "unverified" {
+  ): "active" | "inactive" {
     // FormattedDwollaCustomer doesn't have status, only type
     // We'll map based on type for now
     const type = customer.customer.type
     if (type === "receive-only") return "inactive"
-    // Without the actual status field, we can't determine verified/unverified
-    // This would need to be added to FormattedDwollaCustomer or fetched separately
+    // TODO: Implement additional status checks for "suspended", "verified", "unverified"
+    // when the Dwolla API provides more detailed status information
     return "active"
   }
 }

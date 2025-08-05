@@ -54,6 +54,22 @@ export const rateLimitConfigs = {
     standardHeaders: true,
     legacyHeaders: false,
   },
+
+  // Reconciliation rate limit - more restrictive due to computational cost
+  reconciliation: {
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 5, // 5 reconciliation runs per 5 minutes
+    standardHeaders: true,
+    legacyHeaders: false,
+  },
+
+  // Premium reconciliation rate limit - very restrictive due to high cost
+  premiumReconciliation: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 2, // 2 premium reconciliation runs per 15 minutes
+    standardHeaders: true,
+    legacyHeaders: false,
+  },
 }
 
 export class RateLimiter {

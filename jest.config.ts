@@ -58,7 +58,7 @@ const config: Config = {
   },
   // Handle ESM modules in node_modules
   transformIgnorePatterns: [
-    "node_modules/(?!(jose|openid-client|@panva|oidc-token-hash|preact-render-to-string|preact)/)",
+    "node_modules/(?!(jose|openid-client|@panva|oidc-token-hash|preact-render-to-string|preact|next-auth|oauth4webapi)/)",
   ],
   // Handle CSS imports
   moduleNameMapper: {

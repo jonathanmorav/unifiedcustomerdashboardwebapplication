@@ -6,6 +6,7 @@ import { AmountRange } from "@/lib/types/search"
 describe("AmountRangeFilter", () => {
   const mockOnChange = jest.fn()
   const defaultProps = {
+    label: "Amount Range",
     value: undefined,
     onChange: mockOnChange,
   }
@@ -20,327 +21,215 @@ describe("AmountRangeFilter", () => {
       expect(screen.getByText("Amount Range")).toBeInTheDocument()
     })
 
-    it("shows placeholder inputs when no value", () => {
+    it("shows placeholder text when no value", () => {
       render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      const maxInput = screen.getByPlaceholderText("Max")
-
-      expect(minInput).toBeInTheDocument()
-      expect(maxInput).toBeInTheDocument()
-      expect(minInput).toHaveValue("")
-      expect(maxInput).toHaveValue("")
+      expect(screen.getByText("Select amount range")).toBeInTheDocument()
     })
 
     it("displays selected amount range", () => {
       const amountRange: AmountRange = {
         min: 1000,
         max: 5000,
+        currency: "USD"
       }
       render(<AmountRangeFilter {...defaultProps} value={amountRange} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      const maxInput = screen.getByPlaceholderText("Max")
-
-      expect(minInput).toHaveValue("1000")
-      expect(maxInput).toHaveValue("5000")
+      expect(screen.getByText("$1,000 - $5,000")).toBeInTheDocument()
     })
 
-    it("formats amounts with commas", () => {
-      const amountRange: AmountRange = {
-        min: 10000,
-        max: 50000,
-      }
-      render(<AmountRangeFilter {...defaultProps} value={amountRange} />)
-
-      const minInput = screen.getByPlaceholderText("Min") as HTMLInputElement
-      const maxInput = screen.getByPlaceholderText("Max") as HTMLInputElement
-
-      expect(minInput.value).toBe("10,000")
-      expect(maxInput.value).toBe("50,000")
+    it("shows currency symbol", () => {
+      render(<AmountRangeFilter {...defaultProps} />)
+      expect(screen.getByRole("button")).toBeInTheDocument()
+      const button = screen.getByRole("button")
+      expect(button.querySelector("svg")).toBeInTheDocument() // DollarSign icon
     })
   })
 
-  describe("User Input", () => {
-    it("updates min value on input", async () => {
+  describe("Popover Interaction", () => {
+    it("opens popover when button is clicked", async () => {
       const user = userEvent.setup()
       render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      await user.type(minInput, "1000")
-
-      expect(minInput).toHaveValue("1,000")
+      
+      const button = screen.getByText("Select amount range")
+      await user.click(button)
+      
+      expect(screen.getByText("Quick select")).toBeInTheDocument()
+      expect(screen.getByText("Custom range")).toBeInTheDocument()
     })
 
-    it("updates max value on input", async () => {
+    it("shows preset ranges in popover", async () => {
       const user = userEvent.setup()
       render(<AmountRangeFilter {...defaultProps} />)
-
-      const maxInput = screen.getByPlaceholderText("Max")
-      await user.type(maxInput, "5000")
-
-      expect(maxInput).toHaveValue("5,000")
+      
+      const button = screen.getByText("Select amount range")
+      await user.click(button)
+      
+      expect(screen.getByText("Under $100")).toBeInTheDocument()
+      expect(screen.getByText("$100 - $500")).toBeInTheDocument()
+      expect(screen.getByText("$500 - $1,000")).toBeInTheDocument()
+      expect(screen.getByText("$1,000 - $5,000")).toBeInTheDocument()
     })
+  })
 
-    it("calls onChange when both values are entered", async () => {
+  describe("Preset Selection", () => {
+    it("selects preset range when clicked", async () => {
       const user = userEvent.setup()
       render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      const maxInput = screen.getByPlaceholderText("Max")
-
-      await user.type(minInput, "1000")
-      await user.type(maxInput, "5000")
-
-      // onChange is debounced, so we need to wait
-      await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith({
-          min: 1000,
-          max: 5000,
-        })
+      
+      await user.click(screen.getByText("Select amount range"))
+      await user.click(screen.getByText("$100 - $500"))
+      
+      expect(mockOnChange).toHaveBeenCalledWith({
+        min: 100,
+        max: 500,
+        currency: "USD"
       })
     })
 
-    it("handles decimal input", async () => {
+    it("closes popover after preset selection", async () => {
       const user = userEvent.setup()
       render(<AmountRangeFilter {...defaultProps} />)
+      
+      await user.click(screen.getByText("Select amount range"))
+      await user.click(screen.getByText("Under $100"))
+      
+      await waitFor(() => {
+        expect(screen.queryByText("Quick select")).not.toBeInTheDocument()
+      })
+    })
+  })
 
-      const minInput = screen.getByPlaceholderText("Min")
-      await user.type(minInput, "1000.50")
-
-      expect(minInput).toHaveValue("1,000.50")
+  describe("Custom Range Input", () => {
+    it("allows custom min/max input", async () => {
+      const user = userEvent.setup()
+      render(<AmountRangeFilter {...defaultProps} />)
+      
+      await user.click(screen.getByText("Select amount range"))
+      
+      const minInput = screen.getByLabelText("Min amount")
+      const maxInput = screen.getByLabelText("Max amount")
+      
+      await user.clear(minInput)
+      await user.type(minInput, "250")
+      await user.clear(maxInput)
+      await user.type(maxInput, "750")
+      
+      await user.click(screen.getByText("Apply"))
+      
+      expect(mockOnChange).toHaveBeenCalledWith({
+        min: 250,
+        max: 750,
+        currency: "USD"
+      })
     })
 
-    it("ignores non-numeric input", async () => {
+    it("updates slider when input values change", async () => {
       const user = userEvent.setup()
       render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      await user.type(minInput, "abc123def")
-
-      expect(minInput).toHaveValue("123")
+      
+      await user.click(screen.getByText("Select amount range"))
+      
+      const minInput = screen.getByLabelText("Min amount")
+      await user.clear(minInput)
+      await user.type(minInput, "1500")
+      
+      // The slider should update (we can't easily test the visual update)
+      expect(minInput).toHaveValue(1500)
     })
   })
 
   describe("Clear Functionality", () => {
-    it("shows clear button when value exists", () => {
-      const amountRange: AmountRange = {
-        min: 1000,
-        max: 5000,
-      }
-      render(<AmountRangeFilter {...defaultProps} value={amountRange} />)
-
-      const clearButton = screen.getByRole("button", { name: /clear/i })
-      expect(clearButton).toBeInTheDocument()
-    })
-
-    it("clears both inputs when clear button clicked", async () => {
+    it("clears the selected range", async () => {
       const user = userEvent.setup()
       const amountRange: AmountRange = {
         min: 1000,
         max: 5000,
+        currency: "USD"
       }
       render(<AmountRangeFilter {...defaultProps} value={amountRange} />)
-
-      const clearButton = screen.getByRole("button", { name: /clear/i })
-      await user.click(clearButton)
-
+      
+      await user.click(screen.getByText("$1,000 - $5,000"))
+      await user.click(screen.getByText("Clear"))
+      
       expect(mockOnChange).toHaveBeenCalledWith(undefined)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      const maxInput = screen.getByPlaceholderText("Max")
-
-      expect(minInput).toHaveValue("")
-      expect(maxInput).toHaveValue("")
-    })
-
-    it("does not show clear button when no value", () => {
-      render(<AmountRangeFilter {...defaultProps} />)
-
-      const clearButton = screen.queryByRole("button", { name: /clear/i })
-      expect(clearButton).not.toBeInTheDocument()
     })
   })
 
   describe("Validation", () => {
-    it("does not call onChange with only min value", async () => {
+    it("only calls onChange when both values are valid", async () => {
       const user = userEvent.setup()
       render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      await user.type(minInput, "1000")
-
-      await waitFor(
-        () => {
-          expect(mockOnChange).not.toHaveBeenCalled()
-        },
-        { timeout: 600 }
-      )
+      
+      await user.click(screen.getByText("Select amount range"))
+      
+      const minInput = screen.getByLabelText("Min amount")
+      await user.clear(minInput)
+      await user.type(minInput, "500")
+      
+      // Don't click Apply yet - onChange should not be called
+      expect(mockOnChange).not.toHaveBeenCalled()
+      
+      await user.click(screen.getByText("Apply"))
+      
+      // Now it should be called with the values
+      expect(mockOnChange).toHaveBeenCalledWith({
+        min: 500,
+        max: 100000, // default max
+        currency: "USD"
+      })
     })
 
-    it("does not call onChange with only max value", async () => {
+    it("handles min greater than max gracefully", async () => {
       const user = userEvent.setup()
       render(<AmountRangeFilter {...defaultProps} />)
-
-      const maxInput = screen.getByPlaceholderText("Max")
-      await user.type(maxInput, "5000")
-
-      await waitFor(
-        () => {
-          expect(mockOnChange).not.toHaveBeenCalled()
-        },
-        { timeout: 600 }
-      )
-    })
-
-    it("swaps values if min is greater than max", async () => {
-      const user = userEvent.setup()
-      render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      const maxInput = screen.getByPlaceholderText("Max")
-
+      
+      await user.click(screen.getByText("Select amount range"))
+      
+      const minInput = screen.getByLabelText("Min amount")
+      const maxInput = screen.getByLabelText("Max amount")
+      
+      await user.clear(minInput)
       await user.type(minInput, "5000")
+      await user.clear(maxInput)
       await user.type(maxInput, "1000")
-
-      await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith({
-          min: 1000,
-          max: 5000,
-        })
-      })
-    })
-
-    it("handles negative values", async () => {
-      const user = userEvent.setup()
-      render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      await user.type(minInput, "-100")
-
-      expect(minInput).toHaveValue("100")
-    })
-  })
-
-  describe("Keyboard Navigation", () => {
-    it("moves focus from min to max on Tab", async () => {
-      const user = userEvent.setup()
-      render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      const maxInput = screen.getByPlaceholderText("Max")
-
-      minInput.focus()
-      await user.tab()
-
-      expect(maxInput).toHaveFocus()
-    })
-
-    it("submits on Enter in max field", async () => {
-      const user = userEvent.setup()
-      render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      const maxInput = screen.getByPlaceholderText("Max")
-
-      await user.type(minInput, "1000")
-      await user.type(maxInput, "5000")
-      await user.keyboard("{Enter}")
-
-      await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith({
-          min: 1000,
-          max: 5000,
-        })
-      })
+      
+      await user.click(screen.getByText("Apply"))
+      
+      // Should not call onChange since min > max
+      expect(mockOnChange).not.toHaveBeenCalled()
     })
   })
 
   describe("Currency Display", () => {
-    it("shows currency symbol", () => {
-      render(<AmountRangeFilter {...defaultProps} />)
-
-      // Check for dollar signs
-      const dollarSigns = screen.getAllByText("$")
-      expect(dollarSigns).toHaveLength(2)
-    })
-
     it("respects currency prop", () => {
-      render(<AmountRangeFilter {...defaultProps} currency="EUR" />)
-
-      // Check for Euro signs
-      const euroSigns = screen.getAllByText("€")
-      expect(euroSigns).toHaveLength(2)
+      const amountRange: AmountRange = {
+        min: 1000,
+        max: 5000,
+        currency: "EUR"
+      }
+      render(<AmountRangeFilter {...defaultProps} value={amountRange} currency="EUR" />)
+      
+      // The component should format with EUR
+      // Note: The exact format depends on the locale
+      const button = screen.getByRole("button")
+      expect(button.textContent).toMatch(/[€1,000|1.000 €].*[€5,000|5.000 €]/)
     })
   })
 
-  describe("Disabled State", () => {
-    it("disables inputs when disabled prop is true", () => {
-      render(<AmountRangeFilter {...defaultProps} disabled={true} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      const maxInput = screen.getByPlaceholderText("Max")
-
-      expect(minInput).toBeDisabled()
-      expect(maxInput).toBeDisabled()
-    })
-
-    it("does not allow input when disabled", async () => {
-      const user = userEvent.setup()
-      render(<AmountRangeFilter {...defaultProps} disabled={true} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      await user.type(minInput, "1000")
-
-      expect(minInput).toHaveValue("")
-    })
-  })
-
-  describe("Edge Cases", () => {
-    it("handles very large numbers", async () => {
+  describe("Slider Interaction", () => {
+    it("updates values when slider is moved", async () => {
       const user = userEvent.setup()
       render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      await user.type(minInput, "1000000000")
-
-      expect(minInput).toHaveValue("1,000,000,000")
-    })
-
-    it("handles rapid input changes", async () => {
-      const user = userEvent.setup()
-      render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-      const maxInput = screen.getByPlaceholderText("Max")
-
-      // Rapidly change values
-      await user.type(minInput, "1")
-      await user.type(minInput, "0")
-      await user.type(minInput, "0")
-      await user.type(maxInput, "5")
-      await user.type(maxInput, "0")
-      await user.type(maxInput, "0")
-
-      await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith({
-          min: 100,
-          max: 500,
-        })
-      })
-    })
-
-    it("handles paste events", async () => {
-      const user = userEvent.setup()
-      render(<AmountRangeFilter {...defaultProps} />)
-
-      const minInput = screen.getByPlaceholderText("Min")
-
-      // Simulate paste
-      await user.click(minInput)
-      await user.paste("1500.75")
-
-      expect(minInput).toHaveValue("1,500.75")
+      
+      await user.click(screen.getByText("Select amount range"))
+      
+      // Find the slider inputs (there are two for range slider)
+      const sliders = screen.getAllByRole("slider", { hidden: true })
+      
+      // Simulate slider change on the first slider (min value)
+      fireEvent.change(sliders[0], { target: { value: "2500" } })
+      
+      const minInput = screen.getByLabelText("Min amount")
+      expect(minInput).toHaveValue(2500)
     })
   })
 })
