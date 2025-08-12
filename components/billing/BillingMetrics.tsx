@@ -111,11 +111,10 @@ export const BillingMetrics: React.FC<BillingMetricsProps> = ({
       color: "default" as const,
     },
     {
-      title: "Success Rate",
-      value: `${metrics.successRate}%`,
+      title: "Processed",
+      value: formatCurrency(metrics.processedAmount || 0),
       icon: <CheckCircle className="h-4 w-4" />,
       color: "success" as const,
-      trend: { value: 2.5, isPositive: true }, // Mock trend data
     },
     {
       title: "Pending",
@@ -128,6 +127,12 @@ export const BillingMetrics: React.FC<BillingMetricsProps> = ({
       value: formatCurrency(metrics.failedAmount),
       icon: <XCircle className="h-4 w-4" />,
       color: "danger" as const,
+    },
+    {
+      title: "Success Rate",
+      value: `${metrics.successRate}%`,
+      icon: <CheckCircle className="h-4 w-4" />,
+      color: "success" as const,
     },
     {
       title: "Today's Activity",

@@ -40,6 +40,7 @@
     "ach:sync:worker:dev": "nodemon --watch 'lib/api/dwolla/**/*.ts' --exec 'tsx scripts/ach-sync-worker.ts'",
     "ach:cleanup:debits": "tsx scripts/cleanup-debit-transactions.ts",
     "ach:cleanup:test": "tsx scripts/cleanup-test-transactions.ts",
+    "ach:refresh:pending": "tsx scripts/refresh-pending-statuses.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run webhook:worker\" \"npm run ach:sync:worker\""
   },
   "dependencies": {

@@ -172,6 +172,22 @@ export async function GET(request: NextRequest) {
       ]
     }
 
+    // Exclude non-Dwolla-format test customer IDs from exports
+    const excludedTestCustomerIds = [
+      "cust_x5aior80g",
+      "cust_npuehcu3i",
+      "cust_omdl5p79u",
+    ]
+    where.AND = [
+      ...(where.AND || []),
+      {
+        NOT: [
+          { customerId: { in: excludedTestCustomerIds } },
+          { customerId: { startsWith: "cust_" } },
+        ],
+      },
+    ]
+
     // Fetch all matching transactions (limited to 10k for safety)
     const transactions = await prisma.aCHTransaction.findMany({
       where,

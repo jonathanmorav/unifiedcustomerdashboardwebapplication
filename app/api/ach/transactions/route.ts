@@ -114,6 +114,24 @@ export async function GET(request: NextRequest) {
       ]
     }
 
+    // Exclude non-Dwolla-format test customer IDs from results
+    // - Explicit test IDs reported by user
+    // - Any placeholder IDs starting with "cust_"
+    const excludedTestCustomerIds = [
+      "cust_x5aior80g",
+      "cust_npuehcu3i",
+      "cust_omdl5p79u",
+    ]
+    where.AND = [
+      ...(where.AND || []),
+      {
+        NOT: [
+          { customerId: { in: excludedTestCustomerIds } },
+          { customerId: { startsWith: "cust_" } },
+        ],
+      },
+    ]
+
     // Calculate pagination
     const skip = (validatedQuery.page - 1) * validatedQuery.limit
 
@@ -207,6 +225,7 @@ export async function GET(request: NextRequest) {
         }, {}),
         statusAmounts: {
           pending: statusAmountMap.pending || 0,
+          processing: statusAmountMap.processing || 0,
           processed: statusAmountMap.processed || 0,
           failed: statusAmountMap.failed || 0,
           returned: statusAmountMap.returned || 0,

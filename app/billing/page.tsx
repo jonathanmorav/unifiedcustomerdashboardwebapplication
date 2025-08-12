@@ -12,7 +12,6 @@ import { TransactionTable } from "@/components/billing/TransactionTable"
 import { BillingFilters, type BillingFilterValues } from "@/components/billing/BillingFilters"
 import { useACHTransactions } from "@/hooks/use-ach-transactions"
 import { TransactionDetailModal } from "@/components/billing/TransactionDetailModal"
-import { FailureAnalytics } from "@/components/billing/FailureAnalytics"
 import { Pagination } from "@/components/ui/pagination"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -24,6 +23,7 @@ export default function BillingPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
+  const [isRefreshingStatuses, setIsRefreshingStatuses] = useState(false)
 
   // Filter state
   const [filters, setFilters] = useState<BillingFilterValues>({
@@ -202,6 +202,76 @@ export default function BillingPage() {
     }
   }
 
+  const handleRefreshStatuses = async () => {
+    try {
+      setIsRefreshingStatuses(true)
+
+      // Build params for status refresh based on current visible transactions
+      const refreshParams: Record<string, any> = {
+        statuses: ["pending", "processing"], // Focus on transactions that might have changed
+        limit: 500, // Check up to 500 transactions
+        concurrency: 5, // Reasonable concurrency for API calls
+      }
+
+      // If we have specific status filters, include those too
+      if (filters.status.length > 0) {
+        refreshParams.statuses = filters.status
+      }
+
+      // If we have date filters, we can add olderThanDays logic
+      if (filters.dateRange.start) {
+        const daysDiff = Math.floor(
+          (new Date().getTime() - filters.dateRange.start.getTime()) / (1000 * 60 * 60 * 24)
+        )
+        if (daysDiff > 0) {
+          refreshParams.olderThanDays = daysDiff
+        }
+      }
+
+      const response = await fetch("/api/ach/refresh-statuses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(refreshParams),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Status refresh failed")
+      }
+
+      const result = await response.json()
+      console.log("Status refresh completed:", result)
+
+      // Show success message with details
+      const { checked, updated, updatedByStatus } = result.results
+      let message = `Status refresh completed! Checked ${checked} transactions, updated ${updated}.`
+      
+      if (updated > 0 && updatedByStatus) {
+        const statusUpdates = Object.entries(updatedByStatus)
+          .map(([status, count]) => `${count} → ${status}`)
+          .join(", ")
+        message += ` Updates: ${statusUpdates}`
+      }
+
+      alert(message)
+
+      // Refresh the data after status refresh
+      refresh()
+    } catch (error) {
+      console.error("Status refresh error:", error)
+      // Show more detailed error message
+      if (error instanceof Error) {
+        alert(`Status refresh failed: ${error.message}`)
+      } else {
+        alert("Status refresh failed. Please check console for details.")
+      }
+    } finally {
+      setIsRefreshingStatuses(false)
+    }
+  }
+
   if (!session) {
     return null
   }
@@ -231,6 +301,17 @@ export default function BillingPage() {
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
               Refresh
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefreshStatuses}
+              disabled={isRefreshingStatuses || isLoading}
+              className={`flex items-center gap-2 ${isRefreshingStatuses ? "bg-cakewalk-info/10" : ""}`}
+              title="Check Dwolla for status updates on pending/processing transactions"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshingStatuses ? "animate-spin" : ""}`} />
+              {isRefreshingStatuses ? "Refreshing Statuses..." : "Refresh Statuses"}
             </Button>
             <Button
               variant="outline"
@@ -276,7 +357,6 @@ export default function BillingPage() {
         <Tabs defaultValue="transactions" className="mt-6">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            <TabsTrigger value="analytics">Failure Analytics</TabsTrigger>
           </TabsList>
           
           <TabsContent value="transactions">
@@ -346,21 +426,6 @@ export default function BillingPage() {
             )}
           </CardContent>
         </Card>
-          </TabsContent>
-          
-          <TabsContent value="analytics">
-            <div className="mt-6">
-              <FailureAnalytics 
-                dateRange={
-                  filters.dateRange.start && filters.dateRange.end
-                    ? {
-                        from: new Date(filters.dateRange.start),
-                        to: new Date(filters.dateRange.end)
-                      }
-                    : undefined
-                }
-              />
-            </div>
           </TabsContent>
         </Tabs>
 

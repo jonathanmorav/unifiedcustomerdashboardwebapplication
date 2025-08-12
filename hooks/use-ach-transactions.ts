@@ -122,11 +122,13 @@ export function useACHTransactions(
         const { statusCounts = {}, statusAmounts = {} } = data.metrics
         const total = data.metrics.totalCount || 0
         const processed = statusCounts.processed || 0
+        const pendingAmountCombined = (statusAmounts.pending || 0) + (statusAmounts.processing || 0)
 
         setMetrics({
           totalVolume: data.metrics.totalAmount || 0,
-          successRate: total > 0 ? Math.round((processed / total) * 100) : 0,
-          pendingAmount: statusAmounts.pending || 0,
+          // Truncate to two decimals (no rounding up)
+          successRate: total > 0 ? Math.floor(((processed / total) * 100) * 100) / 100 : 0,
+          pendingAmount: pendingAmountCombined,
           failedAmount: statusAmounts.failed || 0,
           todayCount: data.metrics.todayCount || 0,
           averageTransaction: total > 0 ? data.metrics.totalAmount / total : 0,
