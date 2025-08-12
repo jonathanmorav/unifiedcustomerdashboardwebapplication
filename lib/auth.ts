@@ -2,7 +2,7 @@ import { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/db"
-import { getEnv, isAuthorizedEmail } from "@/lib/env"
+import { getAuthEnv, isAuthorizedEmail } from "@/lib/env"
 import type { UserRole } from "@prisma/client"
 
 declare module "next-auth" {
@@ -37,8 +37,8 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
   providers: [
     GoogleProvider({
-      clientId: getEnv().GOOGLE_CLIENT_ID,
-      clientSecret: getEnv().GOOGLE_CLIENT_SECRET,
+      clientId: getAuthEnv().GOOGLE_CLIENT_ID,
+              clientSecret: getAuthEnv().GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
           prompt: "consent",
@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: getEnv().SESSION_TIMEOUT_MINUTES * 60, // Convert minutes to seconds
+    maxAge: getAuthEnv().SESSION_TIMEOUT_MINUTES * 60, // Convert minutes to seconds
   },
   pages: {
     signIn: "/auth/signin",

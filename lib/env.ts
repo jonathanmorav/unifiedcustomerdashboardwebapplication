@@ -56,9 +56,19 @@ const envSchema = z.object({
     .transform((val) => val?.split(",").map((key) => key.trim()) || []),
 })
 
+// Minimal schema for authentication-related environment variables
+const authEnvSchema = z.object({
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
+  SESSION_TIMEOUT_MINUTES: z.string().default("30").transform(Number),
+  AUTHORIZED_EMAILS: z.string().transform((val) => val.split(",").map((email) => email.trim())),
+})
+
 export type Env = z.infer<typeof envSchema>
+export type AuthEnv = z.infer<typeof authEnvSchema>
 
 let env: Env | undefined
+let authEnv: AuthEnv | undefined
 
 export function getEnv(): Env {
   if (!env) {
@@ -75,7 +85,22 @@ export function getEnv(): Env {
   return env
 }
 
+export function getAuthEnv(): AuthEnv {
+  if (!authEnv) {
+    try {
+      authEnv = authEnvSchema.parse(process.env)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const missing = error.issues.map((e) => e.path.join(".")).join(", ")
+        throw new Error(`Missing or invalid authentication environment variables: ${missing}`)
+      }
+      throw error
+    }
+  }
+  return authEnv
+}
+
 export function isAuthorizedEmail(email: string): boolean {
-  const { AUTHORIZED_EMAILS } = getEnv()
+  const { AUTHORIZED_EMAILS } = getAuthEnv()
   return AUTHORIZED_EMAILS.includes(email.toLowerCase())
 }
