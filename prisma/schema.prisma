@@ -548,6 +548,14 @@ enum AlertStatus {
   suppressed
 }
 
+enum ReconciliationSessionStatus {
+  draft
+  in_review
+  finalized
+  exported
+  cancelled
+}
+
 // Missing model for reconciliation checks
 model ReconciliationCheck {
   id                String              @id @default(cuid())
@@ -615,6 +623,48 @@ model WebhookAnomaly {
   @@index([status])
   @@index([severity])
   @@index([detectedAt])
+}
+
+// Carrier mapping for reconciliation
+model CarrierMapping {
+  id          String   @id @default(cuid())
+  productName String   @unique
+  productCode String?
+  carrierName String
+  carrierCode String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([productName])
+  @@index([carrierName])
+}
+
+// Reconciliation session tracking
+model ReconciliationSession {
+  id            String                  @id @default(cuid())
+  sessionNumber String                  @unique
+  transferIds   String[]
+  dateRangeStart DateTime?
+  dateRangeEnd  DateTime?
+  status        ReconciliationSessionStatus @default(draft)
+  transferCount Int                     @default(0)
+  policyCount   Int                     @default(0)
+  totalAmount   Decimal                 @db.Decimal(15, 2)
+  carrierTotals Json                    // {carrierName: amount, ...}
+  policyDetails Json                    // Detailed policy breakdown
+  notes         String?
+  createdBy     String
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  finalizedBy   String?
+  finalizedAt   DateTime?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  
+  @@index([status])
+  @@index([createdAt])
+  @@index([sessionNumber])
 }
 
 enum AnomalySeverity {

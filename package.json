@@ -28,6 +28,7 @@
     "check:env": "node scripts/check-env.js",
     "setup": "npm install && npm run check:env && npx prisma generate",
     "setup:db": "npx prisma migrate dev && npx prisma db seed",
+    "seed:carriers": "tsx prisma/seed-carrier-mappings.ts",
     "setup:demo": "node scripts/setup-demo.js",
     "seed:ach": "ts-node --project tsconfig.scripts.json scripts/seed-ach-transactions.ts",
     "webhook:test": "tsx scripts/test-webhook-sync.ts",
