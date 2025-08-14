@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
     for (const transfer of transfers) {
       // TODO: Replace with actual HubSpot API call
-      // Mock policy data for now
+      // Mock policy data using actual Cakewalk product names
       const mockPolicies = [
         {
           productName: "Dental",
@@ -101,9 +101,15 @@ export async function POST(request: NextRequest) {
           coverageLevel: "Employee Only",
         },
         {
-          productName: "Life Insurance",
+          productName: "Voluntary Life & AD&D",
           policyHolderName: transfer.customerName || "Unknown",
           monthlyCost: 125.00,
+          coverageLevel: "Employee Only",
+        },
+        {
+          productName: "Short Term Disability",
+          policyHolderName: transfer.customerName || "Unknown",
+          monthlyCost: 35.00,
           coverageLevel: "Employee Only",
         },
       ]

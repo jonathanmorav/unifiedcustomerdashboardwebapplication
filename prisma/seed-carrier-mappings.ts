@@ -2,67 +2,42 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-// Default carrier mappings based on common insurance products
+// Actual carrier mappings from Cakewalk Benefits
 const defaultCarrierMappings = [
-  // Dental
-  { productName: "Dental", carrierName: "Delta Dental", productCode: "DENT-001" },
-  { productName: "Dental Enhanced", carrierName: "Delta Dental", productCode: "DENT-002" },
-  { productName: "Dental Basic", carrierName: "Delta Dental", productCode: "DENT-003" },
-  
-  // Vision
-  { productName: "Vision", carrierName: "VSP", productCode: "VIS-001" },
-  { productName: "Vision Plus", carrierName: "VSP", productCode: "VIS-002" },
-  { productName: "Vision Standard", carrierName: "VSP", productCode: "VIS-003" },
-  
-  // Health Insurance
-  { productName: "Health Insurance", carrierName: "Anthem", productCode: "HLTH-001" },
-  { productName: "Health PPO", carrierName: "Anthem", productCode: "HLTH-002" },
-  { productName: "Health HMO", carrierName: "Anthem", productCode: "HLTH-003" },
-  { productName: "Health HDHP", carrierName: "Anthem", productCode: "HLTH-004" },
+  // Disability
+  { productName: "Long Term Disability", carrierName: "SunLife", productCode: "LTD-001" },
+  { productName: "Short Term Disability", carrierName: "SunLife", productCode: "STD-001" },
   
   // Life Insurance
-  { productName: "Life Insurance", carrierName: "MetLife", productCode: "LIFE-001" },
-  { productName: "Term Life", carrierName: "MetLife", productCode: "LIFE-002" },
-  { productName: "Whole Life", carrierName: "MetLife", productCode: "LIFE-003" },
-  { productName: "Life Insurance 100K", carrierName: "MetLife", productCode: "LIFE-100" },
-  { productName: "Life Insurance 250K", carrierName: "MetLife", productCode: "LIFE-250" },
-  { productName: "Life Insurance 500K", carrierName: "MetLife", productCode: "LIFE-500" },
+  { productName: "Life - Dependent", carrierName: "SunLife", productCode: "LIFE-DEP-001" },
+  { productName: "Voluntary Life & AD&D", carrierName: "SunLife", productCode: "VOL-LIFE-001" },
   
-  // Disability
-  { productName: "Short Term Disability", carrierName: "The Hartford", productCode: "STD-001" },
-  { productName: "Long Term Disability", carrierName: "The Hartford", productCode: "LTD-001" },
-  { productName: "STD", carrierName: "The Hartford", productCode: "STD-002" },
-  { productName: "LTD", carrierName: "The Hartford", productCode: "LTD-002" },
+  // Accident & Critical Illness
+  { productName: "Accident", carrierName: "SunLife", productCode: "ACC-001" },
+  { productName: "Critical Illness", carrierName: "SunLife", productCode: "CI-001" },
   
-  // Accident Insurance
-  { productName: "Accident Insurance", carrierName: "Aflac", productCode: "ACC-001" },
-  { productName: "Accident", carrierName: "Aflac", productCode: "ACC-002" },
+  // Dental
+  { productName: "Dental", carrierName: "SunLife", productCode: "DENT-001" },
   
-  // Critical Illness
-  { productName: "Critical Illness", carrierName: "Aflac", productCode: "CI-001" },
-  { productName: "Critical Illness Insurance", carrierName: "Aflac", productCode: "CI-002" },
+  // Vision
+  { productName: "Vision", carrierName: "Guardian", productCode: "VIS-001" },
   
-  // Hospital Indemnity
-  { productName: "Hospital Indemnity", carrierName: "Aflac", productCode: "HI-001" },
-  { productName: "Hospital Insurance", carrierName: "Aflac", productCode: "HI-002" },
+  // Health
+  { productName: "Health", carrierName: "Sedera", productCode: "HLTH-001" },
+  { productName: "Sedera Health Cost Sharing", carrierName: "Sedera", productCode: "HLTH-002" },
   
-  // FSA/HSA
-  { productName: "FSA", carrierName: "WageWorks", productCode: "FSA-001" },
-  { productName: "HSA", carrierName: "WageWorks", productCode: "HSA-001" },
-  { productName: "Flexible Spending Account", carrierName: "WageWorks", productCode: "FSA-002" },
-  { productName: "Health Savings Account", carrierName: "WageWorks", productCode: "HSA-002" },
-  
-  // Pet Insurance
-  { productName: "Pet Insurance", carrierName: "Nationwide", productCode: "PET-001" },
-  { productName: "Pet Coverage", carrierName: "Nationwide", productCode: "PET-002" },
-  
-  // Legal Services
-  { productName: "Legal Services", carrierName: "MetLife Legal", productCode: "LEG-001" },
-  { productName: "Legal Plan", carrierName: "MetLife Legal", productCode: "LEG-002" },
+  // Telehealth & Virtual Care
+  { productName: "Telehealth", carrierName: "Recuro", productCode: "TELE-001" },
+  { productName: "Virtual Primary Care", carrierName: "Recuro", productCode: "VPC-001" },
   
   // Identity Protection
-  { productName: "Identity Protection", carrierName: "AllState", productCode: "ID-001" },
-  { productName: "ID Theft Protection", carrierName: "AllState", productCode: "ID-002" },
+  { productName: "Identity Theft Protection", carrierName: "Transunion", productCode: "ID-001" },
+  
+  // Long Term Care
+  { productName: "Long Term Care", carrierName: "Unum", productCode: "LTC-001" },
+  
+  // Excess Disability
+  { productName: "Excess Disability", carrierName: "Hanleigh", productCode: "EXC-DIS-001" },
 ]
 
 async function seedCarrierMappings() {

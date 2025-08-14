@@ -57,6 +57,7 @@ async function getSOBDataForTransfer(transfer: any): Promise<SOBData | null> {
     }
 
     // Mock implementation - replace with actual HubSpot integration
+    // Using actual product names from Cakewalk Benefits
     const mockPolicies: PolicyData[] = [
       {
         policyId: `${transfer.customerName || "Customer"} - Dental`,
@@ -79,11 +80,21 @@ async function getSOBDataForTransfer(transfer: any): Promise<SOBData | null> {
         status: "Active"
       },
       {
-        policyId: `${transfer.customerName || "Customer"} - Life Insurance`,
+        policyId: `${transfer.customerName || "Customer"} - Voluntary Life & AD&D`,
         policyHolderName: transfer.customerName || "Unknown",
-        productName: "Life Insurance",
+        productName: "Voluntary Life & AD&D",
         planName: "100K Coverage",
         monthlyCost: 125.00,
+        coverageLevel: "Employee Only",
+        effectiveDate: "2024-01-01",
+        status: "Active"
+      },
+      {
+        policyId: `${transfer.customerName || "Customer"} - Short Term Disability`,
+        policyHolderName: transfer.customerName || "Unknown",
+        productName: "Short Term Disability",
+        planName: "60% Salary",
+        monthlyCost: 35.00,
         coverageLevel: "Employee Only",
         effectiveDate: "2024-01-01",
         status: "Active"
