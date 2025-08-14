@@ -104,9 +104,14 @@ export async function POST(request: NextRequest) {
       "Carrier": "",
     })
 
-    // Add carrier totals
-    for (const [carrier, data] of Object.entries(validatedData.carrierTotals)) {
-      const carrierData = data as any
+    // Add hierarchical carrier totals
+    const carrierArray = Array.isArray(validatedData.carrierTotals) 
+      ? validatedData.carrierTotals 
+      : Object.values(validatedData.carrierTotals)
+      
+    for (const carrier of carrierArray) {
+      const carrierData = carrier as any
+      // Carrier level
       summaryData.push({
         "Transfer ID": "",
         "Transfer Date": "",
@@ -119,12 +124,32 @@ export async function POST(request: NextRequest) {
         "Plan Name": "",
         "Monthly Cost": carrierData.totalAmount,
         "Coverage Level": `${carrierData.policyCount} policies`,
-        "Carrier": carrier,
+        "Carrier": carrierData.carrier || carrierData.name,
       })
+      
+      // Product level (if available)
+      if (carrierData.products) {
+        for (const product of carrierData.products) {
+          summaryData.push({
+            "Transfer ID": "",
+            "Transfer Date": "",
+            "Transfer Amount": "",
+            "Transfer Status": "",
+            "Company Name": "",
+            "Policy ID": "",
+            "Policy Holder": "",
+            "Product Name": `  → ${product.productName}`,
+            "Plan Name": "",
+            "Monthly Cost": product.totalAmount,
+            "Coverage Level": `${product.policyCount} policies`,
+            "Carrier": "",
+          })
+        }
+      }
     }
 
     // Calculate grand total
-    const grandTotal = Object.values(validatedData.carrierTotals).reduce(
+    const grandTotal = carrierArray.reduce(
       (sum, ct: any) => sum + ct.totalAmount, 
       0
     )

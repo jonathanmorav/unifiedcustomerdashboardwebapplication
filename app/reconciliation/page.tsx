@@ -38,15 +38,27 @@ interface Policy {
   carrier: string
 }
 
+interface PolicyDetail {
+  transferId: string
+  policyId: string
+  policyHolderName: string
+  amount: number
+  coverageLevel: string
+  planName?: string
+}
+
+interface ProductTotal {
+  productName: string
+  totalAmount: number
+  policyCount: number
+  policies: PolicyDetail[]
+}
+
 interface CarrierTotal {
   carrier: string
   totalAmount: number
   policyCount: number
-  policies: Array<{
-    transferId: string
-    policyId: string
-    amount: number
-  }>
+  products: ProductTotal[]
 }
 
 export default function ReconciliationDashboard() {
@@ -54,7 +66,7 @@ export default function ReconciliationDashboard() {
   const router = useRouter()
   
   const [transfers, setTransfers] = useState<Transfer[]>([])
-  const [carrierTotals, setCarrierTotals] = useState<Record<string, CarrierTotal>>({})
+  const [carrierTotals, setCarrierTotals] = useState<CarrierTotal[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [selectedTransfers, setSelectedTransfers] = useState<string[]>([])
   const [filters, setFilters] = useState({
@@ -178,8 +190,8 @@ export default function ReconciliationDashboard() {
 
   // Calculate summary metrics
   const totalPolicies = transfers.reduce((sum, t) => sum + (t.sob?.policies?.length || 0), 0)
-  const totalAmount = Object.values(carrierTotals).reduce((sum, ct: any) => sum + ct.totalAmount, 0)
-  const unmappedCount = Object.values(carrierTotals).find((ct: any) => ct.carrier === "Unmapped")?.policyCount || 0
+  const totalAmount = carrierTotals.reduce((sum, ct) => sum + ct.totalAmount, 0)
+  const unmappedCount = carrierTotals.find(ct => ct.carrier === "Unmapped")?.policyCount || 0
 
   return (
     <div className="min-h-screen bg-cakewalk-alice-100">

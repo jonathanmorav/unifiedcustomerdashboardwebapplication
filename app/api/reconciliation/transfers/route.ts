@@ -223,31 +223,64 @@ export async function GET(request: NextRequest) {
       })
     )
 
-    // Calculate carrier aggregations if SOB data is included
+    // Calculate hierarchical carrier aggregations if SOB data is included
     let carrierTotals = {}
     if (validatedQuery.includeSOB) {
-      carrierTotals = enrichedTransactions.reduce((acc: any, transaction) => {
+      // Build hierarchical structure: Carrier -> Product -> Policies
+      const hierarchicalData: any = {}
+      
+      enrichedTransactions.forEach((transaction) => {
         if (transaction.sob?.policies) {
           transaction.sob.policies.forEach((policy: any) => {
             const carrier = policy.carrier || "Unmapped"
-            if (!acc[carrier]) {
-              acc[carrier] = {
+            const productName = policy.productName
+            
+            // Initialize carrier if not exists
+            if (!hierarchicalData[carrier]) {
+              hierarchicalData[carrier] = {
+                carrier,
+                totalAmount: 0,
+                policyCount: 0,
+                products: {}
+              }
+            }
+            
+            // Initialize product under carrier if not exists
+            if (!hierarchicalData[carrier].products[productName]) {
+              hierarchicalData[carrier].products[productName] = {
+                productName,
                 totalAmount: 0,
                 policyCount: 0,
                 policies: []
               }
             }
-            acc[carrier].totalAmount += policy.monthlyCost
-            acc[carrier].policyCount += 1
-            acc[carrier].policies.push({
+            
+            // Add policy to product
+            hierarchicalData[carrier].products[productName].policies.push({
               transferId: transaction.dwollaId,
               policyId: policy.policyId,
-              amount: policy.monthlyCost
+              policyHolderName: policy.policyHolderName,
+              amount: policy.monthlyCost,
+              coverageLevel: policy.coverageLevel,
+              planName: policy.planName
             })
+            
+            // Update totals
+            hierarchicalData[carrier].products[productName].totalAmount += policy.monthlyCost
+            hierarchicalData[carrier].products[productName].policyCount += 1
+            hierarchicalData[carrier].totalAmount += policy.monthlyCost
+            hierarchicalData[carrier].policyCount += 1
           })
         }
-        return acc
-      }, {})
+      })
+      
+      // Convert products object to array for each carrier
+      carrierTotals = Object.values(hierarchicalData).map((carrier: any) => ({
+        ...carrier,
+        products: Object.values(carrier.products).sort((a: any, b: any) => 
+          b.totalAmount - a.totalAmount // Sort products by amount descending
+        )
+      })).sort((a, b) => b.totalAmount - a.totalAmount) // Sort carriers by amount descending
     }
 
     const response = {
