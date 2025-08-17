@@ -15,6 +15,7 @@ interface ReconciliationFiltersProps {
     status: "processed" | "pending" | "failed" | "all"
     startDate: Date | null
     endDate: Date | null
+    coverageMonth?: string | null
   }
   onFiltersChange: (filters: any) => void
   onApplyFilters: () => void
@@ -48,20 +49,46 @@ export function ReconciliationFilters({
     })
   }
 
+  const handleCoverageMonthChange = (value: string) => {
+    onFiltersChange({
+      ...filters,
+      coverageMonth: value === "all" ? null : value,
+    })
+  }
+
   const handleClearFilters = () => {
     onFiltersChange({
       status: "processed",
       startDate: null,
       endDate: null,
+      coverageMonth: null,
     })
     // Also apply the cleared filters immediately
     onApplyFilters()
   }
 
+  // Generate last 12 months for coverage month selector
+  const generateCoverageMonths = () => {
+    const months = []
+    const currentDate = new Date()
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
+      const value = format(date, "yyyy-MM")
+      const label = format(date, "MMMM yyyy")
+      months.push({ value, label })
+    }
+    
+    return months
+  }
+
+  const coverageMonths = generateCoverageMonths()
+
   const hasActiveFilters = 
     filters.status !== "processed" || 
     filters.startDate !== null || 
-    filters.endDate !== null
+    filters.endDate !== null ||
+    (filters.coverageMonth !== null && filters.coverageMonth !== undefined)
 
   return (
     <Card>
@@ -85,6 +112,30 @@ export function ReconciliationFilters({
                 <SelectItem value="processed">Processed</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Coverage Month Filter */}
+          <div className="flex-1 max-w-xs">
+            <Label htmlFor="coverageMonth" className="text-sm font-medium mb-1 block">
+              Coverage Month
+            </Label>
+            <Select
+              value={filters.coverageMonth || "all"}
+              onValueChange={handleCoverageMonthChange}
+              disabled={isLoading}
+            >
+              <SelectTrigger id="coverageMonth">
+                <SelectValue placeholder="All months" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Months</SelectItem>
+                {coverageMonths.map((month) => (
+                  <SelectItem key={month.value} value={month.value}>
+                    {month.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -185,6 +236,11 @@ export function ReconciliationFilters({
             {filters.status !== "processed" && (
               <span className="px-2 py-1 bg-gray-100 rounded-md">
                 Status: {filters.status}
+              </span>
+            )}
+            {filters.coverageMonth && (
+              <span className="px-2 py-1 bg-gray-100 rounded-md">
+                Month: {coverageMonths.find(m => m.value === filters.coverageMonth)?.label || filters.coverageMonth}
               </span>
             )}
             {filters.startDate && (

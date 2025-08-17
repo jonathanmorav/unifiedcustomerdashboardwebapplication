@@ -15,7 +15,7 @@ import type {
   HubSpotListsResponse,
   HubSpotListMembershipsResponse,
   HubSpotEngagement,
-
+  HubSpotDwollaTransfer,
 } from "@/lib/types/hubspot"
 import { log } from "@/lib/logger"
 
@@ -755,6 +755,124 @@ export class HubSpotClient {
       })
       return []
     }
+  }
+
+  // Get Dwolla Transfers with optional filtering
+  async getDwollaTransfers(filters: {
+    coverageMonth?: string
+    limit?: number
+    after?: string
+  } = {}): Promise<HubSpotObject<HubSpotDwollaTransfer["properties"]>[]> {
+    await log.info(`Getting Dwolla Transfers from HubSpot`, {
+      filters,
+      operation: "hubspot_get_dwolla_transfers_start",
+    })
+
+    try {
+      const searchRequest: HubSpotSearchRequest = {
+        filterGroups: [],
+        properties: [
+          "dwolla_transfer_id",
+          "dwolla_customer_id",
+          "amount",
+          "fee_amount",
+          "transfer_status",
+          "reconciliation_status",
+          "coverage_month",
+          "date_initiated",
+          "transfer_schedule_date",
+          "hs_object_id",
+        ],
+        limit: filters.limit || 100,
+        after: filters.after,
+      }
+
+      // Add coverage month filter if specified
+      if (filters.coverageMonth) {
+        searchRequest.filterGroups.push({
+          filters: [
+            {
+              propertyName: "coverage_month",
+              operator: "EQ",
+              value: filters.coverageMonth,
+            },
+          ],
+        })
+      }
+
+      const response = await this.searchObjects<HubSpotDwollaTransfer["properties"]>(
+        "dwolla_transfers", // Dwolla Transfer object internal name
+        searchRequest
+      )
+
+      await log.info(`Retrieved Dwolla Transfers`, {
+        count: response.results.length,
+        hasMore: !!response.paging?.next?.after,
+        operation: "hubspot_get_dwolla_transfers_success",
+      })
+
+      return response.results
+    } catch (error) {
+      await log.error(`Failed to get Dwolla Transfers`, {
+        error: error instanceof Error ? error.message : String(error),
+        operation: "hubspot_get_dwolla_transfers_error",
+      })
+      throw error
+    }
+  }
+
+  // Get a single Dwolla Transfer by ID
+  async getDwollaTransferById(
+    transferId: string
+  ): Promise<HubSpotObject<HubSpotDwollaTransfer["properties"]>> {
+    return this.getObjectById<HubSpotDwollaTransfer["properties"]>(
+      "dwolla_transfers", // Dwolla Transfer object internal name
+      transferId,
+      [
+        "dwolla_transfer_id",
+        "dwolla_customer_id",
+        "amount",
+        "fee_amount",
+        "transfer_status",
+        "reconciliation_status",
+        "coverage_month",
+        "hs_object_id",
+      ]
+    )
+  }
+
+  // Get SOB associations for a Dwolla Transfer
+  async getDwollaTransferSOBAssociations(
+    transferId: string
+  ): Promise<{ results: Array<{ id: string; type: string }> }> {
+    return this.getAssociations(
+      "dwolla_transfers", // Dwolla Transfer object internal name
+      transferId,
+      "2-45680577" // SOB object ID
+    )
+  }
+
+  // Update reconciliation status for a Dwolla Transfer
+  async updateTransferReconciliationStatus(
+    transferId: string,
+    status: 'Pending' | 'Matched' | 'Out of Balance'
+  ): Promise<void> {
+    const url = `${this.baseUrl}/crm/v3/objects/dwolla_transfers/${transferId}`
+
+    await this.fetchWithRetry(url, {
+      method: "PATCH",
+      body: JSON.stringify({
+        properties: {
+          reconciliation_status: status,
+        },
+      }),
+    })
+
+    await log.info(`Updated transfer reconciliation status`, {
+      transferId,
+      status,
+      operation: "hubspot_update_transfer_status",
+    })
   }
 
 

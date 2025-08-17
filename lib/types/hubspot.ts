@@ -99,6 +99,35 @@ export type HubSpotPolicy = HubSpotObject<{
   [key: string]: string | number | boolean | undefined
 }>
 
+export type HubSpotDwollaTransfer = HubSpotObject<{
+  dwolla_transfer_id: string
+  dwolla_customer_id?: string
+  amount: number
+  fee_amount?: number
+  is_credit?: 'Yes' | 'No'
+  transfer_type?: 'Bank' | 'Balance' | 'RTP' | 'Mass Payment Item'
+  transfer_status?: 'Pending' | 'Processed' | 'Cancelled' | 'Failed' | 'Creation Failed' | 'Processing' | 'Queued'
+  draft_status?: 'Pending' | 'Initiated' | 'Processing' | 'Processed' | 'Cancelled' | 'Failed' | 'Attention'
+  balance_verification_status?: 'Pending' | 'Processing' | 'Failed - Insufficient Balance' | 'Verified' | 'Unverified'
+  balance_verification_required?: 'Yes' | 'No'
+  transfer_origin?: 'Invoice' | 'Manual' | 'Payout'
+  completion_date?: string
+  date_initiated?: string
+  transfer_schedule_date?: string
+  invoice_reference?: string
+  batch?: string
+  failure_reason?: string
+  payment_schedule?: string
+  dwolla_link?: string
+  webhook_events_log?: string
+  reconciliation_status?: 'Pending' | 'Matched' | 'Out of Balance'
+  coverage_month?: string // Added for coverage month tracking
+  hs_object_id: string
+  createdate: string
+  hs_lastmodifieddate: string
+  [key: string]: string | number | boolean | undefined
+}>
+
 // Updated HubSpot Policy type matching the exact properties fetched from the API
 export interface HubSpotPolicyProperties {
   policyholder?: string
