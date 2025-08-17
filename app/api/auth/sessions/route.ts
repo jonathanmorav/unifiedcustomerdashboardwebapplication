@@ -8,8 +8,9 @@ import { log } from "@/lib/logger"
 
 // GET - Get all active sessions for the current user
 export async function GET(request: NextRequest) {
+  let session: any = null
   try {
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
@@ -57,8 +58,9 @@ const revokeSchema = z.object({
 })
 
 export async function DELETE(request: NextRequest) {
+  let session: any
   try {
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
@@ -82,7 +84,7 @@ export async function DELETE(request: NextRequest) {
 
     if (revokeAll) {
       // Revoke all sessions except current
-      revokedCount = await SessionManagement.revokeAllSessions(session.user.id, currentSessionId)
+      revokedCount = await SessionManagement.revokeAllSessions(session.user.id, currentSessionId as string)
     } else if (sessionId) {
       // Prevent revoking current session
       if (sessionId === currentSessionId) {

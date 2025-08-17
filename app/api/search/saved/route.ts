@@ -22,9 +22,10 @@ const createSavedSearchSchema = z.object({
 
 // GET: Fetch saved searches for the user
 export async function GET(request: NextRequest) {
+  let session: any
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -84,9 +85,10 @@ export async function GET(request: NextRequest) {
 
 // POST: Create a new saved search
 export async function POST(request: NextRequest) {
+  let session: any
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -158,15 +160,17 @@ export async function POST(request: NextRequest) {
 
 // PATCH: Update a saved search
 export async function PATCH(request: NextRequest) {
+  let session: any
+  let id: string | null = null
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
-    const id = searchParams.get("id")
+    id = searchParams.get("id")
 
     if (!id) {
       return NextResponse.json({ error: "Search ID required" }, { status: 400 })
@@ -232,15 +236,17 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE: Delete a saved search
 export async function DELETE(request: NextRequest) {
+  let session: any
+  let id: string | null = null
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
-    const id = searchParams.get("id")
+    id = searchParams.get("id")
 
     if (!id) {
       return NextResponse.json({ error: "Search ID required" }, { status: 400 })

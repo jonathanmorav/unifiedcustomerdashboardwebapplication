@@ -11,6 +11,7 @@ const pdfRateLimiter = createEndpointRateLimiter({
 })
 
 export async function POST(request: NextRequest) {
+  let session: any
   try {
     // Apply custom rate limiting
     const rateLimitResult = await pdfRateLimiter(request)
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check authentication
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

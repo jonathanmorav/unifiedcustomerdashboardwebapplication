@@ -81,9 +81,10 @@ const advancedSearchSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  let session: any
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -119,9 +120,9 @@ export async function POST(request: NextRequest) {
 
       if (isDemoMode) {
         // Use mock data for demo
-        const { mockAdvancedSearchResult } = await import("@/lib/search/mock-data")
+        const { mockSearchResult } = await import("@/lib/search/mock-data")
         result = {
-          ...mockAdvancedSearchResult,
+          ...mockSearchResult,
           searchTerm: searchParams.searchTerm,
           searchType: searchParams.searchType!,
           timestamp: new Date(),
@@ -193,9 +194,10 @@ export async function POST(request: NextRequest) {
 
 // GET endpoint for available filter options
 export async function GET(request: NextRequest) {
+  let session: any
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

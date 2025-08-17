@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { logger } from "@/lib/logger"
 import { z } from "zod"
+import { HubSpotService } from "@/lib/api/hubspot/service"
+import { getEnv } from "@/lib/env"
 
 // Schema for generating reconciliation
 const generateReconciliationSchema = z.object({
@@ -84,37 +86,94 @@ export async function POST(request: NextRequest) {
     let totalAmount = 0
     let totalPolicyCount = 0
 
-    for (const transfer of transfers) {
-      // TODO: Replace with actual HubSpot API call
-      // Mock policy data using actual Cakewalk product names
-      const mockPolicies = [
-        {
-          productName: "Dental",
-          policyHolderName: transfer.customerName || "Unknown",
-          monthlyCost: 45.00,
-          coverageLevel: "Employee Only",
-        },
-        {
-          productName: "Vision",
-          policyHolderName: transfer.customerName || "Unknown",
-          monthlyCost: 12.00,
-          coverageLevel: "Employee Only",
-        },
-        {
-          productName: "Voluntary Life & AD&D",
-          policyHolderName: transfer.customerName || "Unknown",
-          monthlyCost: 125.00,
-          coverageLevel: "Employee Only",
-        },
-        {
-          productName: "Short Term Disability",
-          policyHolderName: transfer.customerName || "Unknown",
-          monthlyCost: 35.00,
-          coverageLevel: "Employee Only",
-        },
-      ]
+    const env = getEnv()
+    const useHubSpot = process.env.DEMO_MODE !== "true" && env.HUBSPOT_API_KEY
+    const hubspotService = useHubSpot ? new HubSpotService() : null
 
-      for (const policy of mockPolicies) {
+    for (const transfer of transfers) {
+      let policies: any[] = []
+      
+      if (useHubSpot && hubspotService) {
+        // Try to fetch real HubSpot data
+        try {
+          let customerData = null
+          
+          // Search by Dwolla ID first
+          if (transfer.customerId) {
+            customerData = await hubspotService.searchCustomer({
+              searchTerm: transfer.customerId,
+              searchType: "dwolla_id"
+            })
+          }
+          
+          // Fallback to company name search
+          if (!customerData && (transfer.companyName || transfer.customerName)) {
+            customerData = await hubspotService.searchCustomer({
+              searchTerm: (transfer.companyName || transfer.customerName) as string,
+              searchType: "business_name"
+            })
+          }
+          
+          if (customerData?.policies) {
+            policies = customerData.policies.map(policy => {
+              const props = policy.properties
+              const policyHolderName = props.policyholder || 
+                `${props.first_name || ""} ${props.last_name || ""}`.trim() || 
+                transfer.customerName || 
+                "Unknown"
+              
+              const monthlyCost = typeof props.cost_per_month === 'string' 
+                ? parseFloat(props.cost_per_month) 
+                : (props.cost_per_month || 0)
+              
+              return {
+                productName: props.product_name || "Unknown Product",
+                policyHolderName,
+                monthlyCost,
+                coverageLevel: props.coverage_level_display || props.coverage_level || "Unknown",
+                planName: props.plan_name,
+              }
+            })
+          }
+        } catch (error) {
+          logger.warn("Failed to fetch HubSpot data for transfer", { 
+            transferId: transfer.dwollaId, 
+            error 
+          })
+        }
+      }
+      
+      // Use mock data if HubSpot data not available
+      if (policies.length === 0) {
+        policies = [
+          {
+            productName: "Dental",
+            policyHolderName: transfer.customerName || "Unknown",
+            monthlyCost: 45.00,
+            coverageLevel: "Employee Only",
+          },
+          {
+            productName: "Vision",
+            policyHolderName: transfer.customerName || "Unknown",
+            monthlyCost: 12.00,
+            coverageLevel: "Employee Only",
+          },
+          {
+            productName: "Voluntary Life & AD&D",
+            policyHolderName: transfer.customerName || "Unknown",
+            monthlyCost: 125.00,
+            coverageLevel: "Employee Only",
+          },
+          {
+            productName: "Short Term Disability",
+            policyHolderName: transfer.customerName || "Unknown",
+            monthlyCost: 35.00,
+            coverageLevel: "Employee Only",
+          },
+        ]
+      }
+
+      for (const policy of policies) {
         const carrierName = mappingLookup[policy.productName] || "Unmapped"
         
         const policyDetail = {

@@ -7,7 +7,7 @@ import { z } from "zod"
 // Schema for export request
 const exportSchema = z.object({
   transfers: z.array(z.any()),
-  carrierTotals: z.record(z.any()),
+  carrierTotals: z.array(z.any()),
   format: z.enum(["csv", "excel"]).optional().default("csv"),
 })
 
