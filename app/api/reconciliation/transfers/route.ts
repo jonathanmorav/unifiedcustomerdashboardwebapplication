@@ -9,6 +9,7 @@ import { getEnv } from "@/lib/env"
 import { processBatch } from "@/lib/utils/batch-processor"
 import { hubspotCache } from "@/lib/cache/hubspot-cache"
 import { databaseCache } from "@/lib/cache/database-cache"
+import { getTransferAdapter } from "@/lib/api/adapters/transfer-adapter"
 
 // Request query schema
 const querySchema = z.object({
@@ -24,6 +25,11 @@ const querySchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   includeSOB: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
+  coverageMonth: z.string().optional(), // Format: YYYY-MM
+  useHubSpot: z
     .string()
     .optional()
     .transform((val) => val === "true"),
@@ -331,68 +337,108 @@ export async function GET(request: NextRequest) {
       startDate: searchParams.get("startDate") || undefined,
       endDate: searchParams.get("endDate") || undefined,
       includeSOB: searchParams.get("includeSOB") || "true",
+      coverageMonth: searchParams.get("coverageMonth") || undefined,
+      useHubSpot: searchParams.get("useHubSpot") || "false",
     }
 
     const validatedQuery = querySchema.parse(queryParams)
 
-    // Build where clause for ACH transactions
-    const where: any = {
-      direction: "credit", // Only customer-initiated transfers
-    }
+    let transactions: any[] = []
+    let totalCount = 0
 
-    if (validatedQuery.status !== "all") {
-      where.status = validatedQuery.status
-    }
-
-    if (validatedQuery.startDate || validatedQuery.endDate) {
-      where.created = {}
-      if (validatedQuery.startDate) {
-        // Start of the day
-        const startDate = new Date(validatedQuery.startDate)
-        startDate.setHours(0, 0, 0, 0)
-        where.created.gte = startDate
-      }
-      if (validatedQuery.endDate) {
-        // End of the day (23:59:59.999)
-        const endDate = new Date(validatedQuery.endDate)
-        endDate.setHours(23, 59, 59, 999)
-        where.created.lte = endDate
-      }
-    }
-
-    // Calculate pagination
-    const skip = (validatedQuery.page - 1) * validatedQuery.limit
-
-    // Log the query for debugging
-    logger.info("Fetching reconciliation transfers", {
-      filters: {
+    // Check if we should use HubSpot transfers or local database
+    if (validatedQuery.useHubSpot) {
+      // Use the transfer adapter to fetch from HubSpot
+      const transferAdapter = getTransferAdapter()
+      const result = await transferAdapter.getTransfersWithCompatibility({
         status: validatedQuery.status,
-        startDate: validatedQuery.startDate,
-        endDate: validatedQuery.endDate,
+        startDate: validatedQuery.startDate ? new Date(validatedQuery.startDate) : null,
+        endDate: validatedQuery.endDate ? new Date(validatedQuery.endDate) : null,
+        coverageMonth: validatedQuery.coverageMonth,
         limit: validatedQuery.limit,
         page: validatedQuery.page,
-      },
-      where,
-    })
+        useHubSpot: true,
+      })
 
-    // Get total count for pagination
-    const totalCount = await prisma.aCHTransaction.count({ where })
+      transactions = result.transfers
+      totalCount = result.pagination.total
 
-    // Fetch transactions
-    const transactions = await prisma.aCHTransaction.findMany({
-      where,
-      skip,
-      take: validatedQuery.limit,
-      orderBy: {
-        created: "desc",
-      },
-    })
+      logger.info("Fetched transfers from HubSpot via adapter", {
+        count: transactions.length,
+        total: totalCount,
+        coverageMonth: validatedQuery.coverageMonth,
+      })
+    } else {
+      // Original logic - fetch from local database
+      // Build where clause for ACH transactions
+      const where: any = {
+        direction: "credit", // Only customer-initiated transfers
+      }
+
+      if (validatedQuery.status !== "all") {
+        where.status = validatedQuery.status
+      }
+
+      if (validatedQuery.startDate || validatedQuery.endDate) {
+        where.created = {}
+        if (validatedQuery.startDate) {
+          // Start of the day
+          const startDate = new Date(validatedQuery.startDate)
+          startDate.setHours(0, 0, 0, 0)
+          where.created.gte = startDate
+        }
+        if (validatedQuery.endDate) {
+          // End of the day (23:59:59.999)
+          const endDate = new Date(validatedQuery.endDate)
+          endDate.setHours(23, 59, 59, 999)
+          where.created.lte = endDate
+        }
+      }
+
+      // Calculate pagination
+      const skip = (validatedQuery.page - 1) * validatedQuery.limit
+
+      // Log the query for debugging
+      logger.info("Fetching reconciliation transfers from database", {
+        filters: {
+          status: validatedQuery.status,
+          startDate: validatedQuery.startDate,
+          endDate: validatedQuery.endDate,
+          limit: validatedQuery.limit,
+          page: validatedQuery.page,
+        },
+        where,
+      })
+
+      // Get total count for pagination
+      totalCount = await prisma.aCHTransaction.count({ where })
+
+      // Fetch transactions
+      const dbTransactions = await prisma.aCHTransaction.findMany({
+        where,
+        skip,
+        take: validatedQuery.limit,
+        orderBy: {
+          created: "desc",
+        },
+      })
+
+      // Transform to match the adapter format
+      transactions = dbTransactions.map(t => ({
+        ...t,
+        amount: t.amount ? parseFloat(t.amount.toString()) : 0,
+        fees: t.fees ? parseFloat(t.fees.toString()) : 0,
+        netAmount: t.netAmount ? parseFloat(t.netAmount.toString()) : 0,
+      }))
+    }
 
     logger.info("Reconciliation transfers query results", {
       totalInDB: totalCount,
       fetchedCount: transactions.length,
       page: validatedQuery.page,
       limit: validatedQuery.limit,
+      source: validatedQuery.useHubSpot ? "HubSpot" : "Database",
+      coverageMonth: validatedQuery.coverageMonth,
     })
 
     // Return transactions immediately without HubSpot data if quickLoad is requested
@@ -402,11 +448,9 @@ export async function GET(request: NextRequest) {
     
     if (quickLoad || !validatedQuery.includeSOB) {
       // Return transfers immediately without HubSpot data
+      // Transactions are already in the correct format from adapter
       enrichedTransactions = transactions.map((transaction) => ({
         ...transaction,
-        amount: transaction.amount ? parseFloat(transaction.amount.toString()) : 0,
-        fees: transaction.fees ? parseFloat(transaction.fees.toString()) : 0,
-        netAmount: transaction.netAmount ? parseFloat(transaction.netAmount.toString()) : 0,
         sob: null, // No SOB data in quick load
         policiesLoading: true // Indicate that policies can be loaded separately
       }))
@@ -415,11 +459,9 @@ export async function GET(request: NextRequest) {
       enrichedTransactions = await processBatch(
         transactions,
         async (transaction) => {
+          // Transaction already has correct number format from adapter or database processing
           const transactionData: any = {
             ...transaction,
-            amount: transaction.amount ? parseFloat(transaction.amount.toString()) : 0,
-            fees: transaction.fees ? parseFloat(transaction.fees.toString()) : 0,
-            netAmount: transaction.netAmount ? parseFloat(transaction.netAmount.toString()) : 0,
           }
 
           const sobData = await getSOBDataForTransfer(transaction)
