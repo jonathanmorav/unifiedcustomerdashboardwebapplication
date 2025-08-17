@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, X } from "lucide-react"
+import { CalendarIcon, X, Filter } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
@@ -17,12 +17,14 @@ interface ReconciliationFiltersProps {
     endDate: Date | null
   }
   onFiltersChange: (filters: any) => void
+  onApplyFilters: () => void
   isLoading: boolean
 }
 
 export function ReconciliationFilters({
   filters,
   onFiltersChange,
+  onApplyFilters,
   isLoading,
 }: ReconciliationFiltersProps) {
   const handleStatusChange = (value: string) => {
@@ -52,6 +54,8 @@ export function ReconciliationFilters({
       startDate: null,
       endDate: null,
     })
+    // Also apply the cleared filters immediately
+    onApplyFilters()
   }
 
   const hasActiveFilters = 
@@ -146,6 +150,18 @@ export function ReconciliationFilters({
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Apply Filters Button */}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={onApplyFilters}
+            disabled={isLoading}
+            className="flex items-center gap-2 bg-cakewalk-primary hover:bg-cakewalk-primary-dark"
+          >
+            <Filter className="h-4 w-4" />
+            Apply Filters
+          </Button>
 
           {/* Clear Filters Button */}
           {hasActiveFilters && (

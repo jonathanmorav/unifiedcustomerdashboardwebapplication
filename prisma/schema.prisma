@@ -681,6 +681,104 @@ enum AnomalyStatus {
   false_positive
 }
 
+// Missing models from migration (added to fix schema mismatch)
+model Carrier {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  code        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  policies    Policy[]
+}
+
+model Transaction {
+  id         String   @id @default(cuid())
+  customerId String
+  amount     Decimal  @db.Decimal(10, 2)
+  status     String
+  date       DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  policies   Policy[]
+  
+  @@index([status])
+  @@index([date])
+}
+
+model Policy {
+  id            String      @id @default(cuid())
+  policyNumber  String      @unique
+  transactionId String
+  premiumAmount Decimal     @db.Decimal(10, 2)
+  carrierId     String?
+  effectiveDate DateTime
+  status        String
+  productName   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  carrier       Carrier?    @relation(fields: [carrierId], references: [id])
+  
+  @@index([transactionId])
+  @@index([carrierId])
+}
+
+// HubSpot data cache models for reconciliation
+model HubSpotCompanyCache {
+  id              String   @id @default(cuid())
+  companyId       String   @unique
+  dwollaCustomerId String?
+  companyName     String
+  data            Json     // Full company data from HubSpot
+  lastFetchedAt   DateTime
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([dwollaCustomerId])
+  @@index([companyName])
+  @@index([expiresAt])
+}
+
+model HubSpotSOBCache {
+  id              String   @id @default(cuid())
+  sobId           String   @unique
+  companyId       String
+  coverageMonth   String
+  amountToDraft   Decimal  @db.Decimal(15, 2)
+  feeAmount       Decimal  @db.Decimal(15, 2)
+  data            Json     // Full SOB data from HubSpot
+  lastFetchedAt   DateTime
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([companyId])
+  @@index([coverageMonth])
+  @@index([expiresAt])
+}
+
+model HubSpotPolicyCache {
+  id              String   @id @default(cuid())
+  policyId        String   @unique
+  sobId           String
+  companyId       String
+  policyHolderName String
+  productName     String
+  monthlyCost     Decimal  @db.Decimal(15, 2)
+  coverageLevel   String
+  data            Json     // Full policy data from HubSpot
+  lastFetchedAt   DateTime
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([sobId])
+  @@index([companyId])
+  @@index([productName])
+  @@index([expiresAt])
+}
+
 // Missing model for event metrics
 model EventMetric {
   id            String   @id @default(cuid())

@@ -312,7 +312,7 @@ export function CarrierSummaryPanel({ carrierTotals, transfers }: CarrierSummary
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <div>
               <p className="text-sm text-gray-600">Total Carriers</p>
               <p className="text-2xl font-bold text-cakewalk-primary">
@@ -326,10 +326,18 @@ export function CarrierSummaryPanel({ carrierTotals, transfers }: CarrierSummary
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total to Remit</p>
-              <p className="text-2xl font-bold text-cakewalk-primary">
+              <p className="text-sm text-gray-600">Transfer Total</p>
+              <p className="text-lg font-bold text-cakewalk-primary">
+                {formatCurrency(transfers.reduce((sum, t) => sum + t.amount, 0))}
+              </p>
+              <p className="text-xs text-gray-500">Actual paid</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Policy Total</p>
+              <p className="text-lg font-bold text-cakewalk-primary">
                 {formatCurrency(grandTotal)}
               </p>
+              <p className="text-xs text-gray-500">Expected</p>
             </div>
           </div>
 

@@ -46,9 +46,9 @@ export async function GET(request: NextRequest) {
       if (sobId) {
         // Fetch policies associated with a specific Summary of Benefits
         const associations = await hubspotClient.getAssociations(
-          "2-45680577", // Summary of Benefits object type
+          "2-45680577" as any, // Summary of Benefits object type (custom object)
           sobId,
-          "2-45586773"  // Policies object type
+          "2-45586773"  // Policies object type (custom object)
         )
 
         if (associations && associations.results && associations.results.length > 0) {
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
           
           // Batch fetch policy details
           const policyObjects = await hubspotClient.batchReadObjects<HubSpotPolicyProperties>(
-            "2-45586773",
+            "2-45586773" as any,
             policyIds,
             [
               'policyholder',
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
         // This is a more complex query, implementing basic version for now
         
         const sobResults = await hubspotClient.searchObjects(
-          "2-45680577",
+          "2-45680577" as any,
           {
             filterGroups: [{
               filters: [{
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
             })
 
             const sobAssociations = await hubspotClient.getAssociations(
-              "2-45680577",
+              "2-45680577" as any,
               sob.id,
               "2-45586773"
             )
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
             })
 
             const policyObjects = await hubspotClient.batchReadObjects<HubSpotPolicyProperties>(
-              "2-45586773",
+              "2-45586773" as any,
               policyIds,
               [
                 'policyholder',
@@ -193,8 +193,11 @@ export async function GET(request: NextRequest) {
 
       // Record metrics
       const duration = Date.now() - startTime
-      metrics.recordApiResponseTime("hubspot_policies", duration)
-      metrics.incrementCounter("hubspot_policies_requests_total", {
+      metrics.recordHistogram("external_api_duration_ms", duration, {
+        api: "hubspot",
+        endpoint: "policies"
+      })
+      metrics.incrementCounter("hubspot_api_calls_total", 1, {
         status: "success",
         method: "GET",
         query_type: sobId ? "sob" : "company"
@@ -218,7 +221,7 @@ export async function GET(request: NextRequest) {
     } catch (hubspotError) {
       console.error('HubSpot API error:', hubspotError)
       
-      metrics.incrementCounter("hubspot_policies_requests_total", {
+      metrics.incrementCounter("hubspot_api_calls_total", 1, {
         status: "error",
         method: "GET",
         error_type: "hubspot_api"
@@ -240,7 +243,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Policies API error:', error)
     
-    metrics.incrementCounter("hubspot_policies_requests_total", {
+    metrics.incrementCounter("hubspot_api_calls_total", 1, {
       status: "error", 
       method: "GET",
       error_type: "internal"

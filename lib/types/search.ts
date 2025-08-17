@@ -5,7 +5,7 @@ import type { DwollaCustomerData } from "./dwolla"
 export type SearchType = "email" | "name" | "business_name" | "dwolla_id" | "auto"
 
 export type CustomerStatus = "active" | "inactive" | "verified" | "unverified" | "suspended"
-export type TransferStatus = "processed" | "pending" | "failed" | "cancelled"
+export type TransferStatus = "completed" | "processed" | "pending" | "failed" | "cancelled"
 export type FundingSourceStatus = "verified" | "unverified"
 
 // Date range for filtering

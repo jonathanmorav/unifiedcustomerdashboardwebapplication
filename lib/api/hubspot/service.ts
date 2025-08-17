@@ -7,6 +7,7 @@ import type {
   Policy,
 } from "@/lib/types/hubspot"
 import { log } from "@/lib/logger"
+import { hubspotCache } from "@/lib/cache/hubspot-cache"
 
 export interface HubSpotSearchParams {
   searchTerm: string
@@ -25,6 +26,14 @@ export class HubSpotService {
    */
   async searchCustomer(params: HubSpotSearchParams): Promise<HubSpotCustomerData | null> {
     try {
+      // Check cache first
+      const cacheKey = `customer_${params.searchType}_${params.searchTerm}`
+      const cached = hubspotCache.get<HubSpotCustomerData>(cacheKey)
+      if (cached) {
+        log.debug(`HubSpotService.searchCustomer: Cache hit for ${cacheKey}`)
+        return cached
+      }
+
       console.log(
         `[CLARITY DEBUG] searchCustomer called with searchTerm=${params.searchTerm} searchType=${params.searchType}`
       )
@@ -83,6 +92,10 @@ export class HubSpotService {
       log.debug(
         `HubSpotService.searchCustomer: Returning complete customer data for company ${company.id} with ${listMemberships.total} active lists`
       )
+      
+      // Cache the result for 10 minutes
+      hubspotCache.set(cacheKey, result, 10 * 60 * 1000)
+      
       return result
     } catch (error) {
       log.error("Error searching HubSpot customer", error as Error, {

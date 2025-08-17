@@ -38,6 +38,7 @@ const defaultCarrierMappings = [
   
   // Excess Disability
   { productName: "Excess Disability", carrierName: "Hanleigh", productCode: "EXC-DIS-001" },
+  { productName: "Excess Disability Insurance", carrierName: "Hanleigh", productCode: "EXC-DIS-002" },
 ]
 
 async function seedCarrierMappings() {
