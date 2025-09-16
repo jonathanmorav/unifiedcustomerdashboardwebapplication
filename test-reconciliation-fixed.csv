@@ -1,0 +1,15 @@
+Transfer ID,Transfer Date,Transfer Amount,Transfer Status,Company Name,Double Bill,Policy ID,Policy Holder,Product Name,Plan Name,Monthly Cost,Coverage Level,Carrier
+2f472270-ac8e-4bbb-f011-ac7e-0a27ad48efdb,8/13/2025,97.84,processed,Terri Sheffield Agency,Yes,Terri-Sheffield-Dental - Dental,Terri-Sheffield-Dental,Dental,Standard,22.55,4,SunLife
+2f472270-ac8e-4bbb-f011-ac7e-0a27ad48efdb,8/13/2025,97.84,processed,Terri Sheffield Agency,Yes,Terri-Sheffield-Vision - Vision,Terri-Sheffield-Vision,Vision,Standard,25.71,2,Guardian
+baf10924-db1d-4870-f011-ac7e-0a27ad48efdb,8/12/2025,101.52,processed,Cindy Packard Agency,Yes,Cindy-Packard-Dental - Dental,Cindy-Packard-Dental,Dental,Standard,50.10,3,SunLife
+07893f49-0741-454d-f011-ac7e-0a27ad48efdb,8/11/2025,212.16,processed,tracy rollins fbfs,No,Tracy-Rollins-Accident - Accident,Tracy-Rollins-Accident,Accident,Standard,13.61,1,SunLife
+07893f49-0741-454d-f011-ac7e-0a27ad48efdb,8/11/2025,212.16,processed,tracy rollins fbfs,No,Tracy-Rollins-Dental - Dental,Tracy-Rollins-Dental,Dental,Standard,43.89,4,SunLife
+07893f49-0741-454d-f011-ac7e-0a27ad48efdb,8/11/2025,212.16,processed,tracy rollins fbfs,No,Tracy-Rollins-Vision - Vision,Tracy-Rollins-Vision,Vision,Standard,13.59,1,Guardian
+07893f49-0741-454d-f011-ac7e-0a27ad48efdb,8/11/2025,212.16,processed,tracy rollins fbfs,No,Tracy-Rollins-Voluntary Life & AD&D - Voluntary Life & AD&D,Tracy-Rollins-Voluntary Life & AD&D,Voluntary Life & AD&D,Standard,60.94,1,SunLife
+07893f49-0741-454d-f011-ac7e-0a27ad48efdb,8/11/2025,212.16,processed,tracy rollins fbfs,No,Tracy-Rollins-Critical Illness - Critical Illness,Tracy-Rollins-Critical Illness,Critical Illness,Standard,13.30,1,SunLife
+07893f49-0741-454d-f011-ac7e-0a27ad48efdb,8/11/2025,212.16,processed,tracy rollins fbfs,No,Tracy-Rollins-Long Term Disability - Agent - Long Term Disability,Tracy-Rollins-Long Term Disability - Agent,Long Term Disability,Standard,40.47,1,SunLife
+07893f49-0741-454d-f011-ac7e-0a27ad48efdb,8/11/2025,212.16,processed,tracy rollins fbfs,No,Tracy-Rollins-Short Term Disability - Agent - Short Term Disability,Tracy-Rollins-Short Term Disability - Agent,Short Term Disability,Standard,25.04,1,SunLife
+a3ef01e4-bea5-4dc4-f011-ac7e-0a27ad48efdb,8/4/2025,13008.67,processed,Rural Mutual Insurance,No,,,,,0.00,,
+88718e77-57b3-44d5-f011-ac7e-0a27ad48efdb,7/30/2025,193.48,processed,Sandra Ruhland,Yes,Sandra-Ruhland-Short Term Disability - Short Term Disability,Sandra-Ruhland-Short Term Disability,Short Term Disability,Standard,21.41,1,SunLife
+88718e77-57b3-44d5-f011-ac7e-0a27ad48efdb,7/30/2025,193.48,processed,Sandra Ruhland,Yes,Sandra-Ruhland-Long Term Disability - Long Term Disability,Sandra-Ruhland-Long Term Disability,Long Term Disability,Standard,30.78,1,SunLife
+88718e77-57b3-44d5-f011-ac7e-0a27ad48efdb,7/30/2025,193.48,processed,Sandra Ruhland,Yes,Sandra-Ruhland-Dental - Dental,Sandra-Ruhland-Dental,Dental,Standard,43.89,1,SunLife

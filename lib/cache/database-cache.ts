@@ -12,6 +12,7 @@ interface CachedSOBData {
   companyName: string
   amountToDraft: number
   feeAmount: number
+  doubleBill?: "Yes" | "No"
   policies: any[]
   coverageMonth: string
 }
@@ -121,6 +122,7 @@ export class DatabaseCache {
             coverageMonth,
             amountToDraft: sob.properties?.amount_to_draft || sob.amountToDraft || 0,
             feeAmount: sob.properties?.fee_amount || sob.feeAmount || 0,
+            doubleBill: sob.properties?.double_bill || sob.doubleBill || null,
             data: sob as any,
             lastFetchedAt: now,
             expiresAt
@@ -130,6 +132,7 @@ export class DatabaseCache {
             coverageMonth,
             amountToDraft: sob.properties?.amount_to_draft || sob.amountToDraft || 0,
             feeAmount: sob.properties?.fee_amount || sob.feeAmount || 0,
+            doubleBill: sob.properties?.double_bill || sob.doubleBill || null,
             data: sob as any,
             lastFetchedAt: now,
             expiresAt
@@ -257,6 +260,7 @@ export class DatabaseCache {
         companyName: company.companyName,
         amountToDraft: parseFloat(sob.amountToDraft.toString()),
         feeAmount: parseFloat(sob.feeAmount.toString()),
+        doubleBill: sob.doubleBill as "Yes" | "No" | null,
         policies: policiesWithCarriers,
         coverageMonth: sob.coverageMonth
       }

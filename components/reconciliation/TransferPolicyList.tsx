@@ -29,6 +29,7 @@ interface Transfer {
     sobId: string
     companyName: string
     amountToDraft: number
+    doubleBill?: string | null
     policies: Policy[]
   }
 }
@@ -172,6 +173,11 @@ export function TransferPolicyList({
                         <Badge className={getStatusColor(transfer.status)}>
                           {transfer.status}
                         </Badge>
+                        {transfer.sob?.doubleBill === "Yes" && (
+                          <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+                            Double Bill
+                          </Badge>
+                        )}
                       </div>
                       
                       <div className="mt-1 flex items-center gap-6 text-sm text-gray-600">

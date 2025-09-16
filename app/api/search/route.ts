@@ -16,7 +16,8 @@ const searchRequestSchema = z.object({
 })
 
 export const POST = withErrorHandler(async (request: NextRequest) => {
-  console.log("[CLARITY DEBUG] Search API called")
+  // Lightweight debug signal without PII
+  log.debug("Search API called")
   const correlationId = await CorrelationTracking.getCorrelationId()
 
   // Check authentication
@@ -47,8 +48,8 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     // Check for demo mode
     const isDemoMode = process.env.DEMO_MODE === "true" || !process.env.HUBSPOT_API_KEY
-    
-    console.log(`[DEBUG] Search request: term="${searchTerm}", type="${searchType}", demoMode=${isDemoMode}`)
+    const masked = searchTerm.substring(0, 3) + "***"
+    log.debug("Search request", { type: searchType, demoMode: isDemoMode, termMasked: masked })
 
     let result
     let displayResult
@@ -72,12 +73,12 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
         searchType,
         signal: controller.signal,
       })
-      console.log(`[DEBUG] Search completed, now formatting for display...`)
+      log.debug("Search completed; formatting for display")
       try {
         displayResult = searchEngine.formatForDisplay(result)
-        console.log(`[DEBUG] Display formatting completed successfully`)
+        log.debug("Display formatting completed")
       } catch (error) {
-        console.error(`[DEBUG] Error in formatForDisplay:`, error)
+        log.error("Error in formatForDisplay", error as Error)
         throw error
       }
     }

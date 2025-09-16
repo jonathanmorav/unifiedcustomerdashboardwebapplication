@@ -747,6 +747,7 @@ model HubSpotSOBCache {
   coverageMonth   String
   amountToDraft   Decimal  @db.Decimal(15, 2)
   feeAmount       Decimal  @db.Decimal(15, 2)
+  doubleBill      String?  // "Yes" or "No" for double bill flag
   data            Json     // Full SOB data from HubSpot
   lastFetchedAt   DateTime
   expiresAt       DateTime
@@ -756,6 +757,7 @@ model HubSpotSOBCache {
   @@index([companyId])
   @@index([coverageMonth])
   @@index([expiresAt])
+  @@index([doubleBill])
 }
 
 model HubSpotPolicyCache {
@@ -772,7 +774,7 @@ model HubSpotPolicyCache {
   expiresAt       DateTime
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
+
   @@index([sobId])
   @@index([companyId])
   @@index([productName])

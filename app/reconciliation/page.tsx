@@ -24,6 +24,7 @@ interface Transfer {
     sobId: string
     companyName: string
     amountToDraft: number
+    doubleBill?: string | null
     policies: Policy[]
   }
 }
@@ -80,10 +81,17 @@ export default function ReconciliationDashboard() {
     endDate: null as Date | null,
     coverageMonth: null as string | null,
   })
+
+
   
   // Refresh control states
   const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null)
   const [isPoliciesPaused, setIsPoliciesPaused] = useState(false)
+  const [dwollaTransferTotals, setDwollaTransferTotals] = useState({
+    totalAmount: 0,
+    totalFees: 0,
+    transferCount: 0
+  })
   
   // Refs to track initial load and abort controllers
   const hasInitiallyLoaded = useRef(false)
@@ -139,6 +147,7 @@ export default function ReconciliationDashboard() {
       console.log(`Fetched ${data.transfers.length} transfers, Total in DB: ${data.pagination?.total || 'unknown'}`)
       setTransfers(data.transfers)
       setCarrierTotals(Array.isArray(data.carrierTotals) ? data.carrierTotals : [])
+      setDwollaTransferTotals(data.dwollaTransferTotals || { totalAmount: 0, totalFees: 0, transferCount: 0 })
       setLastRefreshTime(new Date())
       
       // If quick load, fetch policies progressively
@@ -218,6 +227,11 @@ export default function ReconciliationDashboard() {
             if (transferIndex !== -1) {
               const transfer = updatedTransfers[transferIndex]
               updatedTransfers[transferIndex].sob = policyData.sobData
+              
+              // Debug double bill data
+              if (policyData.sobData?.doubleBill) {
+                console.log(`Transfer ${policyData.transferId} has Double Bill:`, policyData.sobData.doubleBill)
+              }
               
               // Update carrier totals with proper hierarchy
               policyData.sobData?.policies?.forEach((policy: any) => {
@@ -405,34 +419,125 @@ export default function ReconciliationDashboard() {
   const handleExport = async (format: "csv" | "excel" = "csv") => {
     try {
       // Build export data
-      const exportData = {
-        transfers: selectedTransfers.length > 0 
-          ? transfers.filter(t => selectedTransfers.includes(t.dwollaId))
-          : transfers,
-        carrierTotals,
-        format,
+      const transfersToExport = selectedTransfers.length > 0 
+        ? transfers.filter(t => selectedTransfers.includes(t.dwollaId))
+        : transfers
+      
+      // Debug logging
+      const exportStats = {
+        totalTransfers: transfersToExport.length,
+        transfersWithPolicies: transfersToExport.filter(t => t.sob?.policies && t.sob.policies.length > 0).length,
+        totalPolicies: transfersToExport.reduce((sum, t) => sum + (t.sob?.policies?.length || 0), 0),
+        carrierTotalsCount: carrierTotals.length
       }
+      
+      console.log("Export Debug:", exportStats)
+      
+      // For large exports, split the data into chunks to avoid body size limits
+      const CHUNK_SIZE = 100 // Process 100 transfers at a time
+      const USE_CHUNKED_EXPORT = transfersToExport.length > CHUNK_SIZE
+      
+      if (USE_CHUNKED_EXPORT) {
+        console.log("Using chunked export for large dataset")
+        
+        const allCSVRows: string[] = []
+        let headerRow = ""
+        
+        // Process transfers in chunks
+        for (let i = 0; i < transfersToExport.length; i += CHUNK_SIZE) {
+          const chunk = transfersToExport.slice(i, i + CHUNK_SIZE)
+          const isLastChunk = i + CHUNK_SIZE >= transfersToExport.length
+          
+          console.log(`Processing chunk ${Math.floor(i / CHUNK_SIZE) + 1} of ${Math.ceil(transfersToExport.length / CHUNK_SIZE)}`)
+          
+          const exportData = {
+            transfers: chunk,
+            carrierTotals: isLastChunk ? carrierTotals : [], // Only include carrier totals in last chunk
+            format,
+          }
+          
+          try {
+            const response = await fetch("/api/reconciliation/export", {
+              method: "POST", 
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(exportData),
+            })
+            
+            if (!response.ok) {
+              const errorText = await response.text()
+              console.error(`Chunk ${i / CHUNK_SIZE} failed:`, errorText)
+              throw new Error(`Export chunk failed: ${response.status}`)
+            }
+            
+            const csvText = await response.text()
+            const lines = csvText.split('\n')
+            
+            // Save header from first chunk
+            if (i === 0 && lines.length > 0) {
+              headerRow = lines[0]
+              allCSVRows.push(headerRow)
+            }
+            
+            // Add data rows (skip header)
+            if (lines.length > 1) {
+              allCSVRows.push(...lines.slice(1))
+            }
+          } catch (chunkError) {
+            console.error(`Error processing chunk at index ${i}:`, chunkError)
+            throw chunkError
+          }
+        }
+        
+        // Combine all rows into final CSV
+        const finalCSV = allCSVRows.join('\n')
+        
+        // Create download
+        const blob = new Blob([finalCSV], { type: 'text/csv' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `reconciliation-${new Date().toISOString().split("T")[0]}.${format}`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        
+        console.log("Export completed successfully", exportStats)
+      } else {
+        // For smaller exports, use the original approach
+        const exportData = {
+          transfers: transfersToExport,
+          carrierTotals,
+          format,
+        }
 
-      const response = await fetch("/api/reconciliation/export", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(exportData),
-      })
+        const response = await fetch("/api/reconciliation/export", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(exportData),
+        })
 
-      if (!response.ok) throw new Error("Export failed")
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error("Export failed:", errorText)
+          throw new Error("Export failed")
+        }
 
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `reconciliation-${new Date().toISOString().split("T")[0]}.${format}`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `reconciliation-${new Date().toISOString().split("T")[0]}.${format}`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        
+        console.log("Export completed successfully", exportStats)
+      }
     } catch (error) {
       console.error("Export error:", error)
-      alert("Failed to export reconciliation data")
+      alert("Failed to export reconciliation data. Please check the console for details.")
     }
   }
 
@@ -442,16 +547,13 @@ export default function ReconciliationDashboard() {
 
   // Calculate summary metrics
   const totalPolicies = transfers.reduce((sum, t) => sum + (t.sob?.policies?.length || 0), 0)
-  
-  // Transfer total: Sum of actual ACH transfer amounts (what was paid)
-  const totalTransferAmount = transfers.reduce((sum, t) => sum + t.amount, 0)
-  
+
   // Policy total: Sum of policy costs from HubSpot (what should be paid)
   const totalPolicyAmount = Array.isArray(carrierTotals) ? carrierTotals.reduce((sum, ct) => sum + ct.totalAmount, 0) : 0
-  
-  // Variance between what was paid vs what should be paid
-  const variance = totalTransferAmount - totalPolicyAmount
-  
+
+  // Variance between what was paid (from Dwolla Transfers) vs what should be paid (policies)
+  const variance = dwollaTransferTotals.totalAmount - totalPolicyAmount
+
   const unmappedCount = Array.isArray(carrierTotals) ? carrierTotals.find(ct => ct.carrier === "Unmapped")?.policyCount || 0 : 0
 
   return (
@@ -611,6 +713,7 @@ export default function ReconciliationDashboard() {
               <Download className="h-4 w-4" />
               Export CSV
             </Button>
+
             <Button
               variant="default"
               size="sm"
@@ -626,7 +729,7 @@ export default function ReconciliationDashboard() {
         </div>
 
         {/* Summary Cards */}
-        <div className="mb-6 grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <div className="mb-6 grid gap-4 md:grid-cols-3 lg:grid-cols-7">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Total Transfers</CardTitle>
@@ -646,11 +749,23 @@ export default function ReconciliationDashboard() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Transfer Amount</CardTitle>
-              <p className="text-xs text-gray-500">Actual paid</p>
+              <p className="text-xs text-gray-500">Dwolla Processed</p>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${totalTransferAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                ${dwollaTransferTotals.totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">{dwollaTransferTotals.transferCount} transfers</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Fees</CardTitle>
+              <p className="text-xs text-gray-500">Total fees</p>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${dwollaTransferTotals.totalFees.toLocaleString("en-US", { minimumFractionDigits: 2 })}
               </div>
             </CardContent>
           </Card>
@@ -699,6 +814,8 @@ export default function ReconciliationDashboard() {
           onApplyFilters={() => fetchTransfers(true)}
           isLoading={isLoading || policiesLoading}
         />
+
+
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="transfers" className="mt-6">

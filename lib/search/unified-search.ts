@@ -66,14 +66,16 @@ export class UnifiedSearchEngine {
       searchType,
     })
 
-    // Execute searches in parallel
-    console.log(`[DEBUG] Executing searches with searchType: ${searchType}`)
+    // Execute searches in parallel (log without PII)
+    this.logger.info("UnifiedSearch: Executing searches", { searchType })
     const [hubspotResult, dwollaResult] = await Promise.allSettled([
       this.searchHubSpot(params.searchTerm, searchType, params.signal),
       this.searchDwolla(params.searchTerm, searchType, params.signal),
     ])
-    
-    console.log(`[DEBUG] Search results - HubSpot: ${hubspotResult.status}, Dwolla: ${dwollaResult.status}`)
+    this.logger.info("UnifiedSearch: Search results", {
+      hubspotStatus: hubspotResult.status,
+      dwollaStatus: dwollaResult.status,
+    })
 
     const endTime = Date.now()
     const duration = endTime - startTime
@@ -81,20 +83,24 @@ export class UnifiedSearchEngine {
     // Format results with error catching
     let hubspotFormatted, dwollaFormatted
     try {
-      console.log(`[DEBUG] Formatting HubSpot result...`)
+      this.logger.info("UnifiedSearch: Formatting HubSpot result")
       hubspotFormatted = this.formatHubSpotResult(hubspotResult)
-      console.log(`[DEBUG] HubSpot formatted successfully`)
+      this.logger.info("UnifiedSearch: HubSpot formatted")
     } catch (error) {
-      console.error(`[DEBUG] Error formatting HubSpot result:`, error)
+      this.logger.error("UnifiedSearch: Error formatting HubSpot result", {
+        error: error instanceof Error ? error.message : String(error),
+      })
       throw error
     }
     
     try {
-      console.log(`[DEBUG] Formatting Dwolla result...`)
+      this.logger.info("UnifiedSearch: Formatting Dwolla result")
       dwollaFormatted = this.formatDwollaResult(dwollaResult)
-      console.log(`[DEBUG] Dwolla formatted successfully`)
+      this.logger.info("UnifiedSearch: Dwolla formatted")
     } catch (error) {
-      console.error(`[DEBUG] Error formatting Dwolla result:`, error)
+      this.logger.error("UnifiedSearch: Error formatting Dwolla result", {
+        error: error instanceof Error ? error.message : String(error),
+      })
       throw error
     }
 
@@ -170,17 +176,12 @@ export class UnifiedSearchEngine {
     if (result.hubspot.success && result.hubspot.data) {
       const formatted = this.hubspotService.formatCustomerData(result.hubspot.data)
 
-      // Debug logging
-      console.log("UnifiedSearch formatForDisplay - Raw HubSpot data:", result.hubspot.data)
-      console.log("UnifiedSearch formatForDisplay - Formatted company:", formatted.company)
-      console.log(
-        "UnifiedSearch formatForDisplay - onboardingStatus:",
-        formatted.company.onboardingStatus
-      )
-      console.log(
-        "UnifiedSearch formatForDisplay - onboardingStep:",
-        formatted.company.onboardingStep
-      )
+      // Minimal logging to avoid leaking PII
+      this.logger.info("UnifiedSearch: HubSpot data formatted", {
+        hasCompany: !!formatted.company,
+        sobCount: formatted.summaryOfBenefits?.length || 0,
+        invoiceCount: formatted.monthlyInvoices?.length || 0,
+      })
 
       display.hubspot = {
         company: formatted.company,
@@ -195,10 +196,10 @@ export class UnifiedSearchEngine {
 
     // Add Dwolla data if available
     if (result.dwolla.success && result.dwolla.data) {
-      console.log(`[DEBUG] About to format Dwolla data...`)
+      this.logger.info("UnifiedSearch: Formatting Dwolla data")
       try {
         const formatted = DwollaFormatter.format(result.dwolla.data)
-        console.log(`[DEBUG] Dwolla data formatted successfully`)
+        this.logger.info("UnifiedSearch: Dwolla data formatted")
         display.dwolla = {
           customer: formatted.customer,
           fundingSources: formatted.fundingSources,
@@ -207,8 +208,9 @@ export class UnifiedSearchEngine {
           notifications: formatted.notifications, // ✅ Added missing notifications array
         }
       } catch (error) {
-        console.error(`[DEBUG] Error in DwollaFormatter.format:`, error)
-        console.error(`[DEBUG] Dwolla data that caused error:`, JSON.stringify(result.dwolla.data, null, 2))
+        this.logger.error("UnifiedSearch: Error in DwollaFormatter.format", {
+          error: error instanceof Error ? error.message : String(error),
+        })
         throw error
       }
     } else if (result.dwolla.error) {
@@ -266,14 +268,15 @@ export class UnifiedSearchEngine {
       }
 
       const effectiveSearchType = searchType === "auto" ? "name" : searchType
-      console.log(`[DEBUG] HubSpot search: term="${searchTerm}", type="${effectiveSearchType}"`)
+      const maskedHubSpot = searchTerm.substring(0, 3) + "***"
+      this.logger.info("UnifiedSearch: HubSpot search", { type: effectiveSearchType, termMasked: maskedHubSpot })
       
       const data = await this.hubspotService.searchCustomer({
         searchTerm,
         searchType: effectiveSearchType,
       })
 
-      console.log(`[DEBUG] HubSpot result: ${data ? 'found data' : 'no data'}`)
+      this.logger.info("UnifiedSearch: HubSpot result", { found: !!data })
       return {
         data: data || undefined,
         duration: Date.now() - startTime,
@@ -303,7 +306,8 @@ export class UnifiedSearchEngine {
       dwollaSearchType = "name"
     }
 
-    console.log(`[DEBUG] Dwolla search: term="${searchTerm}", type="${dwollaSearchType}"`)
+    const maskedDwolla = searchTerm.substring(0, 3) + "***"
+    this.logger.info("UnifiedSearch: Dwolla search", { type: dwollaSearchType, termMasked: maskedDwolla })
     
     const data = await this.dwollaService.searchCustomer({
       searchTerm,
@@ -311,13 +315,15 @@ export class UnifiedSearchEngine {
       signal,
     })
 
-    console.log(`[DEBUG] Dwolla result: ${data ? 'found data' : 'no data'}`)
+    this.logger.info("UnifiedSearch: Dwolla result", { found: !!data })
     return {
       data: data || undefined,
       duration: Date.now() - startTime,
     }
   } catch (error) {
-    console.error(`[DEBUG] Dwolla search error:`, error)
+    this.logger.error("UnifiedSearch: Dwolla search error", {
+      error: error instanceof Error ? error.message : String(error),
+    })
     throw error
   }
 

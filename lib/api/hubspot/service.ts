@@ -230,6 +230,7 @@ export class HubSpotService {
         amountToDraft: Number(sob.properties.amount_to_draft) || 0,
         feeAmount: Number(sob.properties.fee_amount) || 0,
         pdfDocumentUrl: sob.properties.pdf_document_url || null,
+        doubleBill: sob.properties.double_bill || null,
         totalPolicies: policiesBySob.get(sob.id)?.length || 0,
         policies: (policiesBySob.get(sob.id) || []).map((policy) => ({
           id: policy.id,

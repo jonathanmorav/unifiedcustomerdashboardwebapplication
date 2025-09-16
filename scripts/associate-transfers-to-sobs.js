@@ -152,6 +152,7 @@ async function getSOBsForMonth(coverageMonth) {
       "amount_to_draft",
       "fee_amount",
       "coverage_month",
+      "double_bill",
       "hs_object_id",
     ],
     limit: 100,

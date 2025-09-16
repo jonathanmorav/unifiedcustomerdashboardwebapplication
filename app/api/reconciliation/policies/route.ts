@@ -235,7 +235,18 @@ export async function POST(request: NextRequest) {
                            transfer.companyName || 
                            transfer.customerName || 
                            "Unknown Company",
+              doubleBill: latestSOB.properties?.double_bill || null,
+              amountToDraft: latestSOB.properties?.amount_to_draft || 0,
               policies
+            }
+            
+            // Debug logging for double bill
+            if (latestSOB.properties?.double_bill) {
+              logger.info("Double Bill found", {
+                transferId: transfer.dwollaId,
+                sobId: latestSOB.id,
+                doubleBill: latestSOB.properties.double_bill
+              })
             }
             
             // Cache the result in memory

@@ -4,6 +4,10 @@ import { authOptions } from "@/lib/auth"
 import { logger } from "@/lib/logger"
 import { z } from "zod"
 
+// Increase body size limit to 10MB for large exports
+export const maxDuration = 60 // Maximum allowed duration for Vercel Hobby is 10s, Pro is 60s
+export const dynamic = 'force-dynamic'
+
 // Schema for export request
 const exportSchema = z.object({
   transfers: z.array(z.any()),
@@ -42,14 +46,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Log request size
+    const contentLength = request.headers.get('content-length')
+    logger.info("Export request size", {
+      contentLength,
+      contentLengthMB: contentLength ? (parseInt(contentLength) / 1024 / 1024).toFixed(2) : 'unknown'
+    })
+
     const body = await request.json()
     const validatedData = exportSchema.parse(body)
+
+    // Debug logging
+    logger.info("Export request received", {
+      transferCount: validatedData.transfers.length,
+      transfersWithPolicies: validatedData.transfers.filter((t: any) => t.sob?.policies?.length > 0).length,
+      totalPolicies: validatedData.transfers.reduce((sum: number, t: any) => sum + (t.sob?.policies?.length || 0), 0),
+      carrierCount: validatedData.carrierTotals.length,
+    })
 
     // Prepare export data
     const exportData: any[] = []
 
     // Process each transfer and its policies
     for (const transfer of validatedData.transfers) {
+      const doubleBill = transfer.sob?.doubleBill === "Yes" ? "Yes" : "No"
+      
       if (transfer.sob?.policies) {
         for (const policy of transfer.sob.policies) {
           exportData.push({
@@ -58,6 +79,8 @@ export async function POST(request: NextRequest) {
             "Transfer Amount": transfer.amount,
             "Transfer Status": transfer.status,
             "Company Name": transfer.companyName || transfer.customerName,
+            "Coverage Month": transfer.coverageMonth || "",
+            "Double Bill": doubleBill,
             "Policy ID": policy.policyId,
             "Policy Holder": policy.policyHolderName,
             "Product Name": policy.productName,
@@ -75,6 +98,8 @@ export async function POST(request: NextRequest) {
           "Transfer Amount": transfer.amount,
           "Transfer Status": transfer.status,
           "Company Name": transfer.companyName || transfer.customerName,
+          "Coverage Month": transfer.coverageMonth || "",
+          "Double Bill": doubleBill,
           "Policy ID": "",
           "Policy Holder": "",
           "Product Name": "",
@@ -95,6 +120,8 @@ export async function POST(request: NextRequest) {
       "Transfer Amount": "",
       "Transfer Status": "",
       "Company Name": "",
+      "Coverage Month": "",
+      "Double Bill": "",
       "Policy ID": "",
       "Policy Holder": "",
       "Product Name": "",
@@ -118,6 +145,8 @@ export async function POST(request: NextRequest) {
         "Transfer Amount": "",
         "Transfer Status": "",
         "Company Name": "",
+        "Coverage Month": "",
+        "Double Bill": "",
         "Policy ID": "",
         "Policy Holder": "",
         "Product Name": "",
@@ -136,6 +165,8 @@ export async function POST(request: NextRequest) {
             "Transfer Amount": "",
             "Transfer Status": "",
             "Company Name": "",
+            "Coverage Month": "",
+            "Double Bill": "",
             "Policy ID": "",
             "Policy Holder": "",
             "Product Name": `  → ${product.productName}`,
@@ -160,6 +191,8 @@ export async function POST(request: NextRequest) {
       "Transfer Amount": "",
       "Transfer Status": "",
       "Company Name": "",
+      "Coverage Month": "",
+      "Double Bill": "",
       "Policy ID": "",
       "Policy Holder": "",
       "Product Name": "",
@@ -209,7 +242,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid export data", details: error.format() },
+        { error: "Invalid export data", details: error.issues },
         { status: 400 }
       )
     }

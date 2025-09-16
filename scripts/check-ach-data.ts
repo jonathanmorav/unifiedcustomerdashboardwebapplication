@@ -38,7 +38,7 @@ async function checkACHData() {
     const customerNames = await prisma.aCHTransaction.groupBy({
       by: ["customerName"],
       _count: { _all: true },
-      orderBy: { _count: { _all: "desc" } },
+      orderBy: { _count: { id: "desc" } },
       take: 10,
       where: {
         customerName: { not: null },
@@ -54,7 +54,7 @@ async function checkACHData() {
     const companyNames = await prisma.aCHTransaction.groupBy({
       by: ["companyName"],
       _count: { _all: true },
-      orderBy: { _count: { _all: "desc" } },
+      orderBy: { _count: { id: "desc" } },
       take: 10,
       where: {
         companyName: { not: null },

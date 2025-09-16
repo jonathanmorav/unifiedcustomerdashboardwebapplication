@@ -53,12 +53,10 @@ const datePresets = [
 ]
 
 const statusOptions = [
-  { label: "Pending", value: "pending", color: "bg-cakewalk-warning-light" },
-  { label: "Processing", value: "processing", color: "bg-cakewalk-info-light" },
   { label: "Processed", value: "processed", color: "bg-cakewalk-success-light" },
+  { label: "Pending", value: "pending", color: "bg-cakewalk-warning-light" },
   { label: "Failed", value: "failed", color: "bg-cakewalk-error-light" },
   { label: "Cancelled", value: "cancelled", color: "bg-cakewalk-neutral" },
-  { label: "Returned", value: "returned", color: "bg-cakewalk-warning-light" },
 ]
 
 export const BillingFilters: React.FC<BillingFiltersProps> = ({

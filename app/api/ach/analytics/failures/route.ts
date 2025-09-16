@@ -24,15 +24,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Check authentication - commented out for now to test
-    // TODO: Re-enable authentication after testing
-    // const authCheck = await requireAuth(request)
-    // if (!authCheck.authenticated) {
-    //   return NextResponse.json(
-    //     { error: "Unauthorized" },
-    //     { status: 401 }
-    //   )
-    // }
+    // Require authentication
+    const authCheck = await requireAuth(request)
+    if (!authCheck.authenticated) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
 
     const searchParams = request.nextUrl.searchParams
     const startDate = searchParams.get("startDate")

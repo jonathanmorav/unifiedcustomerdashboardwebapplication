@@ -48,6 +48,7 @@ export type HubSpotSummaryOfBenefits = HubSpotObject<{
   amount_to_draft: number
   fee_amount: number
   pdf_document_url?: string
+  double_bill?: "Yes" | "No"
   createdate: string
   hs_lastmodifieddate: string
   [key: string]: string | number | boolean | undefined
@@ -79,6 +80,7 @@ export interface SummaryOfBenefits {
   feeAmount?: number
   totalPolicies: number
   pdfDocumentUrl?: string
+  doubleBill?: "Yes" | "No"
   policies: Policy[]
   coverageMonth?: string
   billingPeriodStart?: string

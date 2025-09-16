@@ -54,8 +54,9 @@ interface SOBData {
   companyName: string
   amountToDraft: number
   feeAmount: number
+  doubleBill?: "Yes" | "No" | null
   policies: PolicyData[]
-  coverageMonth: string
+  coverageMonth?: string // Optional - comes from transfer, not SOB
 }
 
 // Mock carrier mappings that match the database seed data
@@ -264,8 +265,9 @@ async function getSOBDataForTransfer(transfer: any): Promise<SOBData | null> {
                    "Unknown Company",
       amountToDraft: latestSOB.properties?.amount_to_draft || totalAmount,
       feeAmount: latestSOB.properties?.fee_amount || 0,
+      doubleBill: latestSOB.properties?.double_bill || null,
       policies,
-      coverageMonth: new Date().toISOString().slice(0, 7), // Current month
+      // Don't include coverageMonth here - it should come from the transfer itself
     }
     
     // Cache the result in memory
@@ -552,6 +554,157 @@ export async function GET(request: NextRequest) {
       })).sort((a, b) => b.totalAmount - a.totalAmount) // Sort carriers by amount descending
     }
 
+    // Fetch Dwolla Transfer totals from HubSpot
+    let dwollaTransferTotals = {
+      totalAmount: 0,
+      totalFees: 0,
+      transferCount: 0
+    }
+    
+    try {
+      logger.info("Starting to fetch Dwolla Transfer totals from HubSpot using direct API")
+      
+      const env = getEnv()
+      const apiKey = env.HUBSPOT_API_KEY
+      const baseUrl = env.HUBSPOT_BASE_URL
+      
+      // First, let's try a simpler query to just get transfers and see what we get
+      const searchRequest = {
+        filterGroups: [], // Start with no filters to see if we get any data
+        properties: [
+          "amount",
+          "fee_amount",
+          "dwolla_transfer_id",
+          "draft_status",
+          "transfer_status",
+          "is_credit",
+          "transfer_type"
+        ],
+        limit: 100
+      }
+      
+      let after: string | undefined = undefined
+      let hasMore = true
+      let totalFetched = 0
+      let allTransfers: any[] = []
+      
+      while (hasMore && totalFetched < 500) { // Limit to 500 for testing
+        const requestBody = { ...searchRequest }
+        if (after) {
+          (requestBody as any).after = after
+        }
+        
+        // Use the custom object name instead of ID
+        const response = await fetch(`${baseUrl}/crm/v3/objects/p2_dwolla_transfer/search`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestBody)
+        })
+        
+        if (!response.ok) {
+          const errorText = await response.text()
+          logger.error("HubSpot API error", {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorText
+          })
+          throw new Error(`HubSpot API error: ${response.status} ${response.statusText}`)
+        }
+        
+        const data = await response.json()
+        const batchSize = data.results?.length || 0
+        totalFetched += batchSize
+        
+        // Collect all transfers first
+        if (data.results && Array.isArray(data.results)) {
+          allTransfers.push(...data.results)
+        }
+        
+        logger.info(`Fetched batch of Dwolla Transfers`, {
+          batchSize,
+          totalFetched,
+          hasMore: !!data.paging?.next?.after
+        })
+        
+        // Check for more pages
+        if (data.paging?.next?.after) {
+          after = data.paging.next.after
+        } else {
+          hasMore = false
+        }
+      }
+      
+      // Now filter and calculate totals
+      logger.info(`Processing ${allTransfers.length} total Dwolla Transfers`)
+      
+      // Log the first few transfers to see the data structure
+      if (allTransfers.length > 0) {
+        logger.info("Sample transfer data:", {
+          firstTransfer: allTransfers[0].properties,
+          totalTransfers: allTransfers.length
+        })
+      }
+      
+      // Filter for processed transfers
+      const processedTransfers = allTransfers.filter((transfer: any) => {
+        const draftStatus = transfer.properties?.draft_status
+        const transferStatus = transfer.properties?.transfer_status
+        
+        // Log a few examples to see what statuses we have
+        if (Math.random() < 0.01) { // Log 1% of transfers
+          logger.info("Transfer status check", {
+            transferId: transfer.properties?.dwolla_transfer_id,
+            draftStatus,
+            transferStatus,
+            matches: draftStatus === "Processed" && transferStatus === "Processed"
+          })
+        }
+        
+        return draftStatus === "Processed" && transferStatus === "Processed"
+      })
+      
+      logger.info(`Found ${processedTransfers.length} processed transfers (draft_status=Processed, transfer_status=Processed)`)
+      
+      // Calculate totals from processed transfers
+      processedTransfers.forEach((transfer: any) => {
+        const amount = transfer.properties?.amount || 0
+        const feeAmount = transfer.properties?.fee_amount || 0
+        
+        dwollaTransferTotals.totalAmount += Number(amount)
+        dwollaTransferTotals.totalFees += Number(feeAmount)
+        dwollaTransferTotals.transferCount += 1
+        
+        // Log first few for debugging
+        if (dwollaTransferTotals.transferCount <= 5) {
+          logger.info("Processing Dwolla Transfer", {
+            transferId: transfer.properties?.dwolla_transfer_id,
+            amount: Number(amount),
+            feeAmount: Number(feeAmount),
+            draftStatus: transfer.properties?.draft_status,
+            transferStatus: transfer.properties?.transfer_status,
+            runningTotal: dwollaTransferTotals.totalAmount
+          })
+        }
+      })
+      
+      logger.info("Successfully calculated Dwolla Transfer totals", {
+        totalAmount: dwollaTransferTotals.totalAmount,
+        totalFees: dwollaTransferTotals.totalFees,
+        transferCount: dwollaTransferTotals.transferCount,
+        totalFetched: allTransfers.length,
+        totalProcessed: processedTransfers.length
+      })
+    } catch (error) {
+      logger.error("Failed to fetch Dwolla Transfer totals from HubSpot", {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      })
+      // Continue with zeros if fetch fails
+    }
+
     const response = {
       transfers: enrichedTransactions,
       pagination: {
@@ -569,6 +722,7 @@ export async function GET(request: NextRequest) {
           0
         ),
       },
+      dwollaTransferTotals, // Add the new totals from HubSpot
     }
 
     logger.info("Reconciliation transfers fetched", {

@@ -62,16 +62,14 @@ export async function POST(request: NextRequest) {
           data: {
             eventId: webhookEvent.id,
             eventType: webhookEvent.topic,
+            topic: webhookEvent.topic,
+            partitionKey: webhookEvent.id,
             resourceType: extractResourceType(webhookEvent.topic),
             resourceId: extractResourceId(webhookEvent._links?.resource?.href),
             eventTimestamp: new Date(webhookEvent.created),
             payload: webhookEvent,
             signature: 'historical-sync', // Mark as historical
-            processingState: 'queued',
-            metadata: {
-              syncedAt: new Date(),
-              historical: true
-            }
+            processingState: 'queued'
           }
         })
         

@@ -21,6 +21,7 @@ const envSchema = z.object({
   DWOLLA_SECRET: z.string(),
   DWOLLA_ENVIRONMENT: z.enum(["sandbox", "production"]).default("sandbox"),
   DWOLLA_BASE_URL: z.string().url(),
+  DWOLLA_WEBHOOK_SECRET: z.string(),
 
   // Authorized Users
   AUTHORIZED_EMAILS: z.string().transform((val) => val.split(",").map((email) => email.trim())),
