@@ -365,7 +365,7 @@ export class HubSpotClient {
       const response = await this.batchReadObjects<HubSpotSummaryOfBenefits["properties"]>(
         "2-45680577",
         sobIds,
-        ["amount_to_draft", "fee_amount", "pdf_document_url", "hs_object_id"]
+        ["amount_to_draft", "fee_amount", "pdf_document_url", "hs_object_id", "double_bill"]
       )
 
       await log.info(`SOB batch read completed`, {
@@ -777,6 +777,7 @@ export class HubSpotClient {
           "amount",
           "fee_amount",
           "transfer_status",
+          "draft_status",
           "reconciliation_status",
           "coverage_month",
           "date_initiated",

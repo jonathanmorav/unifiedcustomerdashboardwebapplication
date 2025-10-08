@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
     domains: [
       "localhost",
       // Add your production domains here
+      "your-prod-domain.com",
     ],
     formats: ["image/avif", "image/webp"],
   },

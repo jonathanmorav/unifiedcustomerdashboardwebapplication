@@ -63,9 +63,13 @@ export default withAuth(
 
     if (process.env.ENABLE_SECURITY_HEADERS === "true") {
       // Enhanced CSP with report URI
+      const isProd = process.env.NODE_ENV === "production"
       const cspDirectives = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com",
+        // Remove 'unsafe-eval' in production to harden CSP
+        isProd
+          ? "script-src 'self' 'unsafe-inline' https://apis.google.com"
+          : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
         "img-src 'self' data: https: blob:",

@@ -20,11 +20,19 @@ export interface TransferCompatibilityData {
   customerId?: string | null
   customerName?: string | null
   companyName?: string | null
+  customerEmail?: string | null
+  bankLastFour?: string | null
+  invoiceNumber?: string | null
+  transactionType?: string | null
   correlationId?: string | null
   created: Date | string
+  processedAt?: Date | string | null
+  clearingDate?: Date | string | null
   metadata?: any
   achReturnCode?: string | null
   achReturnReason?: string | null
+  individualAchId?: string | null
+  failureReason?: string | null
   // HubSpot-specific fields
   reconciliationStatus?: string
   coverageMonth?: string
@@ -103,8 +111,8 @@ export class TransferAdapter {
       })
 
       // Transform to compatibility format
-      const transfers = hubspotTransfers.map(transfer => 
-        this.transformHubSpotTransfer(transfer)
+      const transfers = await Promise.all(
+        hubspotTransfers.map(transfer => this.transformHubSpotTransfer(transfer))
       )
 
       // Apply additional filters if needed
@@ -232,11 +240,23 @@ export class TransferAdapter {
 
   /**
    * Transform HubSpot transfer to match ACHTransaction structure
+   * Now gets coverage month from associated SOB objects instead of transfer properties
    */
-  private transformHubSpotTransfer(
+  private async transformHubSpotTransfer(
     hubspotTransfer: HubSpotObject<HubSpotDwollaTransfer["properties"]>
-  ): TransferCompatibilityData {
+  ): Promise<TransferCompatibilityData> {
     const props = hubspotTransfer.properties
+
+    // Try to get coverage month from associated SOB objects
+    let coverageMonth = await this.getCoverageMonthFromSOB(hubspotTransfer.id)
+
+    // Fallback to transfer properties if SOB lookup fails
+    if (!coverageMonth) {
+      coverageMonth = props.coverage_month ||
+                       (props.transfer_schedule_date
+                         ? new Date(props.transfer_schedule_date).toISOString().slice(0, 7)
+                         : new Date(props.date_initiated || props.createdate).toISOString().slice(0, 7))
+    }
 
     return {
       id: hubspotTransfer.id,
@@ -249,8 +269,14 @@ export class TransferAdapter {
       customerId: props.dwolla_customer_id,
       customerName: null, // Would need to be fetched separately or stored in HubSpot
       companyName: null, // Would need to be fetched separately or stored in HubSpot
+      customerEmail: null, // Would need to be fetched separately or stored in HubSpot
+      bankLastFour: null, // Would need to be fetched separately or stored in HubSpot
+      invoiceNumber: props.invoice_reference || null,
+      transactionType: props.transfer_type,
       correlationId: props.invoice_reference || null,
       created: props.date_initiated || props.createdate,
+      processedAt: null, // Would need to be extracted from HubSpot data
+      clearingDate: null, // Would need to be extracted from HubSpot data
       metadata: {
         hubspotId: hubspotTransfer.id,
         transferType: props.transfer_type,
@@ -262,13 +288,42 @@ export class TransferAdapter {
       },
       achReturnCode: null, // Would need to be extracted from failure_reason if applicable
       achReturnReason: props.failure_reason || null,
+      individualAchId: null, // Would need to be extracted from HubSpot data
+      failureReason: props.failure_reason || null,
       // HubSpot-specific fields
       reconciliationStatus: props.reconciliation_status,
-      coverageMonth: props.coverage_month || 
-                     (props.transfer_schedule_date 
-                       ? new Date(props.transfer_schedule_date).toISOString().slice(0, 7)
-                       : new Date(props.date_initiated || props.createdate).toISOString().slice(0, 7)),
+      coverageMonth: coverageMonth,
       transferType: props.transfer_type,
+    }
+  }
+
+  /**
+   * Get coverage month from associated SOB objects for a Dwolla transfer
+   */
+  private async getCoverageMonthFromSOB(transferId: string): Promise<string | null> {
+    try {
+      // Get SOB associations for this transfer
+      const sobAssociations = await this.hubspotClient.getDwollaTransferSOBAssociations(transferId)
+
+      if (!sobAssociations.results.length) {
+        return null
+      }
+
+      // Get the first SOB's coverage month (assuming one SOB per transfer)
+      const sobId = sobAssociations.results[0].id
+      const sob = await this.hubspotClient.batchReadObjects<HubSpotSummaryOfBenefits["properties"]>(
+        "2-45680577", // SOB object ID
+        [sobId],
+        ["coverage_month"]
+      )
+
+      return sob.results[0]?.properties.coverage_month || null
+    } catch (error) {
+      log.warn("Failed to get coverage month from SOB", {
+        transferId,
+        error: error instanceof Error ? error.message : String(error)
+      })
+      return null
     }
   }
 
@@ -303,7 +358,7 @@ export class TransferAdapter {
     if (shouldUseHubSpot) {
       try {
         const hubspotTransfer = await this.hubspotClient.getDwollaTransferById(transferId)
-        return this.transformHubSpotTransfer(hubspotTransfer)
+        return await this.transformHubSpotTransfer(hubspotTransfer)
       } catch (error) {
         log.error("Error fetching transfer from HubSpot", error as Error)
         return null

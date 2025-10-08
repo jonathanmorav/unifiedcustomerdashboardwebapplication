@@ -14,6 +14,7 @@ import { useACHTransactions } from "@/hooks/use-ach-transactions"
 import { TransactionDetailModal } from "@/components/billing/TransactionDetailModal"
 import { Pagination } from "@/components/ui/pagination"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { toast } from "sonner"
 
 export default function BillingPage() {
   const { data: session, status } = useSession()
@@ -23,6 +24,7 @@ export default function BillingPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   const [isRefreshingStatuses, setIsRefreshingStatuses] = useState(false)
 
   // Filter state
@@ -91,7 +93,18 @@ export default function BillingPage() {
   }
 
   const handleExport = async (format: "csv" | "excel" = "csv") => {
+    if (isExporting) {
+      toast.info("Export already in progress...")
+      return
+    }
+
+    setIsExporting(true)
+    
     try {
+      toast.info(`Starting ${format.toUpperCase()} export...`, {
+        description: "This may take a moment for large datasets"
+      })
+
       // Build query params from current filters
       const params = new URLSearchParams()
       params.append("format", format)
@@ -132,7 +145,27 @@ export default function BillingPage() {
       })
 
       if (!response.ok) {
-        throw new Error("Export failed")
+        const errorData = await response.json().catch(() => ({}))
+        
+        if (response.status === 429) {
+          const message = errorData.message || "Export rate limit exceeded. Please wait a few minutes before trying again."
+          const retryAfter = errorData.retryAfter || "a few minutes"
+          throw new Error(`${message} (Retry after: ${retryAfter})`)
+        } else if (response.status === 401) {
+          throw new Error("Authentication required. Please refresh the page and try again.")
+        } else if (response.status === 408) {
+          const message = errorData.message || "Export timeout occurred. Please try with smaller date ranges."
+          const suggestion = errorData.suggestion || "Try filtering by a smaller date range"
+          throw new Error(`${message}\n\nSuggestion: ${suggestion}`)
+        } else if (response.status >= 500) {
+          const message = errorData.message || "Server error occurred. Please try again in a few minutes."
+          const suggestion = errorData.suggestion || "Try refreshing the page and attempting the export again"
+          throw new Error(`${message}\n\nSuggestion: ${suggestion}`)
+        } else {
+          const message = errorData.message || errorData.error || `Export failed with status ${response.status}`
+          const suggestion = errorData.suggestion ? `\n\nSuggestion: ${errorData.suggestion}` : ""
+          throw new Error(`${message}${suggestion}`)
+        }
       }
 
       // Download the file
@@ -145,9 +178,22 @@ export default function BillingPage() {
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
+
+      toast.success(`${format.toUpperCase()} export completed successfully!`, {
+        description: `File downloaded as ach-transactions-${new Date().toISOString().split("T")[0]}.${format}`
+      })
+
     } catch (error) {
       console.error("Export error:", error)
-      // You could add a toast notification here
+      
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred during export"
+      
+      toast.error("Export failed", {
+        description: errorMessage,
+        duration: 8000 // Longer duration for error messages
+      })
+    } finally {
+      setIsExporting(false)
     }
   }
 
@@ -317,10 +363,11 @@ export default function BillingPage() {
               variant="outline"
               size="sm"
               onClick={() => handleExport("csv")}
-              className="flex items-center gap-2"
+              disabled={isExporting}
+              className={`flex items-center gap-2 ${isExporting ? "bg-cakewalk-primary/10" : ""}`}
             >
-              <Download className="h-4 w-4" />
-              Export CSV
+              <Download className={`h-4 w-4 ${isExporting ? "animate-spin" : ""}`} />
+              {isExporting ? "Exporting..." : "Export CSV"}
             </Button>
             <Button
               variant="outline"

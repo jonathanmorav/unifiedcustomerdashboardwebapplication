@@ -1,0 +1,1152 @@
+{
+  "summary": {
+    "totalTransfers": 20,
+    "successful": 20,
+    "errors": 0,
+    "doubleBillCount": 0,
+    "totalPolicies": 74,
+    "totalSOBs": 20,
+    "carrierBreakdown": {
+      "totalPolicies": 74,
+      "unmappedPolicies": 0,
+      "mappedPolicies": 74,
+      "byCarrier": {
+        "SunLife": 60,
+        "Guardian": 3,
+        "Unum": 6,
+        "Recuro": 2,
+        "Transunion": 2,
+        "Sedera": 1
+      }
+    }
+  },
+  "doubleBillFlags": [],
+  "results": [
+    {
+      "transferId": "32305671263",
+      "companyName": "Terri Sheffield Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 2,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29961335901",
+          "policyholder": "Terri-Sheffield-Dental",
+          "productName": "Dental",
+          "planName": "Standard",
+          "monthlyCost": "22.55",
+          "coverageLevel": "4",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29961504668",
+          "policyholder": "Terri-Sheffield-Vision",
+          "productName": "Vision",
+          "planName": "Standard",
+          "monthlyCost": "25.71",
+          "coverageLevel": "2",
+          "carrier": "Guardian"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29959345805",
+          "amountToDraft": "49.580000000000005",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32307393129",
+      "companyName": "Cindy Packard Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 1,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29877923503",
+          "policyholder": "Cindy-Packard-Dental",
+          "productName": "Dental",
+          "planName": "Standard",
+          "monthlyCost": "50.10",
+          "coverageLevel": "3",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29891285867",
+          "amountToDraft": "51.42",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32319204360",
+      "companyName": "tracy rollins fbfs",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 7,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29961469849",
+          "policyholder": "Tracy-Rollins-Critical Illness",
+          "productName": "Critical Illness",
+          "planName": "Standard",
+          "monthlyCost": "13.30",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29950317229",
+          "policyholder": "Tracy-Rollins-Long Term Disability - Agent",
+          "productName": "Long Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "40.47",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29961554840",
+          "policyholder": "Tracy-Rollins-Vision",
+          "productName": "Vision",
+          "planName": "Standard",
+          "monthlyCost": "13.59",
+          "coverageLevel": "1",
+          "carrier": "Guardian"
+        },
+        {
+          "id": "29959420830",
+          "policyholder": "Tracy-Rollins-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "60.94",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29961430663",
+          "policyholder": "Tracy-Rollins-Short Term Disability - Agent",
+          "productName": "Short Term Disability",
+          "planName": null,
+          "monthlyCost": "25.04",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29959589533",
+          "policyholder": "Tracy-Rollins-Accident",
+          "productName": "Accident",
+          "planName": "Standard",
+          "monthlyCost": "13.61",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29959409775",
+          "policyholder": "Tracy-Rollins-Dental",
+          "productName": "Dental",
+          "planName": "Standard",
+          "monthlyCost": "43.89",
+          "coverageLevel": "4",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29961401739",
+          "amountToDraft": "212.16",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "36311521655",
+      "companyName": "Rural Mutual Insurance",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": "INSURANCE",
+      "sobCount": 1,
+      "policyCount": 0,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [],
+      "sobs": [
+        {
+          "id": "30929900074",
+          "amountToDraft": "13008.67",
+          "feeAmount": "0",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "36959705213",
+      "companyName": "Sandra Ruhland",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 3,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "31646585410",
+          "policyholder": "Sandra-Ruhland-Dental",
+          "productName": "Dental",
+          "planName": "Standard",
+          "monthlyCost": "43.89",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "31640920489",
+          "policyholder": "Sandra-Ruhland-Long Term Disability",
+          "productName": "Long Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "30.78",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "31643694981",
+          "policyholder": "Sandra-Ruhland-Short Term Disability",
+          "productName": "Short Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "21.41",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "31641843770",
+          "amountToDraft": "97.40",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "36380875703",
+      "companyName": "Brenda George",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 2,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "31450443342",
+          "policyholder": "brenda-george-vision",
+          "productName": "Vision",
+          "planName": "Standard",
+          "monthlyCost": "25.71",
+          "coverageLevel": "2",
+          "carrier": "Guardian"
+        },
+        {
+          "id": "29961440673",
+          "policyholder": "Brenda-George-Long Term Care",
+          "productName": "Long Term Care",
+          "planName": "4000 - 6 Years)",
+          "monthlyCost": "91.6",
+          "coverageLevel": "2",
+          "carrier": "Unum"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "31028671048",
+          "amountToDraft": "118.63",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32313867175",
+      "companyName": "Stacey Satterwhite Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": "INSURANCE",
+      "sobCount": 1,
+      "policyCount": 19,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29957818716",
+          "policyholder": "Vicki-Smith-Short Term Disability - Staff",
+          "productName": "Short Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "18.78",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29958906891",
+          "policyholder": "Vicki-Smith-Dependent Life - Spouse",
+          "productName": "Life - Dependent",
+          "planName": "Standard",
+          "monthlyCost": "11.32",
+          "coverageLevel": "2",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29957749902",
+          "policyholder": "Janna-Clark-Dependent Life - Children",
+          "productName": "Life - Dependent",
+          "planName": "Standard",
+          "monthlyCost": "2.08",
+          "coverageLevel": "Children",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29957719057",
+          "policyholder": "Stacey-Satterwhite-Long Term Disability - Agent",
+          "productName": "Long Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "151.75",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29957701787",
+          "policyholder": "Kelly-Wieczorek-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "15.60",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29957793901",
+          "policyholder": "Kelly-Wieczorek-Short Term Disability - Staff",
+          "productName": "Short Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "15.64",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29959016786",
+          "policyholder": "Janna-Clark-Short Term Disability - Staff",
+          "productName": "Short Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "12.52",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29957218625",
+          "policyholder": "Kelly-Wieczorek-Long Term Disability - Staff",
+          "productName": "Long Term Disability",
+          "planName": null,
+          "monthlyCost": "22.50",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29957810704",
+          "policyholder": "Vicki-Smith-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "56.60",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29943840902",
+          "policyholder": "Janna-Clark-Dependent Life - Spouse",
+          "productName": "Life - Dependent",
+          "planName": "Standard",
+          "monthlyCost": "5.46",
+          "coverageLevel": "2",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29950778249",
+          "policyholder": "Stacey-Satterwhite-Short Term Disability - Agent",
+          "productName": "Short Term Disability",
+          "planName": null,
+          "monthlyCost": "27.10",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29958639021",
+          "policyholder": "Kelly-Wieczorek-Dependent Life - Children",
+          "productName": "Life - Dependent",
+          "planName": "Standard",
+          "monthlyCost": "2.08",
+          "coverageLevel": "Children",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29957218633",
+          "policyholder": "Kelly-Wieczorek-Telemedicine",
+          "productName": "Telehealth",
+          "planName": "Standard",
+          "monthlyCost": "6.75",
+          "coverageLevel": null,
+          "carrier": "Recuro"
+        },
+        {
+          "id": "29957818715",
+          "policyholder": "Janna-Clark-Telemedicine",
+          "productName": "Telehealth",
+          "planName": "Standard",
+          "monthlyCost": "6.75",
+          "coverageLevel": null,
+          "carrier": "Recuro"
+        },
+        {
+          "id": "29957826882",
+          "policyholder": "Vicki-Smith-Long Term Disability - Staff",
+          "productName": "Long Term Disability",
+          "planName": null,
+          "monthlyCost": "27.00",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29958923541",
+          "policyholder": "Janna-Clark-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "27.30",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29958939517",
+          "policyholder": "Kelly-Wieczorek-Dependent Life - Spouse",
+          "productName": "Life - Dependent",
+          "planName": "Standard",
+          "monthlyCost": "3.12",
+          "coverageLevel": "2",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29939663267",
+          "policyholder": "Janna-Clark-Long Term Disability - Staff",
+          "productName": "Long Term Disability",
+          "planName": null,
+          "monthlyCost": "18.00",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29953045623",
+          "policyholder": "Janna-Clark-Accident",
+          "productName": "Accident",
+          "planName": "Standard",
+          "monthlyCost": "34.72",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29950620276",
+          "amountToDraft": "466.39",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "36727767817",
+      "companyName": "Abbie Davis Tanner Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 2,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "33024734842",
+          "policyholder": "Abbie-Tanner-Long Term Disability",
+          "productName": "Long Term Disability",
+          "planName": null,
+          "monthlyCost": "85.00",
+          "coverageLevel": null,
+          "carrier": "SunLife"
+        },
+        {
+          "id": "31386455907",
+          "policyholder": "abbie-tanner-long term disability",
+          "productName": "Long Term Disability",
+          "planName": "MetLife Long Term Disability 2 - Option 2",
+          "monthlyCost": "85",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "31401354562",
+          "amountToDraft": "90",
+          "feeAmount": "5",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32317562682",
+      "companyName": "eric barta fbfs",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 2,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29881203121",
+          "policyholder": "Anita-Fox-Short Term Disability - Staff",
+          "productName": "Short Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "10.95",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29878825348",
+          "policyholder": "Anita-Fox-Long Term Disability - Staff",
+          "productName": "Long Term Disability",
+          "planName": null,
+          "monthlyCost": "15.75",
+          "coverageLevel": null,
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "31028669589",
+          "amountToDraft": "28.02",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32315699347",
+      "companyName": "Tara Brown Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 5,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29961335894",
+          "policyholder": "Tara-Brown-Dependent Life - Spouse",
+          "productName": "Life - Dependent",
+          "planName": "Standard",
+          "monthlyCost": "3.12",
+          "coverageLevel": "2",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29959589526",
+          "policyholder": "Tara-Brown-Short Term Disability - Agent",
+          "productName": "Short Term Disability",
+          "planName": null,
+          "monthlyCost": "17.53",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29961564753",
+          "policyholder": "Tara-Brown-Long Term Disability - Agent",
+          "productName": "Long Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "28.33",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29950796851",
+          "policyholder": "Tara-Brown-Dependent Life - Children",
+          "productName": "Life - Dependent",
+          "planName": "Standard",
+          "monthlyCost": "2.08",
+          "coverageLevel": "Children",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29961274978",
+          "policyholder": "Tara-Brown-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "23.40",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29961420724",
+          "amountToDraft": "75.78",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32299595645",
+      "companyName": "James Sifford Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 4,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29943768592",
+          "policyholder": "James-Sifford-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "40.90",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29949585232",
+          "policyholder": "James-Sifford-Long Term Disability - Agent",
+          "productName": "Long Term Disability",
+          "planName": null,
+          "monthlyCost": "169.45",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29949456741",
+          "policyholder": "James-Sifford-Dependent Life - Children",
+          "productName": "Life - Dependent",
+          "planName": "Standard",
+          "monthlyCost": "2.08",
+          "coverageLevel": "Children",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29951780462",
+          "policyholder": "Angela-Clear-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "10.22",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29941661598",
+          "amountToDraft": "223.97",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32310380204",
+      "companyName": "Scott Toms Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": "INSURANCE",
+      "sobCount": 1,
+      "policyCount": 5,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29957979313",
+          "policyholder": "Crystal-Toms-Long Term Disability - Staff",
+          "productName": "Long Term Disability",
+          "planName": null,
+          "monthlyCost": "18.00",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29957694846",
+          "policyholder": "Crystal-Toms-Short Term Disability - Staff",
+          "productName": "Short Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "12.52",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29959001094",
+          "policyholder": "Scott-Toms-Long Term Care",
+          "productName": "Long Term Care",
+          "planName": "$4000 - 6 Years",
+          "monthlyCost": "33.6",
+          "coverageLevel": "1",
+          "carrier": "Unum"
+        },
+        {
+          "id": "29950623543",
+          "policyholder": "Scott-Toms-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "102.80",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29957835346",
+          "policyholder": "Scott-Toms-Dependent Life - Spouse",
+          "productName": "Life - Dependent",
+          "planName": "Standard",
+          "monthlyCost": "11.32",
+          "coverageLevel": "2",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29958762862",
+          "amountToDraft": "202.76",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "35368429417",
+      "companyName": "Bruce Bryant Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": "INSURANCE",
+      "sobCount": 1,
+      "policyCount": 5,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29866173836",
+          "policyholder": "Bruce-Bryant-Accident",
+          "productName": "Accident",
+          "planName": "Standard",
+          "monthlyCost": "13.61",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29866001286",
+          "policyholder": "Bruce-Bryant-Sontiq ID Security - Individual Plus Spouse",
+          "productName": "Identity Theft Protection",
+          "planName": null,
+          "monthlyCost": "16.99",
+          "coverageLevel": null,
+          "carrier": "Transunion"
+        },
+        {
+          "id": "29872462212",
+          "policyholder": "Bruce-Bryant-Long Term Care",
+          "productName": "Long Term Care",
+          "planName": "$5000 - 6 Years",
+          "monthlyCost": "40.5",
+          "coverageLevel": "1",
+          "carrier": "Unum"
+        },
+        {
+          "id": "29876745024",
+          "policyholder": "Bruce-Bryant-Critical Illness",
+          "productName": "Critical Illness",
+          "planName": "Standard",
+          "monthlyCost": "20.60",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29879042202",
+          "policyholder": "Bruce-Bryant-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "40.83",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29881187417",
+          "amountToDraft": "133.85",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32317529364",
+      "companyName": "Philip Hinrichs Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": "INSURANCE",
+      "sobCount": 1,
+      "policyCount": 3,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29958470510",
+          "policyholder": "Philip-Hinrichs-Sontiq ID Security - Family",
+          "productName": "Identity Theft Protection",
+          "planName": null,
+          "monthlyCost": "16.99",
+          "coverageLevel": "4",
+          "carrier": "Transunion"
+        },
+        {
+          "id": "29941734740",
+          "policyholder": "Philip-Hinrichs-Long Term Care",
+          "productName": "Long Term Care",
+          "planName": "$9000 - Lifetime",
+          "monthlyCost": "150.3",
+          "coverageLevel": "2",
+          "carrier": "Unum"
+        },
+        {
+          "id": "29958493958",
+          "policyholder": "Philip-Hinrichs-Long Term Disability - Agent",
+          "productName": "Long Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "202.33",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29958359220",
+          "amountToDraft": "370.94",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32306868114",
+      "companyName": "Raydell Lindblad Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": "INSURANCE",
+      "sobCount": 1,
+      "policyCount": 2,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29958931252",
+          "policyholder": "Raydell-Lindblad-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "256.57",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29940540520",
+          "policyholder": "Raydell-Lindblad-Long Term Care",
+          "productName": "Long Term Care",
+          "planName": "$1000 - 2 Years",
+          "monthlyCost": "21.2",
+          "coverageLevel": "1",
+          "carrier": "Unum"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29953349394",
+          "amountToDraft": "279.09",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32300230913",
+      "companyName": "Rob Armbrister Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": "INSURANCE",
+      "sobCount": 1,
+      "policyCount": 7,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29958939513",
+          "policyholder": "Rob-Armbrister-Short Term Disability - Agent",
+          "productName": "Short Term Disability",
+          "planName": null,
+          "monthlyCost": "27.10",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29959008535",
+          "policyholder": "Rob-Armbrister-Voluntary Life & AD&D",
+          "productName": "Voluntary Life & AD&D",
+          "planName": "Standard",
+          "monthlyCost": "51.40",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29953045620",
+          "policyholder": "Rob-Armbrister-Health Cost Sharing",
+          "productName": "Health Cost Sharing",
+          "planName": null,
+          "monthlyCost": "430.00",
+          "coverageLevel": "2",
+          "carrier": "Sedera"
+        },
+        {
+          "id": "29947243572",
+          "policyholder": "Rob-Armbrister-Long Term Disability - Agent",
+          "productName": "Long Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "75.88",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29957826878",
+          "policyholder": "Rob-Armbrister-Critical Illness",
+          "productName": "Critical Illness",
+          "planName": "Standard",
+          "monthlyCost": "20.60",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29953196356",
+          "policyholder": "Rob-Armbrister-Long Term Care",
+          "productName": "Long Term Care",
+          "planName": "$6000 - 2 Years",
+          "monthlyCost": "36",
+          "coverageLevel": "1",
+          "carrier": "Unum"
+        },
+        {
+          "id": "29958991624",
+          "policyholder": "Rob-Armbrister-Critical Illness - Spouse",
+          "productName": "Critical Illness",
+          "planName": "Standard",
+          "monthlyCost": "10.30",
+          "coverageLevel": "Spouse",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29958953810",
+          "amountToDraft": "652.60",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32312657710",
+      "companyName": "Wes Burkle Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 1,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29959381663",
+          "policyholder": "Wesley-Burkle-Long Term Disability - Agent",
+          "productName": "Long Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "126.46",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29961533855",
+          "amountToDraft": "127.78",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32319200831",
+      "companyName": "Zachary Miller Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": null,
+      "sobCount": 1,
+      "policyCount": 1,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "30544586823",
+          "policyholder": "Zachary-Miller-Critical Illness - Children",
+          "productName": "Critical Illness",
+          "planName": "Standard",
+          "monthlyCost": "0.75",
+          "coverageLevel": "Children",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29961392389",
+          "amountToDraft": "329.40",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32282239571",
+      "companyName": "Kristin Regier Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": "INSURANCE",
+      "sobCount": 1,
+      "policyCount": 1,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29959346609",
+          "policyholder": "Kristin-Regier-Long Term Disability - Agent",
+          "productName": "Long Term Disability",
+          "planName": "Standard",
+          "monthlyCost": "197.28",
+          "coverageLevel": "1",
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29956878849",
+          "amountToDraft": "198.60",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    },
+    {
+      "transferId": "32290070917",
+      "companyName": "Gordon Ritthaler Agency",
+      "companyDomain": null,
+      "companyPhone": null,
+      "companyIndustry": "INSURANCE",
+      "sobCount": 1,
+      "policyCount": 2,
+      "hasDoubleBill": false,
+      "doubleBillSOBs": [],
+      "policies": [
+        {
+          "id": "29937704105",
+          "policyholder": "Gordon-Ritthaler-Short Term Disability - Agent",
+          "productName": "Short Term Disability",
+          "planName": null,
+          "monthlyCost": "27.10",
+          "coverageLevel": null,
+          "carrier": "SunLife"
+        },
+        {
+          "id": "29937812301",
+          "policyholder": "Gordon-Ritthaler-Long Term Disability - Agent",
+          "productName": "Long Term Disability",
+          "planName": null,
+          "monthlyCost": "202.33",
+          "coverageLevel": null,
+          "carrier": "SunLife"
+        }
+      ],
+      "sobs": [
+        {
+          "id": "29936237908",
+          "amountToDraft": "230.75",
+          "feeAmount": "1.32",
+          "doubleBill": "false",
+          "coverageMonth": "September 2025",
+          "achDraftScheduled": "2025-08-25"
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

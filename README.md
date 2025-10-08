@@ -4,7 +4,7 @@
   
   An enterprise-grade customer data management platform that consolidates customer information from HubSpot CRM and Dwolla payment systems.
   
-  [![Next.js](https://img.shields.io/badge/Next.js-14.0-black)](https://nextjs.org/)
+  [![Next.js](https://img.shields.io/badge/Next.js-15.x-black)](https://nextjs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
   [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.0-38B2AC)](https://tailwindcss.com/)
   [![WCAG 2.1 AA](https://img.shields.io/badge/WCAG_2.1_AA-compliant-green)](https://www.w3.org/WAI/WCAG21/quickref/)
@@ -101,12 +101,12 @@ npm run dev
 
 | Layer          | Technologies                                   |
 | -------------- | ---------------------------------------------- |
-| **Frontend**   | Next.js 14, React 19, TypeScript, Tailwind CSS |
+| **Frontend**   | Next.js 15, React 19, TypeScript, Tailwind CSS |
 | **Backend**    | Next.js API Routes, Prisma ORM                 |
 | **Database**   | PostgreSQL with connection pooling             |
 | **Auth**       | NextAuth.js with Google OAuth                  |
 | **Security**   | CSRF tokens, rate limiting, helmet.js          |
-| **Testing**    | Jest, React Testing Library, Playwright        |
+| **Testing**    | Jest, React Testing Library, Cypress           |
 | **Monitoring** | Custom metrics, health checks                  |
 
 ### Project Structure

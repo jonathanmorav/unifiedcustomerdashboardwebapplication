@@ -1,0 +1,53 @@
+{
+  "summary": {
+    "totalTransfers": 10,
+    "successful": 0,
+    "errors": 10,
+    "doubleBillCount": 0,
+    "totalPolicies": 0
+  },
+  "doubleBillFlags": [],
+  "results": [],
+  "errors": [
+    {
+      "transferId": "36311521655",
+      "error": "No matching company found"
+    },
+    {
+      "transferId": "36959705213",
+      "error": "No matching company found"
+    },
+    {
+      "transferId": "36380875703",
+      "error": "No matching company found"
+    },
+    {
+      "transferId": "32313867175",
+      "error": "No matching company found"
+    },
+    {
+      "transferId": "36727767817",
+      "error": "No matching company found"
+    },
+    {
+      "transferId": "32317562682",
+      "error": "No matching company found"
+    },
+    {
+      "transferId": "32315699347",
+      "error": "No matching company found"
+    },
+    {
+      "transferId": "32299595645",
+      "error": "No matching company found"
+    },
+    {
+      "transferId": "32310380204",
+      "error": "No matching company found"
+    },
+    {
+      "transferId": "35368429417",
+      "error": "No matching company found"
+    }
+  ]
+}

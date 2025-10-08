@@ -111,13 +111,14 @@ global.Headers = class Headers {
 process.env.NEXTAUTH_URL = "http://localhost:3000"
 process.env.NEXTAUTH_SECRET = "test-secret-for-testing-only"
 process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test"
-process.env.ALLOWED_EMAILS = "test@example.com,admin@example.com"
-process.env.HUBSPOT_ACCESS_TOKEN = "test-hubspot-token"
+process.env.AUTHORIZED_EMAILS = "test@example.com,admin@example.com"
+process.env.HUBSPOT_API_KEY = "test-hubspot-token"
 process.env.HUBSPOT_BASE_URL = "https://api.hubapi.com"
 process.env.DWOLLA_KEY = "test-dwolla-key"
 process.env.DWOLLA_SECRET = "test-dwolla-secret"
 process.env.DWOLLA_ENVIRONMENT = "sandbox"
 process.env.DWOLLA_BASE_URL = "https://api-sandbox.dwolla.com"
+process.env.DWOLLA_WEBHOOK_SECRET = "test-webhook-secret"
 process.env.NODE_ENV = "test"
 
 // Mock crypto for CSRF token generation

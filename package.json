@@ -42,6 +42,12 @@
     "ach:cleanup:debits": "tsx scripts/cleanup-debit-transactions.ts",
     "ach:cleanup:test": "tsx scripts/cleanup-test-transactions.ts",
     "ach:refresh:pending": "tsx scripts/refresh-pending-statuses.ts",
+    "billing:sync": "tsx scripts/run-billing-sync.ts",
+    "billing:sync:quick": "tsx scripts/run-billing-sync.ts quick",
+    "billing:sync:full": "tsx scripts/run-billing-sync.ts full",
+    "billing:sync:today": "tsx scripts/run-billing-sync.ts today",
+    "billing:sync:status": "tsx scripts/run-billing-sync.ts status-check",
+    "billing:sync:dry": "tsx scripts/run-billing-sync.ts quick --dry-run",
     "dev:all": "concurrently \"npm run dev\" \"npm run webhook:worker\" \"npm run ach:sync:worker\""
   },
   "dependencies": {
@@ -69,6 +75,8 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "csv-parse": "^6.1.0",
+    "csv-stringify": "^6.6.0",
     "date-fns": "^4.1.0",
     "lru-cache": "^11.1.0",
     "lucide-react": "^0.525.0",

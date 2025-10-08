@@ -1,0 +1,26 @@
+Transfer ID,Transfer Date,Transfer Amount,Transfer Status,Company Name,Double Bill,Policy ID,Policy Holder,Product Name,Plan Name,Monthly Cost,Coverage Level,Carrier
+32305671263 - August 2025,8/13/2025,97.84,Processed,"Terri Sheffield Agency",No,,"Terri-Sheffield-Dental","Dental","Standard",22.55,4,Unmapped
+32305671263 - August 2025,8/13/2025,97.84,Processed,"Terri Sheffield Agency",No,,"Terri-Sheffield-Vision","Vision","Standard",25.71,2,Unmapped
+32307393129 (clone) - August 2025,8/12/2025,101.52,Processed,"Cindy Packard Agency",No,,"Cindy-Packard-Dental","Dental","Standard",50.10,3,Unmapped
+32319204360 - July 2025 (clone) - August 2025,8/11/2025,212.16,Processed,"tracy rollins fbfs",No,,"Tracy-Rollins-Accident","Accident","Standard",13.61,1,Unmapped
+32319204360 - July 2025 (clone) - August 2025,8/11/2025,212.16,Processed,"tracy rollins fbfs",No,,"Tracy-Rollins-Dental","Dental","Standard",43.89,4,Unmapped
+32319204360 - July 2025 (clone) - August 2025,8/11/2025,212.16,Processed,"tracy rollins fbfs",No,,"Tracy-Rollins-Vision","Vision","Standard",13.59,1,Unmapped
+32319204360 - July 2025 (clone) - August 2025,8/11/2025,212.16,Processed,"tracy rollins fbfs",No,,"Tracy-Rollins-Voluntary Life & AD&D","Voluntary Life & AD&D","Standard",60.94,1,Unmapped
+32319204360 - July 2025 (clone) - August 2025,8/11/2025,212.16,Processed,"tracy rollins fbfs",No,,"Tracy-Rollins-Critical Illness","Critical Illness","Standard",13.30,1,Unmapped
+32319204360 - July 2025 (clone) - August 2025,8/11/2025,212.16,Processed,"tracy rollins fbfs",No,,"Tracy-Rollins-Long Term Disability - Agent","Long Term Disability","Standard",40.47,1,Unmapped
+32319204360 - July 2025 (clone) - August 2025,8/11/2025,212.16,Processed,"tracy rollins fbfs",No,,"Tracy-Rollins-Short Term Disability - Agent","Short Term Disability","",25.04,1,Unmapped
+36311521655 - August 2025,8/4/2025,13008.67,Processed,"Rural Mutual Insurance",No,,,,,0.00,,
+36959705213 - July 2025,7/30/2025,193.48,Processed,"Sandra Ruhland",No,,"Sandra-Ruhland-Short Term Disability","Short Term Disability","Standard",21.41,1,Unmapped
+36959705213 - July 2025,7/30/2025,193.48,Processed,"Sandra Ruhland",No,,"Sandra-Ruhland-Long Term Disability","Long Term Disability","Standard",30.78,1,Unmapped
+36959705213 - July 2025,7/30/2025,193.48,Processed,"Sandra Ruhland",No,,"Sandra-Ruhland-Dental","Dental","Standard",43.89,1,Unmapped
+
+CARRIER SUMMARY,,,,,,,,,,,,
+,,,,,,,,,,405.28,13 policies,Unmapped
+,,,,,,,,  → Dental,,160.43,4 policies,
+,,,,,,,,  → Vision,,39.30,2 policies,
+,,,,,,,,  → Accident,,13.61,1 policies,
+,,,,,,,,  → Voluntary Life & AD&D,,60.94,1 policies,
+,,,,,,,,  → Critical Illness,,13.30,1 policies,
+,,,,,,,,  → Long Term Disability,,71.25,2 policies,
+,,,,,,,,  → Short Term Disability,,46.45,2 policies,
+,,,,,,,,GRAND TOTAL,,405.28,,

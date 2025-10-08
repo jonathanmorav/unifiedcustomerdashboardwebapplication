@@ -49,7 +49,7 @@ export const logger = winston.createLogger({
       format: process.env.NODE_ENV === "development" ? consoleFormat : format,
     }),
     // File transport for errors
-    ...(process.env.NODE_ENV === "production"
+    ...(process.env.LOG_TO_FILES === "true"
       ? [
           new winston.transports.File({
             filename: "logs/error.log",

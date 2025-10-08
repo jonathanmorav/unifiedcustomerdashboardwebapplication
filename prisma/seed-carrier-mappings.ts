@@ -25,6 +25,7 @@ const defaultCarrierMappings = [
   // Health
   { productName: "Health", carrierName: "Sedera", productCode: "HLTH-001" },
   { productName: "Sedera Health Cost Sharing", carrierName: "Sedera", productCode: "HLTH-002" },
+  { productName: "Health Cost Sharing", carrierName: "Sedera", productCode: "HLTH-003" }, // Variation of Sedera Health Cost Sharing
   
   // Telehealth & Virtual Care
   { productName: "Telehealth", carrierName: "Recuro", productCode: "TELE-001" },
@@ -32,6 +33,7 @@ const defaultCarrierMappings = [
   
   // Identity Protection
   { productName: "Identity Theft Protection", carrierName: "Transunion", productCode: "ID-001" },
+  { productName: "Sontiq ID Security - Individual", carrierName: "Transunion", productCode: "ID-002" }, // Variation of Identity Theft Protection
   
   // Long Term Care
   { productName: "Long Term Care", carrierName: "Unum", productCode: "LTC-001" },
