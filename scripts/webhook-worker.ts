@@ -19,7 +19,7 @@ async function startWebhookWorker() {
     console.log('✅ Webhook receiver initialized')
     
     // Initialize queue processor
-    const processor = new QueueProcessor(receiver)
+    const processor = new QueueProcessor()
     console.log('✅ Queue processor initialized')
     
     // Start processing webhooks

@@ -3,6 +3,7 @@ import { getReconciliationEngine } from '@/lib/reconciliation/reconciliation-eng
 import { getReconciliationReporter } from '@/lib/reconciliation/reconciliation-reporter'
 import { requireAuth } from '@/lib/auth/api'
 import { log } from '@/lib/logger'
+import { rateLimiter, rateLimitConfigs, logRateLimitViolation } from '@/lib/security/rate-limit'
 
 /**
  * GET /api/reconciliation - Get reconciliation history
@@ -54,6 +55,34 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await requireAuth(request)
+    
+    // Apply rate limiting for reconciliation operations
+    const rateLimitResult = await rateLimiter.limit(request, {
+      ...rateLimitConfigs.reconciliation,
+      name: 'reconciliation',
+      onLimitReached: async (req, key) => {
+        await logRateLimitViolation(req, '/api/reconciliation', key)
+      },
+    })
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many reconciliation requests',
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimitResult.retryAfter || 60),
+            'X-RateLimit-Limit': String(rateLimitResult.limit),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': rateLimitResult.reset.toISOString(),
+          },
+        }
+      )
+    }
     
     const body = await request.json()
     const { configName, forceRun = false } = body

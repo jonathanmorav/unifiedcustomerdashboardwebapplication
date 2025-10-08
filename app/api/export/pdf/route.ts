@@ -12,6 +12,7 @@ const pdfRateLimiter = createEndpointRateLimiter({
 
 export async function POST(request: NextRequest) {
   let session: any
+  
   try {
     // Apply custom rate limiting
     const rateLimitResult = await pdfRateLimiter(request)

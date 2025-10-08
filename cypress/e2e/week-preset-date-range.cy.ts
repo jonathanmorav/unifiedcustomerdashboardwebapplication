@@ -101,7 +101,7 @@ describe("Week Preset Date Range Tests", () => {
 
     // Verify the week range is recalculated (should be the same as before)
     cy.get("@weekRange").then((originalRange) => {
-      cy.get('[data-testid="selected-date-range"]').should("contain.text", originalRange as string)
+      cy.get('[data-testid="selected-date-range"]').should("contain.text", originalRange as unknown as string)
     })
   })
 

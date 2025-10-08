@@ -1,5 +1,5 @@
 import type { Config } from "jest"
-import nextJest from "next/jest"
+import nextJest from "next/jest.js"
 
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
@@ -58,7 +58,7 @@ const config: Config = {
   },
   // Handle ESM modules in node_modules
   transformIgnorePatterns: [
-    "node_modules/(?!(jose|openid-client|@panva|oidc-token-hash|preact-render-to-string|preact)/)",
+    "node_modules/(?!(jose|openid-client|@panva|oidc-token-hash|preact-render-to-string|preact|next-auth|oauth4webapi)/)",
   ],
   // Handle CSS imports
   moduleNameMapper: {

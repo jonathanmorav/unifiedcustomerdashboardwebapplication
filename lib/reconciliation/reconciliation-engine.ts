@@ -255,7 +255,7 @@ export class ReconciliationEngine {
         status: errorCount > 0 ? 'failed' : 'completed',
         endTime: new Date(),
         metadata: {
-          ...check.metadata,
+          ...(check.metadata as any || {}),
           errorCount,
           completedAt: new Date().toISOString()
         }
@@ -536,11 +536,8 @@ export class ReconciliationEngine {
           payload: actualState,
           signature: 'reconciliation_generated',
           processingState: 'queued',
-          metadata: {
-            reconciliationCheckId: discrepancy.checkId,
-            discrepancyId: discrepancy.id,
-            autoResolved: true
-          }
+          topic: `${discrepancy.resourceType}_reconciled`,
+          partitionKey: `reconciliation-${new Date().toISOString().slice(0, 7)}` // YYYY-MM format
         }
       })
       
@@ -590,7 +587,7 @@ export class ReconciliationEngine {
     const allDiscrepancies = checks.flatMap(check => check.discrepancies)
     
     if (allDiscrepancies.length > 0) {
-      log.error('Discrepancies found in reconciliation', {
+      log.error('Discrepancies found in reconciliation', new Error('Reconciliation discrepancies detected'), {
         jobId: job.id,
         count: allDiscrepancies.length,
         discrepancies: allDiscrepancies.map(d => ({

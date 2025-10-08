@@ -248,74 +248,14 @@ export default function BillingPage() {
     }
   }
 
-  const handleRefreshStatuses = async () => {
-    try {
-      setIsRefreshingStatuses(true)
-
-      // Build params for status refresh based on current visible transactions
-      const refreshParams: Record<string, any> = {
-        statuses: ["pending", "processing"], // Focus on transactions that might have changed
-        limit: 500, // Check up to 500 transactions
-        concurrency: 5, // Reasonable concurrency for API calls
-      }
-
-      // If we have specific status filters, include those too
-      if (filters.status.length > 0) {
-        refreshParams.statuses = filters.status
-      }
-
-      // If we have date filters, we can add olderThanDays logic
-      if (filters.dateRange.start) {
-        const daysDiff = Math.floor(
-          (new Date().getTime() - filters.dateRange.start.getTime()) / (1000 * 60 * 60 * 24)
-        )
-        if (daysDiff > 0) {
-          refreshParams.olderThanDays = daysDiff
-        }
-      }
-
-      const response = await fetch("/api/ach/refresh-statuses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(refreshParams),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Status refresh failed")
-      }
-
-      const result = await response.json()
-      console.log("Status refresh completed:", result)
-
-      // Show success message with details
-      const { checked, updated, updatedByStatus } = result.results
-      let message = `Status refresh completed! Checked ${checked} transactions, updated ${updated}.`
-      
-      if (updated > 0 && updatedByStatus) {
-        const statusUpdates = Object.entries(updatedByStatus)
-          .map(([status, count]) => `${count} → ${status}`)
-          .join(", ")
-        message += ` Updates: ${statusUpdates}`
-      }
-
-      alert(message)
-
-      // Refresh the data after status refresh
-      refresh()
-    } catch (error) {
-      console.error("Status refresh error:", error)
-      // Show more detailed error message
-      if (error instanceof Error) {
-        alert(`Status refresh failed: ${error.message}`)
-      } else {
-        alert("Status refresh failed. Please check console for details.")
-      }
-    } finally {
-      setIsRefreshingStatuses(false)
+  const handleMetricClick = (filterType: 'processed' | 'pending' | 'failed') => {
+    // Set filters to show only transactions of the selected type
+    const newFilters: BillingFilterValues = {
+      ...filters,
+      status: [filterType],
     }
+    setFilters(newFilters)
+    setCurrentPage(1) // Reset to first page
   }
 
   if (!session) {
@@ -397,8 +337,13 @@ export default function BillingPage() {
           </div>
         )}
 
-        {/* Metrics Dashboard */}
-        <BillingMetrics metrics={metrics} isLoading={isLoading} compactView={true} />
+        {/* Improved KPI Metrics */}
+        <BillingMetrics 
+          metrics={metrics} 
+          isLoading={isLoading} 
+          compactView={true}
+          onMetricClick={handleMetricClick}
+        />
 
         {/* Tabs for Transactions and Analytics */}
         <Tabs defaultValue="transactions" className="mt-6">
@@ -420,59 +365,59 @@ export default function BillingPage() {
 
             {/* Transactions Table */}
             <Card className="mt-6 shadow-cakewalk-medium">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>
-                Transactions
-                {totalCount > 0 && (
-                  <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
-                    (Showing {transactions.length} of {totalCount.toLocaleString()})
-                  </span>
-                )}
-              </CardTitle>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {transactions.length > 0 && (
-                  <span>
-                    Page Total:{" "}
-                    {transactions
-                      .reduce((sum, t) => sum + t.amount, 0)
-                      .toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      })}
-                  </span>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <TransactionTable
-              transactions={transactions}
-              isLoading={isLoading}
-              totalAmount={metrics.totalVolume}
-              onTransactionClick={handleTransactionClick}
-              currentPage={currentPage}
-              itemsPerPage={pageSize}
-            />
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-between">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Showing {(currentPage - 1) * pageSize + 1} to{" "}
-                  {Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}{" "}
-                  transactions
-                </p>
-                <Pagination
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>
+                    Transactions
+                    {totalCount > 0 && (
+                      <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
+                        (Showing {transactions.length} of {totalCount.toLocaleString()})
+                      </span>
+                    )}
+                  </CardTitle>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {transactions.length > 0 && (
+                      <span>
+                        Page Total:{" "}
+                        {transactions
+                          .reduce((sum, t) => sum + t.amount, 0)
+                          .toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                          })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <TransactionTable
+                  transactions={transactions}
+                  isLoading={isLoading}
+                  totalAmount={metrics.totalVolume}
+                  onTransactionClick={handleTransactionClick}
                   currentPage={currentPage}
-                  totalPages={totalPages}
-                  onChange={setCurrentPage}
-                  className="justify-end"
+                  itemsPerPage={pageSize}
                 />
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="mt-6 flex items-center justify-between">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Showing {(currentPage - 1) * pageSize + 1} to{" "}
+                      {Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}{" "}
+                      transactions
+                    </p>
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onChange={setCurrentPage}
+                      className="justify-end"
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 

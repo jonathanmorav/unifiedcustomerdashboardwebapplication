@@ -2,7 +2,25 @@ import { SessionManagement } from "@/lib/security/session-management"
 import { prisma } from "@/lib/db"
 import crypto from "crypto"
 
-// Mock database is already provided in jest.setup.ts
+// Mock prisma
+jest.mock("@/lib/db", () => ({
+  prisma: {
+    session: {
+      findMany: jest.fn(),
+      count: jest.fn(),
+      findFirst: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    auditLog: {
+      create: jest.fn(),
+    },
+    loginAttempt: {
+      findMany: jest.fn(),
+    },
+  },
+}))
+
+const mockedPrisma = prisma as jest.Mocked<typeof prisma>
 
 describe("SessionManagement", () => {
   const mockUserId = "test-user-123"
@@ -59,15 +77,12 @@ describe("SessionManagement", () => {
       const existingSessions = [
         {
           id: "session-1",
-          metadata: {
-            deviceFingerprint: "different-device-fingerprint",
-            ipAddress: "192.168.1.100",
-            userAgent: "Mozilla/5.0 Different Browser",
-          },
+          userId: mockUserId,
+          expires: new Date(Date.now() + 3600000),
         },
       ]
 
-      ;(prisma.loginAttempt.findMany as jest.Mock).mockResolvedValue([])
+      ;(mockedPrisma.session.findMany as jest.Mock).mockResolvedValue(existingSessions)
 
       const anomalies = await SessionManagement.detectSessionAnomalies(mockUserId, currentDevice)
 

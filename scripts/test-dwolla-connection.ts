@@ -24,7 +24,7 @@ async function testDwollaConnection() {
         console.log(`   First transfer ID: ${transfers._embedded.transfers[0].id}`)
       }
     } catch (error) {
-      console.error("✗ Failed to fetch transfers:", error.message)
+      console.error("✗ Failed to fetch transfers:", error instanceof Error ? error.message : String(error))
     }
 
     // Test 2: Test ACH sync service
@@ -40,7 +40,7 @@ async function testDwollaConnection() {
         results.errors.forEach((err) => console.log(`   - ${err}`))
       }
     } catch (error) {
-      console.error("✗ Sync failed:", error.message)
+      console.error("✗ Sync failed:", error instanceof Error ? error.message : String(error))
     }
 
     console.log("\nDwolla connection test completed!")

@@ -35,11 +35,11 @@ async function syncCustomerOnly() {
 
       for (const transfer of transfers) {
         // Check if this is a customer transfer
-        const sourceUrl = transfer._links.source.href
-        const destUrl = transfer._links.destination.href
+        const sourceUrl = transfer._links?.source.href
+        const destUrl = transfer._links?.destination.href
 
         // Skip if both are accounts/banks (not customer transfers)
-        if (!sourceUrl.includes("/customers/") && !destUrl.includes("/customers/")) {
+        if (sourceUrl && destUrl && !sourceUrl.includes("/customers/") && !destUrl.includes("/customers/")) {
           continue
         }
 
@@ -50,14 +50,14 @@ async function syncCustomerOnly() {
           let customerName = null
           let companyName = null
 
-          if (sourceUrl.includes("/customers/")) {
+          if (sourceUrl && sourceUrl.includes("/customers/")) {
             // Customer is source (debit)
             const customer = await client.getCustomerByUrl(sourceUrl)
             customerDetails = customer
             customerEmail = customer.email
             customerName = `${customer.firstName} ${customer.lastName}`
             companyName = customer.businessName
-          } else if (destUrl.includes("/customers/")) {
+          } else if (destUrl && destUrl.includes("/customers/")) {
             // Customer is destination (credit)
             const customer = await client.getCustomerByUrl(destUrl)
             customerDetails = customer
@@ -74,16 +74,16 @@ async function syncCustomerOnly() {
                 status: transfer.status,
                 amount: parseFloat(transfer.amount.value),
                 currency: transfer.amount.currency,
-                direction: destUrl.includes(process.env.DWOLLA_MASTER_ACCOUNT_ID)
+                direction: destUrl && process.env.DWOLLA_MASTER_ACCOUNT_ID && destUrl.includes(process.env.DWOLLA_MASTER_ACCOUNT_ID)
                   ? "credit"
                   : "debit",
                 created: new Date(transfer.created),
-                sourceId: sourceUrl.split("/").pop(),
-                sourceName: sourceUrl.includes("/customers/")
+                sourceId: sourceUrl?.split("/").pop(),
+                sourceName: sourceUrl && sourceUrl.includes("/customers/")
                   ? customerName
                   : "Cakewalk Benefits Inc.",
-                destinationId: destUrl.split("/").pop(),
-                destinationName: destUrl.includes("/customers/")
+                destinationId: destUrl?.split("/").pop(),
+                destinationName: destUrl && destUrl.includes("/customers/")
                   ? customerName
                   : "Cakewalk Benefits Inc.",
                 correlationId: transfer.correlationId,
@@ -103,7 +103,7 @@ async function syncCustomerOnly() {
             }
           }
         } catch (error) {
-          console.error(`Error processing transfer ${transfer.id}:`, error.message)
+          console.error(`Error processing transfer ${transfer.id}:`, error instanceof Error ? error.message : String(error))
         }
       }
 

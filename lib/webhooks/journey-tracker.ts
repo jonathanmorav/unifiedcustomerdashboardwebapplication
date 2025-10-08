@@ -55,7 +55,7 @@ export class JourneyTracker {
     
     // Filter to ones that care about this event
     return definitions.filter(def => {
-      const config = def.config as JourneyConfig
+      const config = def.config as unknown as JourneyConfig
       
       // Check if this event starts the journey
       const isStartEvent = config.startEvents.some(start => 
@@ -101,7 +101,7 @@ export class JourneyTracker {
     definition: EventJourneyDefinition,
     context: ProcessingContext
   ): Promise<void> {
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Check if this starts a new journey
     const isStartEvent = config.startEvents.some(start => 
@@ -133,7 +133,7 @@ export class JourneyTracker {
     definition: EventJourneyDefinition,
     context: ProcessingContext
   ): Promise<void> {
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Check if we already have active journeys
     const existingActive = await prisma.journeyInstance.count({
@@ -187,7 +187,7 @@ export class JourneyTracker {
         definitionVersion: definition.version,
         resourceId: event.resourceId!,
         resourceType: event.resourceType || 'unknown',
-        resourceMetadata: this.extractResourceMetadata(event, context),
+        resourceMetadata: this.extractResourceMetadata(event, context) as any,
         status: 'active',
         startEventId: event.id,
         startTime: event.eventTimestamp,
@@ -227,7 +227,7 @@ export class JourneyTracker {
     definition: EventJourneyDefinition,
     context: ProcessingContext
   ): Promise<void> {
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Handle out-of-order events
     if (event.eventTimestamp < journey.lastEventTime) {
@@ -269,7 +269,7 @@ export class JourneyTracker {
         durationFromPreviousMs: BigInt(durationFromPrevious),
         expected: !!expectedStep,
         onTime,
-        eventMetadata: this.extractEventMetadata(event)
+        eventMetadata: this.extractEventMetadata(event) as any
       }
     })
     
@@ -383,7 +383,7 @@ export class JourneyTracker {
     definition: EventJourneyDefinition
   ): Promise<JourneyConflict[]> {
     const conflicts: JourneyConflict[] = []
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Check for duplicate steps
     const existingStep = await prisma.journeyStep.findFirst({
@@ -457,7 +457,7 @@ export class JourneyTracker {
     journey: JourneyInstance,
     definition: EventJourneyDefinition
   ): Promise<void> {
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Simple prediction based on expected steps
     if (config.expectedSteps && config.expectedSteps.length > 0) {
@@ -497,7 +497,7 @@ export class JourneyTracker {
     journey: JourneyInstance,
     definition: EventJourneyDefinition
   ): Promise<void> {
-    const config = definition.config as JourneyConfig
+    const config = definition.config as unknown as JourneyConfig
     
     // Check if journey has been inactive too long
     const inactiveMinutes = (Date.now() - journey.lastEventTime.getTime()) / (1000 * 60)
@@ -552,27 +552,28 @@ export class JourneyTracker {
     }
   }
   
-  private extractResourceMetadata(event: WebhookEvent, context: ProcessingContext): any {
-    const metadata: any = {}
+  private extractResourceMetadata(event: WebhookEvent, context: ProcessingContext): Record<string, unknown> {
+    const metadata: Record<string, unknown> = {}
     
     // Extract from context
     const transaction = context.get('transaction')
     if (transaction) {
-      metadata.customerName = transaction.customerName
-      metadata.companyName = transaction.companyName
-      metadata.amount = transaction.amount
+      const txn = transaction as { customerName?: string; companyName?: string; amount?: number }
+      metadata.customerName = txn.customerName
+      metadata.companyName = txn.companyName
+      metadata.amount = txn.amount
     }
     
     // Extract from event payload
-    const payload = event.payload as any
+    const payload = event.payload as Record<string, unknown>
     if (payload.amount) metadata.amount = payload.amount
     if (payload.customerName) metadata.customerName = payload.customerName
     
     return metadata
   }
   
-  private extractEventMetadata(event: WebhookEvent): any {
-    const payload = event.payload as any
+  private extractEventMetadata(event: WebhookEvent): Record<string, unknown> {
+    const payload = event.payload as Record<string, unknown>
     return {
       eventId: event.eventId,
       resourceId: event.resourceId,

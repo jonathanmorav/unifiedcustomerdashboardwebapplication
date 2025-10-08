@@ -28,6 +28,9 @@ import {
   ArrowDownRight,
   InfoIcon,
   RefreshCw,
+  Loader2,
+  HelpCircle,
+  X,
 } from "lucide-react"
 import { formatCurrency } from "@/utils/format-currency"
 import { getReturnCodeInfo, getCategoryDisplayName } from "@/lib/api/dwolla/return-codes"
@@ -38,37 +41,42 @@ interface TransactionDetailModalProps {
   onClose: () => void
 }
 
-const getStatusIcon = (status: string) => {
+const getStatusColor = (status: string) => {
   switch (status) {
-    case "completed":
-    case "processed":
-      return <CheckCircle className="h-5 w-5 text-cakewalk-success" />
     case "pending":
-      return <Clock className="h-5 w-5 text-cakewalk-warning" />
+      return "bg-cakewalk-warning-light text-cakewalk-warning"
     case "processing":
-      return <Clock className="h-5 w-5 text-cakewalk-info" />
+      return "bg-cakewalk-info-light text-cakewalk-info"
+    case "processed":
+      return "bg-cakewalk-success-light text-black"
     case "failed":
-      return <XCircle className="h-5 w-5 text-cakewalk-error" />
-    case "cancelled":
-      return <XCircle className="h-5 w-5 text-cakewalk-text-secondary" />
+      return "bg-cakewalk-error-light text-cakewalk-error"
     case "returned":
-      return <AlertCircle className="h-5 w-5 text-cakewalk-warning" />
+      return "bg-cakewalk-error-light text-cakewalk-error"
+    case "cancelled":
+      return "bg-cakewalk-neutral text-cakewalk-neutral-dark"
     default:
-      return null
+      return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
   }
 }
 
-const getStatusColor = (status: string) => {
-  const colors: Record<string, string> = {
-    pending: "bg-cakewalk-warning-light text-cakewalk-warning",
-    processing: "bg-cakewalk-info-light text-cakewalk-info",
-    processed: "bg-cakewalk-success-light text-black",
-    completed: "bg-cakewalk-success-light text-cakewalk-success",
-    failed: "bg-cakewalk-error-light text-cakewalk-error",
-    cancelled: "bg-cakewalk-neutral text-cakewalk-neutral-dark",
-    returned: "bg-cakewalk-warning-light text-cakewalk-warning",
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case "pending":
+      return <Clock className="h-5 w-5 text-cakewalk-warning" />
+    case "processing":
+      return <Loader2 className="h-5 w-5 text-cakewalk-info animate-spin" />
+    case "completed":
+    case "processed":
+      return <CheckCircle className="h-5 w-5 text-cakewalk-success" />
+    case "failed":
+    case "returned":
+      return <XCircle className="h-5 w-5 text-cakewalk-error" />
+    case "cancelled":
+      return <X className="h-5 w-5 text-cakewalk-neutral" />
+    default:
+      return <HelpCircle className="h-5 w-5 text-gray-500" />
   }
-  return colors[status] || colors.pending
 }
 
 export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({

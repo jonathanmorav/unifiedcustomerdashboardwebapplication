@@ -1,4 +1,5 @@
 import type { UnifiedSearchResult } from "./unified-search"
+import type { FormattedDwollaCustomer, FormattedTransfer } from "@/lib/types/dwolla"
 
 export const mockSearchResult: UnifiedSearchResult = {
   searchTerm: "john.doe@example.com",
@@ -174,126 +175,65 @@ export const mockSearchResult: UnifiedSearchResult = {
     data: {
       customer: {
         id: "e8b0f3d2-4a89-4c6b-8383-1234567890ab",
-        status: "verified",
         type: "business",
-        firstName: "John",
-        lastName: "Doe",
+        name: "John Doe",
         email: "john.doe@example.com",
         businessName: "Acme Corporation",
-        created: "2024-01-15T10:30:00.000Z",
-        address1: "123 Main St",
-        address2: "Suite 100",
-        city: "Austin",
-        state: "TX",
-        postalCode: "78701",
-        phone: "+1-512-555-0123",
-        _links: {
-          self: { href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab" },
-          "funding-sources": {
-            href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab/funding-sources",
-          },
-          transfers: {
-            href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab/transfers",
-          },
-          notifications: {
-            href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab/notifications",
-          },
-        },
+        created: "2024-01-15T10:30:00.000Z"
       },
       fundingSources: [
         {
           id: "fs_001",
-          status: "verified",
           type: "bank",
           bankAccountType: "checking",
           name: "Business Checking - Chase",
-          created: "2024-01-16T09:00:00.000Z",
           bankName: "JPMORGAN CHASE BANK",
           accountNumberMasked: "****4567",
-          routingNumber: "111000025",
-          _links: {
-            self: { href: "https://api.dwolla.com/funding-sources/fs_001" },
-            customer: {
-              href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab",
-            },
-          },
+          status: "verified" as const,
+          verified: true,
         },
         {
           id: "fs_002",
-          status: "verified",
           type: "bank",
           bankAccountType: "savings",
           name: "Business Savings - Chase",
-          created: "2024-01-16T09:00:00.000Z",
           bankName: "JPMORGAN CHASE BANK",
           accountNumberMasked: "****7890",
-          routingNumber: "111000025",
-          _links: {
-            self: { href: "https://api.dwolla.com/funding-sources/fs_002" },
-            customer: {
-              href: "https://api.dwolla.com/customers/e8b0f3d2-4a89-4c6b-8383-1234567890ab",
-            },
-          },
+          status: "verified" as const,
+          verified: true,
         },
       ],
       transfers: [
         {
           id: "tr_001",
           status: "processed",
-          amount: {
-            value: "2625.00",
-            currency: "USD",
-          },
+          amount: "2625.00",
+          currency: "USD",
           created: "2025-01-05T15:30:00.000Z",
-          metadata: {
-            invoiceNumber: "INV-2025-001",
-            description: "January 2025 Benefits Payment",
-          },
           correlationId: "acme-2025-01",
-          _links: {
-            self: { href: "https://api.dwolla.com/transfers/tr_001" },
-            source: { href: "https://api.dwolla.com/funding-sources/fs_001" },
-            destination: { href: "https://api.dwolla.com/funding-sources/dest_001" },
-          },
+          sourceId: "fs_001",
+          destinationId: "dest_001"
         },
         {
           id: "tr_002",
           status: "processed",
-          amount: {
-            value: "2625.00",
-            currency: "USD",
-          },
+          amount: "2625.00",
+          currency: "USD",
           created: "2024-12-05T15:30:00.000Z",
-          metadata: {
-            invoiceNumber: "INV-2024-012",
-            description: "December 2024 Benefits Payment",
-          },
           correlationId: "acme-2024-12",
-          _links: {
-            self: { href: "https://api.dwolla.com/transfers/tr_002" },
-            source: { href: "https://api.dwolla.com/funding-sources/fs_001" },
-            destination: { href: "https://api.dwolla.com/funding-sources/dest_001" },
-          },
+          sourceId: "fs_001",
+          destinationId: "dest_001"
         },
         {
           id: "tr_003",
           status: "processed",
-          amount: {
-            value: "2625.00",
-            currency: "USD",
-          },
+          amount: "2625.00",
+          currency: "USD",
           created: "2024-11-05T15:30:00.000Z",
-          metadata: {
-            invoiceNumber: "INV-2024-011",
-            description: "November 2024 Benefits Payment",
-          },
           correlationId: "acme-2024-11",
-          _links: {
-            self: { href: "https://api.dwolla.com/transfers/tr_003" },
-            source: { href: "https://api.dwolla.com/funding-sources/fs_001" },
-            destination: { href: "https://api.dwolla.com/funding-sources/dest_001" },
-          },
-        },
+          sourceId: "fs_001",
+          destinationId: "dest_001"
+        }
       ],
       notifications: [
         {
@@ -301,26 +241,21 @@ export const mockSearchResult: UnifiedSearchResult = {
           message: "Transfer processed successfully",
           type: "transfer_completed",
           created: "2025-01-05T16:00:00.000Z",
-          timestamp: "2025-01-05T16:00:00.000Z",
-          topic: "transfer_completed",
         },
         {
           id: "notif_002", 
           message: "New funding source verified",
           type: "funding_source_verified",
           created: "2025-01-04T14:20:00.000Z",
-          timestamp: "2025-01-04T14:20:00.000Z",
-          topic: "funding_source_verified",
         },
         {
           id: "notif_003",
           message: "Customer information updated",
           type: "customer_updated",
           created: "2025-01-03T09:15:00.000Z",
-          timestamp: "2025-01-03T09:15:00.000Z", 
-          topic: "customer_updated",
         },
       ],
+      notificationCount: 2
     },
   },
 }

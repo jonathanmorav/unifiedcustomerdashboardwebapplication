@@ -305,12 +305,9 @@ export class HubSpotClient {
 
       return response.results
     } catch (error) {
-      await log.error(`HubSpot company search failed`, {
+      await log.error(`HubSpot company search failed`, error instanceof Error ? error : new Error(String(error)), {
         searchTerm,
         searchType,
-        error: error instanceof Error ? error.message : String(error),
-        errorName: error instanceof Error ? error.name : "Unknown",
-        stack: error instanceof Error ? error.stack : undefined,
         operation: "hubspot_search_companies_error",
       })
       throw error
@@ -394,11 +391,8 @@ export class HubSpotClient {
 
       return response.results
     } catch (error) {
-      await log.error(`SOB retrieval failed`, {
+      await log.error(`SOB retrieval failed`, error instanceof Error ? error : new Error(String(error)), {
         companyId,
-        error: error instanceof Error ? error.message : String(error),
-        errorName: error instanceof Error ? error.name : "Unknown",
-        stack: error instanceof Error ? error.stack : undefined,
         operation: "hubspot_get_sob_error",
       })
       throw error
@@ -566,9 +560,8 @@ export class HubSpotClient {
 
       return memberships
     } catch (error) {
-      await log.error(`Failed to get list memberships`, {
+      await log.error(`Failed to get list memberships`, error instanceof Error ? error : new Error(String(error)), {
         contactId,
-        error: error instanceof Error ? error.message : String(error),
         operation: "hubspot_get_contact_lists_error",
       })
       throw error
@@ -610,9 +603,8 @@ export class HubSpotClient {
 
       return response.results
     } catch (error) {
-      await log.error(`Failed to get company contacts`, {
+      await log.error(`Failed to get company contacts`, error instanceof Error ? error : new Error(String(error)), {
         companyId,
-        error: error instanceof Error ? error.message : String(error),
         operation: "hubspot_get_company_contacts_error",
       })
       throw error
@@ -667,9 +659,8 @@ export class HubSpotClient {
         total: aggregatedLists.length,
       }
     } catch (error) {
-      await log.error(`Failed to get company list memberships`, {
+      await log.error(`Failed to get company list memberships`, error instanceof Error ? error : new Error(String(error)), {
         companyId,
-        error: error instanceof Error ? error.message : String(error),
         operation: "hubspot_get_company_lists_error",
       })
       return { lists: [], total: 0 }
@@ -748,9 +739,8 @@ export class HubSpotClient {
 
       return response.results || []
     } catch (error) {
-      log.error("Failed to batch read engagements", {
+      log.error("Failed to batch read engagements", error instanceof Error ? error : new Error(String(error)), {
         engagementCount: engagementIds.length,
-        error: error instanceof Error ? error.message : String(error),
         operation: "hubspot_batch_read_engagements",
       })
       return []

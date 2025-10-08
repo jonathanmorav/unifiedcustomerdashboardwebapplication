@@ -13,66 +13,60 @@ export function monitoringMiddleware(request: NextRequest) {
   // Create a proxy for the response to capture status code
   const originalResponse = NextResponse.next()
 
-  // Override response to capture metrics
-  return new Proxy(originalResponse, {
-    get(target, prop) {
-      if (prop === "status") {
-        return target.status
-      }
-      return target[prop as keyof typeof target]
-    },
+  // Capture metrics after response
+  const response = originalResponse
+  
+  // Schedule metrics collection (non-blocking)
+  queueMicrotask(() => {
+    const duration = Date.now() - start
+    const status = response.status || 200
 
-    apply(target, thisArg, argArray) {
-      const duration = Date.now() - start
-      const status = target.status || 200
+    // Record request metrics
+    metrics.incrementCounter("http_requests_total", 1, {
+      method,
+      path: sanitizePath(path),
+      status: String(status),
+    })
 
-      // Record request metrics
-      metrics.incrementCounter("http_requests_total", 1, {
+    metrics.recordHistogram("http_request_duration_ms", duration, {
+      method,
+      path: sanitizePath(path),
+      status: String(status),
+    })
+
+    // Decrement active connections
+    metrics.decrementGauge("active_connections")
+
+    // Log slow requests
+    if (duration > 1000) {
+      log.warn("Slow request detected", {
+        method,
+        path,
+        duration,
+        status,
+        operation: "http_request",
+      })
+    }
+
+    // Record errors
+    if (status >= 400) {
+      metrics.incrementCounter("errors_total", 1, {
         method,
         path: sanitizePath(path),
         status: String(status),
       })
+    }
 
-      metrics.recordHistogram("http_request_duration_ms", duration, {
+    // Record specific endpoint metrics
+    if (path.includes("/api/search")) {
+      metrics.incrementCounter("search_requests_total", 1, {
         method,
-        path: sanitizePath(path),
         status: String(status),
       })
-
-      // Decrement active connections
-      metrics.decrementGauge("active_connections")
-
-      // Log slow requests
-      if (duration > 1000) {
-        log.warn("Slow request detected", {
-          method,
-          path,
-          duration,
-          status,
-          operation: "http_request",
-        })
-      }
-
-      // Record errors
-      if (status >= 400) {
-        metrics.incrementCounter("errors_total", 1, {
-          method,
-          path: sanitizePath(path),
-          status: String(status),
-        })
-      }
-
-      // Record specific endpoint metrics
-      if (path.includes("/api/search")) {
-        metrics.incrementCounter("search_requests_total", 1, {
-          method,
-          status: String(status),
-        })
-      }
-
-      return Reflect.apply(target, thisArg, argArray)
-    },
+    }
   })
+  
+  return response
 }
 
 /**

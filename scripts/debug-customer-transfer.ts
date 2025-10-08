@@ -21,15 +21,15 @@ async function debugCustomerTransfer() {
     console.log(JSON.stringify(transfer, null, 2))
 
     // The source is a customer URL, not a funding source
-    const sourceUrl = transfer._links.source.href
+    const sourceUrl = transfer._links?.source.href
     console.log(`\nSource URL: ${sourceUrl}`)
 
-    if (sourceUrl.includes("/customers/")) {
+    if (sourceUrl && sourceUrl.includes("/customers/")) {
       console.log("Source is a CUSTOMER (direct debit)")
 
       // For customer sources, we need to get the customer directly
       try {
-        const customer = await client.getCustomerByUrl(sourceUrl)
+        const customer = await client.getCustomerByUrl(sourceUrl!)
         console.log("\nCustomer details:")
         console.log(`Name: ${customer.firstName} ${customer.lastName}`)
         console.log(`Email: ${customer.email}`)
@@ -43,10 +43,10 @@ async function debugCustomerTransfer() {
     }
 
     // Check if transfer has source-funding-source link
-    if (transfer._links["source-funding-source"]) {
+    if (transfer._links?.["source-funding-source"]) {
       console.log("\nTransfer has source-funding-source link!")
       const sourceFundingSource = await client.getFundingSourceByUrl(
-        transfer._links["source-funding-source"].href
+        transfer._links?.["source-funding-source"].href
       )
       console.log("Source Funding Source:", sourceFundingSource.name)
       console.log("Type:", sourceFundingSource.type)

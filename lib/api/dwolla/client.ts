@@ -528,7 +528,7 @@ export class DwollaClient {
       const response = await this.fetchWithRetry<DwollaListResponse<any>>(url, {}, 0, signal)
       return response._embedded?.events || []
     } catch (error) {
-      log.error('Error fetching transfer events:', error)
+      log.error('Error fetching transfer events:', error instanceof Error ? error : new Error(String(error)))
       return []
     }
   }
@@ -556,7 +556,7 @@ export class DwollaClient {
       const response = await this.fetchWithRetry<DwollaListResponse<any>>(url, {}, 0, signal)
       return response._embedded?.["webhook-subscriptions"] || []
     } catch (error) {
-      log.error('Error fetching webhook subscriptions:', error)
+      log.error('Error fetching webhook subscriptions:', error instanceof Error ? error : new Error(String(error)))
       return []
     }
   }
@@ -580,7 +580,7 @@ export class DwollaClient {
       const response = await this.fetchWithRetry<DwollaListResponse<any>>(url, {}, 0, signal)
       return response._embedded?.events || []
     } catch (error) {
-      log.error('Error fetching webhook events:', error)
+      log.error('Error fetching webhook events:', error instanceof Error ? error : new Error(String(error)))
       return []
     }
   }

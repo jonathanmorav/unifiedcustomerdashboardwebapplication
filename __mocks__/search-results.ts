@@ -1,105 +1,69 @@
-import type { SearchResult, AdvancedSearchResult } from "@/lib/types/search"
+import type { AdvancedSearchResult } from "@/lib/types/search"
 import { mockHubSpotCustomerData } from "./hubspot-responses"
 import { mockDwollaCustomerData } from "./dwolla-responses"
 
-export const mockHubSpotSearchResult: SearchResult = {
-  id: "hubspot-12345",
-  type: "hubspot",
-  title: "Acme Corporation",
-  subtitle: "Technology • California",
-  description: "Active customer since Jan 2024",
-  metadata: {
-    companyId: "12345",
-    email: "contact@acme.com",
-    status: "customer",
-    lastModified: "2024-12-20T14:45:00Z",
-  },
-  data: mockHubSpotCustomerData,
-  score: 0.95,
-}
-
-export const mockDwollaSearchResult: SearchResult = {
-  id: "dwolla-cust_12345",
-  type: "dwolla",
-  title: "Acme Corporation",
-  subtitle: "Verified Business Account",
-  description: "john.doe@acme.com • Active transfers",
-  metadata: {
-    customerId: "cust_12345",
-    email: "john.doe@acme.com",
-    status: "verified",
-    lastTransfer: "2024-12-15T10:30:00Z",
-  },
-  data: mockDwollaCustomerData,
-  score: 0.92,
-}
-
-export const mockSearchResults: SearchResult[] = [
-  mockHubSpotSearchResult,
-  mockDwollaSearchResult,
-  {
-    ...mockHubSpotSearchResult,
-    id: "hubspot-67890",
-    title: "Tech Innovations Inc",
-    subtitle: "Technology • New York",
-    score: 0.88,
-  },
-]
-
 export const mockAdvancedSearchResult: AdvancedSearchResult = {
-  results: mockSearchResults,
-  totalCount: 25,
-  filteredCount: 3,
-  facets: {
-    type: [
-      { value: "hubspot", count: 15 },
-      { value: "dwolla", count: 10 },
-    ],
-    status: [
-      { value: "active", count: 20 },
-      { value: "pending", count: 3 },
-      { value: "inactive", count: 2 },
-    ],
+  searchTerm: "acme",
+  searchType: "auto",
+  timestamp: new Date(),
+  duration: 245,
+  
+  pagination: {
+    currentPage: 1,
+    pageSize: 10,
+    totalResults: 3,
+    totalPages: 1,
   },
-  query: {
-    searchTerm: "acme",
-    filters: {
-      type: ["hubspot", "dwolla"],
-      status: ["active"],
-    },
-    sort: {
-      field: "score",
-      direction: "desc",
-    },
-    pagination: {
-      page: 1,
-      limit: 20,
-    },
+  
+  hubspot: {
+    success: true,
+    data: [mockHubSpotCustomerData],
+    duration: 120,
+    totalCount: 2,
   },
-  timing: {
-    total: 125,
-    hubspot: 80,
-    dwolla: 45,
+  
+  dwolla: {
+    success: true,
+    data: [mockDwollaCustomerData],
+    duration: 125,
+    totalCount: 1,
+  },
+  
+  statistics: {
+    totalCustomers: 3,
+    activeCustomers: 3,
+    totalTransferAmount: 9850,
+    failedTransfersCount: 1,
+    unverifiedFundingCount: 0,
   },
 }
 
 export const mockEmptySearchResult: AdvancedSearchResult = {
-  results: [],
-  totalCount: 0,
-  filteredCount: 0,
-  facets: {
-    type: [],
-    status: [],
+  searchTerm: "nonexistent",
+  searchType: "auto",
+  timestamp: new Date(),
+  duration: 50,
+  
+  hubspot: {
+    success: true,
+    data: [],
+    duration: 25,
+    totalCount: 0,
   },
-  query: {
-    searchTerm: "nonexistent",
-    pagination: {
-      page: 1,
-      limit: 20,
-    },
+  
+  dwolla: {
+    success: true,
+    data: [],
+    duration: 25,
+    totalCount: 0,
   },
-  timing: {
-    total: 50,
+  
+  statistics: {
+    totalCustomers: 0,
+    activeCustomers: 0,
+    totalTransferAmount: 0,
+    failedTransfersCount: 0,
+    unverifiedFundingCount: 0,
   },
 }
 

@@ -5,9 +5,9 @@ import { SearchHistoryManager } from "@/lib/search/search-history"
 import { log } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
-  let session: any = null
+  let session: any
   let query = ""
-
+  
   try {
     // Check authentication
     session = await getServerSession(authOptions)

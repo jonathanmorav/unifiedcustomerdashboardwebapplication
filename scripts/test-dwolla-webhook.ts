@@ -152,14 +152,16 @@ async function sendWebhook() {
       : options.code
       
     if (payload.topic === "transfer_returned") {
-      payload.returnCode = returnCode
-      payload.achReturnCode = returnCode
+      const returnPayload = payload as { returnCode?: string; achReturnCode?: string }
+      returnPayload.returnCode = returnCode
+      returnPayload.achReturnCode = returnCode
     } else if (payload.topic === "transfer_failed" || payload.topic === "customer_transfer_failed") {
-      payload.reasonCode = returnCode
-      if (payload.achDetails) {
-        payload.achDetails.returnCode = returnCode
+      const failedPayload = payload as { reasonCode?: string; achDetails?: { returnCode?: string }; description?: string }
+      failedPayload.reasonCode = returnCode
+      if (failedPayload.achDetails) {
+        failedPayload.achDetails.returnCode = returnCode
       }
-      payload.description = `Transfer failed with return code ${returnCode}`
+      failedPayload.description = `Transfer failed with return code ${returnCode}`
     }
   }
   
@@ -174,7 +176,8 @@ async function sendWebhook() {
   console.log(`Event: ${payload.topic}`)
   console.log(`URL: ${options.url}`)
   if (options.event.includes("failed") || options.event.includes("returned")) {
-    console.log(`Return Code: ${payload.returnCode || payload.reasonCode}`)
+    const returnPayload = payload as { returnCode?: string; reasonCode?: string }
+    console.log(`Return Code: ${returnPayload.returnCode || returnPayload.reasonCode}`)
   }
   console.log(`Signature: ${signature}`)
   console.log("\nPayload:")

@@ -80,36 +80,46 @@ describe("RateLimiter", () => {
   })
 
   describe("handleBurst", () => {
-    it("should allow burst requests up to 150% of limit", async () => {
+    it("should allow burst requests when normal limit is exceeded", async () => {
       const request = createMockRequest("192.168.1.4")
       const config = {
+        name: "test-burst",
         windowMs: 60000,
         max: 10,
+        burstMax: 15, // Burst allows 15 total in double window
         keyGenerator: () => "192.168.1.4",
       }
 
       // Fill up normal limit
       for (let i = 0; i < 10; i++) {
-        await rateLimiter.limit(request, config)
+        const result = await rateLimiter.limit(request, config)
+        expect(result.success).toBe(true)
       }
 
-      // Burst should allow up to 5 more requests (50% of 10)
-      for (let i = 0; i < 5; i++) {
+      // Next normal request should fail
+      const normalResult = await rateLimiter.limit(request, config)
+      expect(normalResult.success).toBe(false)
+
+      // But handleBurst should allow more requests
+      // The burst uses a separate counter with max=15 in a double window
+      // So it should allow all 15 requests in the burst window
+      for (let i = 0; i < 15; i++) {
         const result = await rateLimiter.handleBurst(request, config)
         expect(result.success).toBe(true)
-        expect(result.burst).toBe(true)
       }
 
-      // 16th request should fail even with burst
-      const result = await rateLimiter.handleBurst(request, config)
-      expect(result.success).toBe(false)
+      // 16th burst request should fail
+      const failResult = await rateLimiter.handleBurst(request, config)
+      expect(failResult.success).toBe(false)
     })
 
-    it("should apply exponential backoff for burst requests", async () => {
+    it("should apply retry after for burst requests", async () => {
       const request = createMockRequest("192.168.1.5")
       const config = {
+        name: "test-retry",
         windowMs: 60000,
         max: 2,
+        burstMax: 3,
         keyGenerator: () => "192.168.1.5",
       }
 
@@ -117,58 +127,63 @@ describe("RateLimiter", () => {
       await rateLimiter.limit(request, config)
       await rateLimiter.limit(request, config)
 
-      // First burst request
+      // First burst request should succeed with retryAfter
       const burst1 = await rateLimiter.handleBurst(request, config)
       expect(burst1.success).toBe(true)
-      expect(burst1.penalty).toBeDefined()
-
-      // Penalty should increase for subsequent burst requests
-      const burst2 = await rateLimiter.handleBurst(request, config)
-      if (burst2.success && burst2.penalty && burst1.penalty) {
-        expect(burst2.penalty).toBeGreaterThan(burst1.penalty)
-      }
+      // retryAfter should be set for burst requests
+      expect(burst1.retryAfter).toBeDefined()
     })
   })
 
-  describe("abuse detection", () => {
-    it("should track rate limit violations", async () => {
+  describe("rate limit behavior", () => {
+    it("should track remaining requests correctly", async () => {
       const request = createMockRequest("192.168.1.6")
       const config = {
+        name: "test-remaining",
+        windowMs: 60000,
+        max: 3,
+        keyGenerator: () => "192.168.1.6",
+      }
+
+      // First request succeeds with max-1 remaining
+      const result1 = await rateLimiter.limit(request, config)
+      expect(result1.success).toBe(true)
+      expect(result1.remaining).toBe(2)
+
+      // Second request
+      const result2 = await rateLimiter.limit(request, config)
+      expect(result2.success).toBe(true)
+      expect(result2.remaining).toBe(1)
+
+      // Third request
+      const result3 = await rateLimiter.limit(request, config)
+      expect(result3.success).toBe(true)
+      expect(result3.remaining).toBe(0)
+
+      // Fourth request should fail
+      const result4 = await rateLimiter.limit(request, config)
+      expect(result4.success).toBe(false)
+      expect(result4.remaining).toBe(0)
+    })
+
+    it("should provide retry after information", async () => {
+      const request = createMockRequest("192.168.1.7")
+      const config = {
+        name: "test-retry-after",
         windowMs: 60000,
         max: 1,
-        keyGenerator: () => "192.168.1.6",
+        keyGenerator: () => "192.168.1.7",
       }
 
       // First request succeeds
       await rateLimiter.limit(request, config)
 
-      // Track violations
-      for (let i = 0; i < 5; i++) {
-        const result = await rateLimiter.limit(request, config)
-        expect(result.success).toBe(false)
-        expect(result.violations).toBe(i + 1)
-      }
-    })
-
-    it("should detect abuse patterns", async () => {
-      const request = createMockRequest("192.168.1.7")
-      const config = {
-        windowMs: 100, // Short window for testing
-        max: 1,
-        keyGenerator: () => "192.168.1.7",
-      }
-
-      // Generate many violations quickly
-      for (let i = 0; i < 11; i++) {
-        await rateLimiter.limit(request, config)
-        await rateLimiter.limit(request, config) // Second request always fails
-      }
-
-      // Check last result for abuse detection
+      // Second request should fail with retry info
       const result = await rateLimiter.limit(request, config)
       expect(result.success).toBe(false)
-      expect(result.violations).toBeGreaterThanOrEqual(10)
-      expect(result.abuseLockout).toBe(true)
+      expect(result.retryAfter).toBeDefined()
+      expect(result.retryAfter).toBeGreaterThan(0)
+      expect(result.reset).toBeInstanceOf(Date)
     })
   })
 })

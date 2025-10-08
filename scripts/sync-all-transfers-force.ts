@@ -41,10 +41,10 @@ async function forceSyncAllTransfers() {
       
       // Count customer-initiated transfers
       for (const transfer of transfers) {
-        const sourceUrl = transfer._links.source.href
-        const destUrl = transfer._links.destination.href
+        const sourceUrl = transfer._links?.source.href
+        const destUrl = transfer._links?.destination.href
         
-        if (destUrl.includes(ourAccountId) && sourceUrl.includes("/customers/")) {
+        if (destUrl && ourAccountId && destUrl.includes(ourAccountId) && sourceUrl && sourceUrl.includes("/customers/")) {
           customerTransfers++
         }
       }

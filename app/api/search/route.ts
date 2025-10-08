@@ -23,7 +23,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   // Check authentication
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
-    throw new AuthenticationError("Authentication required", correlationId ? { correlationId } : undefined)
+    throw new AuthenticationError("Authentication required", { correlationId: correlationId || undefined })
   }
 
   // Parse and validate request body
@@ -98,7 +98,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
       data: displayResult,
       searchId: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
-      correlationId: correlationId || undefined,
+      correlationId: correlationId || "",
     })
   } finally {
     clearTimeout(timeoutId)
@@ -112,7 +112,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
   // Check authentication
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
-    throw new AuthenticationError("Authentication required", correlationId ? { correlationId } : undefined)
+    throw new AuthenticationError("Authentication required", { correlationId: correlationId || undefined })
   }
 
   // Get query parameters
@@ -139,6 +139,6 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
   return NextResponse.json({
     success: true,
     data: history,
-    correlationId: correlationId || undefined,
+    correlationId: correlationId || "",
   })
 })

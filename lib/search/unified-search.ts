@@ -198,8 +198,14 @@ export class UnifiedSearchEngine {
     if (result.dwolla.success && result.dwolla.data) {
       this.logger.info("UnifiedSearch: Formatting Dwolla data")
       try {
-        const formatted = DwollaFormatter.format(result.dwolla.data)
-        this.logger.info("UnifiedSearch: Dwolla data formatted")
+        // Validate Dwolla data structure before casting
+        const dwollaData = result.dwolla.data
+        if (!dwollaData || typeof dwollaData !== 'object' || !dwollaData.customer) {
+          throw new Error('Invalid Dwolla data structure')
+        }
+        
+        const formatted = dwollaData as DwollaCustomerData
+        console.log(`[DEBUG] Dwolla data formatted successfully`)
         display.dwolla = {
           customer: formatted.customer,
           fundingSources: formatted.fundingSources,
@@ -320,10 +326,8 @@ export class UnifiedSearchEngine {
       data: data || undefined,
       duration: Date.now() - startTime,
     }
-  } catch (error) {
-    this.logger.error("UnifiedSearch: Dwolla search error", {
-      error: error instanceof Error ? error.message : String(error),
-    })
+  } catch (error: any) {
+    console.error(`[DEBUG] Dwolla search error:`, error)
     throw error
   }
 

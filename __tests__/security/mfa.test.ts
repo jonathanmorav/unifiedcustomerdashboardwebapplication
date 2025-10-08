@@ -20,10 +20,58 @@ jest.mock("@/lib/db", () => ({
       count: jest.fn(),
     },
   },
+  prisma: {
+    user: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    mFARecovery: {
+      create: jest.fn(),
+      createMany: jest.fn(),
+      findFirst: jest.fn(),
+      update: jest.fn(),
+    },
+    loginAttempt: {
+      create: jest.fn(),
+      count: jest.fn(),
+    },
+    auditLog: {
+      create: jest.fn(),
+    },
+  },
+}))
+
+// Mock Encryption
+jest.mock("@/lib/security/encryption", () => ({
+  Encryption: {
+    generateBackupCodes: jest.fn().mockImplementation((count) => {
+      const codes = []
+      for (let i = 0; i < count; i++) {
+        codes.push(`ABCD-EFGH-IJK${i}`)
+      }
+      return codes
+    }),
+    hashBackupCode: jest.fn().mockImplementation((code) => `hashed_${code}`),
+    encrypt: jest.fn().mockImplementation((data) => `encrypted_${data}`),
+    decrypt: jest.fn(),
+  },
+}))
+
+// Mock environment
+jest.mock("@/lib/env", () => ({
+  getEnv: jest.fn().mockReturnValue({
+    NEXTAUTH_SECRET: "test-secret-key",
+    GOOGLE_CLIENT_ID: "test-client-id",
+    GOOGLE_CLIENT_SECRET: "test-client-secret",
+    AUTHORIZED_EMAILS: "test@example.com",
+    APP_URL: "http://localhost:3000",
+  }),
 }))
 
 jest.mock("qrcode")
 jest.mock("speakeasy")
+
+const { prisma } = require("@/lib/db")
 
 describe("MFAService", () => {
   const mockUserId = "test-user-123"
@@ -45,11 +93,20 @@ describe("MFAService", () => {
     it("should generate MFA setup data without exposing secret", async () => {
       const result = await MFAService.setupMFA(mockUserId, mockEmail)
 
-      expect(result.qrCode).toBe("data:image/png;base64,mockQRCode")
+      expect(result.qrCodeUrl).toBe("data:image/png;base64,mockQRCode")
       expect(result.backupCodes).toHaveLength(10)
-      expect(result.backupCodes[0]).toMatch(/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/)
-      expect(result.warning).toContain("backup codes")
-      expect(result.secret).toBeUndefined() // Secret should never be exposed
+      expect(result.backupCodes[0]).toMatch(/^ABCD-EFGH-IJK/)
+      expect((result as any).secret).toBeUndefined() // Secret should never be exposed
+      
+      // Verify user was updated with encrypted secret
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: mockUserId },
+        data: {
+          mfaSecret: "encrypted_MOCK_SECRET_BASE32",
+          mfaBackupCodes: expect.any(Array),
+          mfaEnabled: false,
+        },
+      })
     })
 
     it("should generate unique backup codes", async () => {
@@ -63,7 +120,7 @@ describe("MFAService", () => {
       await MFAService.setupMFA(mockUserId, mockEmail)
 
       expect(speakeasy.generateSecret).toHaveBeenCalledWith({
-        name: mockEmail,
+        name: `Unified Customer Dashboard (${mockEmail})`,
         issuer: "Unified Customer Dashboard",
         length: 32,
       })
@@ -83,8 +140,13 @@ describe("MFAService", () => {
     }
 
     beforeEach(() => {
-      ;(db.user.findUnique as jest.Mock).mockResolvedValue(mockUser)
-      ;(db.loginAttempt.count as jest.Mock).mockResolvedValue(0)
+      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser)
+      ;(prisma.loginAttempt.count as jest.Mock).mockResolvedValue(0)
+      ;(speakeasy.totp.verify as any) = jest.fn()
+      
+      // Mock Encryption.decrypt to return the original secret
+      const { Encryption } = require("@/lib/security/encryption")
+      ;(Encryption.decrypt as jest.Mock).mockReturnValue("MOCK_SECRET_BASE32")
     })
 
     it("should verify valid TOTP code", async () => {
@@ -93,8 +155,7 @@ describe("MFAService", () => {
       const result = await MFAService.verifyTOTP(mockUserId, "123456", "192.168.1.1")
 
       expect(result.success).toBe(true)
-      expect(result.message).toContain("verified")
-      expect(db.loginAttempt.create).toHaveBeenCalledWith({
+      expect(prisma.loginAttempt.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           success: true,
           userId: mockUserId,

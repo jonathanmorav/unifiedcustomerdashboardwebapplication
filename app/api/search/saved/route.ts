@@ -23,6 +23,7 @@ const createSavedSearchSchema = z.object({
 // GET: Fetch saved searches for the user
 export async function GET(request: NextRequest) {
   let session: any
+  
   try {
     // Check authentication
     session = await getServerSession(authOptions)
@@ -86,6 +87,7 @@ export async function GET(request: NextRequest) {
 // POST: Create a new saved search
 export async function POST(request: NextRequest) {
   let session: any
+  
   try {
     // Check authentication
     session = await getServerSession(authOptions)
@@ -162,6 +164,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   let session: any
   let id: string | null = null
+  
   try {
     // Check authentication
     session = await getServerSession(authOptions)
@@ -238,6 +241,7 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   let session: any
   let id: string | null = null
+  
   try {
     // Check authentication
     session = await getServerSession(authOptions)
