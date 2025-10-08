@@ -556,6 +556,13 @@ enum ReconciliationSessionStatus {
   cancelled
 }
 
+enum ReconciliationExportStatus {
+  pending
+  in_progress
+  completed
+  failed
+}
+
 // Missing model for reconciliation checks
 model ReconciliationCheck {
   id                String              @id @default(cuid())
@@ -665,6 +672,30 @@ model ReconciliationSession {
   @@index([status])
   @@index([createdAt])
   @@index([sessionNumber])
+}
+
+model ReconciliationExport {
+  id             String                      @id @default(cuid())
+  format         String
+  status         ReconciliationExportStatus  @default(pending)
+  transferIds    String[]                    @default([])
+  sobIds         String[]                    @default([])
+  coverageMonths String[]                    @default([])
+  totalTransfers Int                         @default(0)
+  totalPolicies  Int                         @default(0)
+  carrierTotals  Json                        @default("{}")
+  csvData        String?                     @db.Text
+  snapshot       Json?
+  fileSize       Int                         @default(0)
+  fileHash       String?
+  chunkCount     Int                         @default(0)
+  exportedBy     String
+  exportedAt     DateTime                    @default(now())
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+
+  @@index([status])
+  @@index([exportedAt])
 }
 
 enum AnomalySeverity {
